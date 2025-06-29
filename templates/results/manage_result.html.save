@@ -1,0 +1,306 @@
+
+
+
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+
+    <style>
+    .special-field {
+        background-color: #f0f8ff;  /* Light blue background */
+        border-color: #4682b4;      /* Blue border */
+        color: #000080;             /* Dark blue text */
+    }
+</style>
+
+
+
+<div class="container-fluid main-content">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <!-- Card Header -->
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="mb-0">{% if instance %} Update result {% else %} Result Marks Entry {% endif %}</h3>
+                </div> 
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row">
+
+
+{% for field in form %}
+    <div class="col-md-4 mb-1">
+        <div class="d-flex align-items-center">
+            <label class="form-label" for="{{ field.id_for_label }}" style="min-width: 100px;">
+                {{ field.label }}
+            </label>
+            <div class="flex-grow-1">
+                {{ field|add_class:"form-control" }}
+            </div>
+        </div>
+
+        {% if field.help_text %}
+            <small class="text-muted">{{ field.help_text }}</small>
+        {% endif %}
+
+        {% for error in field.errors %}
+            <div class="text-danger">{{ error }}</div>
+        {% endfor %}
+    </div>
+{% endfor %}
+
+                        </div>
+                
+                        <div class="d-grid">
+                            <button type="submit" name="entity_submit" class="btn btn-success btn-sm">
+                                {% if instance %} Update {% else %} Add {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                
+                
+                
+            </div>
+        </div>
+        
+        
+        <div class="col-12 table-responsive my-5">
+            <table class="table table-hover">
+                <thead class="table-dark">
+
+		  <tr>
+                        <th>Student</th>
+                        <td>Academic Year</td>    
+                        <td>Subject </td>
+                        <td>Subject Teacher</td>
+                        <td>Exam type</td>                   
+                        <td>Exam date</td>    
+                        <th>Exam marks</th> 
+                        <th>Obtained marks</th>               
+                         <td>Actions</td>
+                    
+                       
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entity in page_obj %}
+                        <tr>
+                            
+                            <td> {{ entity.student.name }}</td>
+                            <td> {{ entity.academic_year}}</td>
+                            <td> {{ entity.subject.name}}</td>
+                            <td> {{ entity.subject_teacher.name}}</td>
+                            <td> {{ entity.exam_type.name}}</td>
+                            <td> {{ entity.exam_date}}</td>
+                            <td> {{ entity.exam_marks}}</td>
+                            <td> {{ entity.obtained_marks}}</td>
+
+                          
+                           
+                            <td class="text-center">
+                                <a href="{% url 'results:create_result' %}" class="btn btn-sm btn-info">Add</a>
+                                <a href="{% url 'results:update_result' entity.id %}" class="btn btn-sm btn-info">Edit</a>
+                               
+                                <a href="#" 
+                                    class="btn btn-danger btn-sm" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#deleteModal" 
+                                    data-id="{{ entity.id }}" 
+                                    data-name="{{ entity.name }}">
+                                        Delete
+                                    </a>
+                               
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="text-center">No record available.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+    
+     <!-- Pagination Controls -->
+     <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+
+</div>
+
+
+
+ <!-- Delete Confirmation Modal -->
+ <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the record: <strong id="modal-entity-name"></strong>?
+            </div>
+            <div class="modal-footer">
+                <form method="post" id="delete-form">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+<script>
+    $(document).ready(function(){
+        $("#exam_type").change(function(){
+            var exam_typeId = $(this).val();
+
+            if(exam_typeId){
+                console.log("Triggering AJAX for examtype:", exam_typeId );
+
+                $.ajax({               
+                    url: "{% url 'results:get_exam_marks' %}",
+                    data: {'exam_type_id': exam_typeId },
+                    dataType: 'json',
+                    success: function(data){
+                        console.log("Response received:", data);
+
+                        if(data.error){
+                            alert(data.error);
+                        } else {
+                            $("#exam_marks").val(data.exam_marks);
+                            $("#id_exam_date").val(data.exam_date);
+                        }
+                    },
+                    error: function(xhr, status, error){
+                        console.error("AJAX error:", error);
+                    }
+                });
+            }
+        });
+    });  
+</script>
+
+<script>
+    $(document).ready(function(){
+        $("#subject").change(function(){
+            var subjectId = $(this).val();
+
+            if(subjectId){
+                console.log("Triggering AJAX for subject:", subjectId);
+
+                $.ajax({               
+                    url: "{% url 'results:get_subject_teacher' %}",
+                    data: {'subject_id': subjectId},
+                    dataType: 'json',
+                    success: function(data){
+                        console.log("Response received:", data);
+
+                        if(data.error){
+                            alert(data.error);
+                        } else {
+                            $("#subject_teacher").val(data.subject_teacher).change();
+                        }
+                    },
+                    error: function(xhr, status, error){
+                        console.error("AJAX error:", error);
+                    }
+                });
+            }
+        });
+    });  
+</script>
+
+<script>
+  $(document).ready(function() {
+    $("#student-dropdown").change(function() {
+        var studentId = $(this).val();
+
+        if (studentId) {
+            console.log("Request URL: {% url 'results:get_student_details' %}");  
+            $.ajax({
+                url: "{% url 'results:get_student_details' %}",
+                data: {'student_id': studentId},
+                dataType: 'json',
+                success: function(data) {
+                    console.log(data);
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        // Clear previous data
+                        $("#id_academic_class").val('').change();
+                        $("#id_section").val('').change();
+
+                        // Populate fields
+                        $("#id_academic_year").val(data.academic_year).change();                                
+                        $("#id_class_teacher").val(data.class_teacher).change();
+                        $("#id_shift").val(data.shift).change();
+                        $("#id_class_gender").val(data.class_gender).change();
+                        $("#id_version").val(data.version).change();
+
+                        $("#academic-class").val(data.academic_class).change();
+                        $("#section").val(data.section).change();
+                        $("#faculty").val(data.faculty).change();
+                       
+                    }
+                },
+                error: function() {
+                    alert("Error fetching student details");
+                }
+            });
+        }
+    });
+});
+
+
+</script>
+
+
+
+<script>
+    const deleteModal = document.getElementById('deleteModal');
+    deleteModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget; 
+        const entityId = button.getAttribute('data-id');
+        const entityName = button.getAttribute('data-name');
+
+          const modalEntityName = deleteModal.querySelector('#modal-entity-name');
+        modalEntityName.textContent = entityName;
+  
+        const deleteForm = deleteModal.querySelector('#delete-form');
+        deleteForm.action = `/results/delete_result/${entityId}/`;
+    });
+</script>
+
+
+
+{% endblock %}

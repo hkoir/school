@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container">
+
+
+<form method="POST" action="{% url 'results:aggregated_final_result' %}" class="mb-3">
+    {% csrf_token %}
+    
+    <div class="form-group">
+        <label for="student_id">Enter Student ID</label>
+        <input type="text" class="form-control" id="student_id" name="student_id" required>
+    </div>
+
+    <div class="form-group">
+        <label for="academic_year">Enter Academic Year</label>
+        <input type="number" class="form-control" id="academic_year" name="academic_year" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary my-2">Generate Result</button>
+</form>
+
+<div class="row" id="report-content">
+
+
+
+  <div class="card mb-4">
+      <div class="card-body">
+          <div class="row">
+              <!-- Student Details (Left) -->
+              <div class=" col-12 col-md-4 d-flex">
+                  <div class="mx-3 mt-5">
+                      {% if student.profile_picture %}
+                          <img src="{{ student.profile_picture.url }}" alt="Student Profile" class="rounded-circle" width="100" height="100">
+                      {% else %}
+                          <img src="/static/default-profile.png" alt="Default Profile" class="rounded-circle" width="100" height="100">
+                      {% endif %}
+                  </div>
+                  <div>
+                      <h5>Student Information</h5>
+                      <p><strong>Name:</strong> {{ student.name }}<br>
+                         <strong>Student ID:</strong> {{ student.student_id }}<br>
+                         <strong>Class:</strong> {{ final_results.0.academic_class.name }}<br>
+                         <strong>Section:</strong> {{ final_results.0.section.name }}<br>
+                         <strong>Shift:</strong> {{ student.enrolled_students.first.student_class.shift }}<br>
+                      </p>
+                  </div>
+              </div>
+              <div class="col-12 col-md-4 mt-2 d-flex flex-column align-items-center text-center">
+                <p>
+                <strong>Total Obtained Marks:</strong> {{ total_obtained_marks }}<br>
+                <strong>Total Assigned Marks:</strong> {{ total_assigned_marks }}<br>
+                <strong>Overall Percentage: </strong>{{ overall_percentage|floatformat:'2' }}%<br>
+                <h2>GPA:{{ gpa }}</h2>
+               
+              </p>
+              </div>
+  
+              <!-- Exam Details (Right) -->
+              <div class="col-12 col-md-4 d-flex flex-column align-items-end text-end">
+                  <h5>Exam Details</h5>
+                  <p><strong>Exam Type:</strong> Final Exam<br>
+                     <strong>Academic Year:</strong> {{ academic_year }}<br>  
+                     <strong>Date of exam:</strong> {{ overall_exam_date }}<br>                    
+                     <strong>Version:</strong> {{ student.enrolled_students.first.student_class.language_version }}<br>
+                     <strong>Class Gender:</strong> {{ final_results.0.section.class_gender }}<br>
+                     <strong>Class Teacher:</strong> {{student.enrolled_students.first.section.teacher_in_charge }}</p>
+              </div>
+          </div>
+      </div>
+  </div>
+  
+
+
+  
+  <div class="table-responsive">
+    <table class="table">
+      <thead class="table-info">
+          <tr class="bg-primary text-white">
+        
+        <th>Subject</th>     
+        <th>Obtained Marks</th>
+        <th>Total Marks</th>
+        <th>Percentage</th>
+        <th>Final Grade</th>
+        <th>Grade Point</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for result in final_results %}
+        <tr>
+              
+          <td>{{ result.subject.name }}</td>           
+          <td>{{ result.total_obtained_marks }}</td>
+          <td>{{ result.total_assigned_marks }}</td>
+          <td>{{ result.percentage }}%</td>          
+          <td>{% if result.final_grade %}{{ result.final_grade.name }}{% else %}N/A{% endif %}</td>
+          <td>{{ result.final_grade.grade_point }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+
+
+</div>
+
+</div>
+
+
+
+<button id="download-pdf" class="btn btn-success mt-3">Download PDF</button>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.0/purify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+   document.getElementById('download-pdf').addEventListener('click', function () {
+       const { jsPDF } = window.jspdf;
+       const doc = new jsPDF('0', 'mm', 'a4'); // Set 'l' for landscape orientation
+       //const doc = new jsPDF('p', 'mm', 'letter');  // Portrait
+       //const doc = new jsPDF('l', 'mm', 'letter');  // Landscape
+
+
+       // Get the content of the report
+       const reportContent = document.getElementById('report-content');
+
+       // Wait for all images to load before creating the PDF
+       const images = reportContent.querySelectorAll('img');
+       let loadedImages = 0;
+
+       images.forEach((img) => {
+           if (img.complete && img.naturalWidth > 0) {
+               loadedImages += 1;
+           } else {
+               img.onload = function() {
+                   loadedImages += 1;
+                   if (loadedImages === images.length) {
+                       // Proceed with rendering the PDF after all images are loaded
+                       generatePDF(doc, reportContent);
+                   }
+               };
+           }
+       });
+
+       // If all images are already loaded, proceed with the rendering immediately
+       if (loadedImages === images.length) {
+           generatePDF(doc, reportContent);
+       }
+   });
+
+   // Function to generate PDF (callback style)
+   function generatePDF(doc, reportContent) {
+       html2canvas(reportContent, {
+           onrendered: function (canvas) {
+               const imgData = canvas.toDataURL("image/png");
+               // Adjust the position and size of the image for landscape layout
+               const pageWidth = doc.internal.pageSize.width;
+               const pageHeight = doc.internal.pageSize.height;
+
+               // Adjust image size to fit within the page
+               const imgWidth = pageWidth - 20;  // 10mm margin on each side
+               const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+               doc.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+               doc.save('student_report.pdf');
+           }
+       });
+   }
+</script>
+
+
+{% endblock %}

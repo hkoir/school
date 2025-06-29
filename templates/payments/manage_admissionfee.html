@@ -1,0 +1,173 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+
+<div class="container-fluid main-content">
+    <div class="row">
+
+<div class="col-12">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <!-- Card Header -->
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="mb-0">Create Admission fee</h3>
+                </div> 
+                <div class="card-body">                   
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                
+                        <div class="row">
+                            {% for field in form %}
+                                <div class="col-md-auto mb-3">  <!-- Adjust col-md-6 for 2 columns, col-md-4 for 3 columns -->
+                                    <label class="form-label">{{ field.label }}</label>
+                
+                                    {% if field.field.widget.input_type == "textarea" %}
+                                        <textarea class="form-control" rows="2">{{ field.value|default_if_none:"" }}</textarea>
+                                    {% else %}
+                                        {{ field }}
+                                    {% endif %}
+                
+                                    {% if field.help_text %}
+                                        <small class="text-muted">{{ field.help_text }}</small>
+                                    {% endif %}
+                
+                                    {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                            <div class="col-md-auto align-self-end mb-3">
+                                <button type="submit" name="entity_submit" class="btn btn-success btn-sm">
+                                   Proceed
+                                </button>
+                            </div>
+                        </div>                
+                        
+                       
+                        
+                    </form>
+                </div>
+            </div>
+        </div>        
+        
+        <div class="col-12 table-responsive my-5">
+            <table class="table table-hover">
+                <thead class="table-dark">
+                    <tr>
+                       
+                        <td>Policy Name</td>
+                        <td>Fees Type</td>
+                        <td>Amount</td>                     
+
+                        <td>Due month</td>                    
+                        <td>Due date</td>                       
+                        <td>Actions</td>
+                    
+                       
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entity in page_obj %}
+                        <tr>
+                            
+                            <td> {{ entity.admission_fee_policy}}</td>
+                            <td> {{ entity.fee_type}}</td>
+                            <td> {{ entity.amount}}</td>
+
+                            <td> {{ entity.due_month}}</td>
+                            <td> {{ entity.due_date}}</td>
+
+                          
+                           
+                            <td class="text-center">
+                                <a href="{% url 'payments:create_admissionfee' %}" class="btn btn-sm btn-info">Add</a>
+                                <a href="{% url 'payments:update_admissionfee' entity.id %}" class="btn btn-sm btn-info">Edit</a>
+                               
+                                <a href="#" 
+                                    class="btn btn-danger btn-sm" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#deleteModal" 
+                                    data-id="{{ entity.id }}" 
+                                    data-name="{{ entity.name }}">
+                                        Delete
+                                    </a>
+                               
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="text-center">No record available.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+    
+     <!-- Pagination Controls -->
+     <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+
+</div>
+
+
+
+ <!-- Delete Confirmation Modal -->
+ <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the record: <strong id="modal-entity-name"></strong>?
+            </div>
+            <div class="modal-footer">
+                <form method="post" id="delete-form">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    const deleteModal = document.getElementById('deleteModal');
+    deleteModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget; 
+        const entityId = button.getAttribute('data-id');
+        const entityName = button.getAttribute('data-name');
+
+          const modalEntityName = deleteModal.querySelector('#modal-entity-name');
+        modalEntityName.textContent = entityName;
+  
+        const deleteForm = deleteModal.querySelector('#delete-form');
+        deleteForm.action = `/payments/delete_admissionfee/${entityId}/`;
+    });
+</script>
+
+
+
+{% endblock %}

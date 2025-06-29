@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+
+<style>
+    .table th,td{
+        font-size: 14px;
+        line-height: 5px;
+    }
+</style>
+
+
+<div class="container-fluid">
+    <div class="row">  
+        <form method="GET" action="{% url 'results:school_toppers' %}" class="mb-3">
+            {% csrf_token %}           
+            <div class="form-group">
+                <label for="academic_year">Enter Academic Year</label>
+                <input type="number" class="form-control" id="academic_year" name="academic_year" required>
+            </div>
+            <button type="submit" class="btn btn-primary my-2">Generate Result</button>
+        </form>
+
+
+<h3 class="text-center">School toppers for Academic Year: {{ academic_year }}</h3>
+
+{% if top_students %}
+
+    <div class="col-12">
+        <div class="container">        
+            <div class="row">
+                <div class="col-12 col-md-3">
+                    {% if class_counts %}                    
+                    <ul>
+                        {% for class_id, count in class_counts.items %}
+                            <li>Class {{ class_id }}: {{ count }} students</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+            <div class="col-12 col-md-6">
+
+                <div style="width: 60%; margin: auto;">
+                    <!-- Bar Chart -->
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+            <div class="col-12 col-md-3">
+
+                <div style="width: 60%; margin: auto;">
+                    <!-- Pie Chart -->
+                    <canvas id="pieChart"></canvas>
+                </div>
+                
+            </div>
+             </div>
+        </div>
+    </div>
+
+  
+
+    <div class="col-12 my-5 table-responsive">
+        <table class="table table-bordered">
+            <thead class="table-info">
+                <tr>
+                    <th>Rank</th>
+                    <th>Student</th>
+                    <th>Student Class</th>
+                    <th>Total Obtained Marks</th>
+                    <th>Percentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in top_students %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ result.student_name }}</td>
+                        <td>{{ result.student_class }}</td>
+                        <td>{{ result.total_obtained_marks }}</td>
+                        <td>{{ result.percentage }}%</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No top students found for the selected academic year.</p>
+    {% endif %}
+    
+    </div>
+    
+
+
+
+</div>
+</div>
+
+
+<script>
+    var classNameData = JSON.parse('{{ class_names|escapejs }}');
+    var classCountData = JSON.parse('{{ class_counts_values|escapejs }}');
+   
+    // Define a color palette for different classes
+    var barColors = [
+       'rgba(54, 162, 235, 1)',
+       'rgba(255, 99, 132, 1)',
+       'rgba(255, 159, 64, 1)',
+       'rgba(75, 192, 192, 1)',
+       'rgba(153, 102, 255, 1)',
+       'rgba(255, 205, 86, 1)',
+       'rgba(201, 203, 207, 1)',
+       'rgba(46, 204, 113, 1)',
+       'rgba(231, 76, 60, 1)',
+       'rgba(52, 152, 219, 1)'
+    ];
+   
+    // Create multiple datasets, one for each class
+    var barDatasets = classNameData.map((className, index) => ({
+       label: className,  // Class name as label
+       data: [classCountData[index]], // Single data point for this class
+       backgroundColor: barColors[index % barColors.length],
+       borderColor: barColors[index % barColors.length],
+       borderWidth: 1
+    }));
+   
+    var barChartData = {
+       labels: ['Top 10 Students per Class'],  // Generic label for grouping
+       datasets: barDatasets
+    };
+   
+    // Bar Chart Configuration
+    var ctxBar = document.getElementById('barChart').getContext('2d');
+    var barChart = new Chart(ctxBar, {
+       type: 'bar',
+       data: barChartData,
+       options: {
+           responsive: true,
+           scales: {
+               y: {
+                   beginAtZero: true
+               }
+           },
+           plugins: {
+               legend: {
+                   display: true,  // Ensure the legend is visible
+                   position: 'top'
+               }
+           }
+       }
+    });
+   
+    // Pie Chart Configuration (unchanged)
+    var pieChartData = {
+       labels: classNameData,
+       datasets: [{
+           label: 'Top 10 Students per Class',
+           data: classCountData,
+           backgroundColor: barColors.slice(0, classNameData.length),
+           borderColor: barColors.slice(0, classNameData.length),
+           borderWidth: 1
+       }]
+    };
+   
+    var ctxPie = document.getElementById('pieChart').getContext('2d');
+    var pieChart = new Chart(ctxPie, {
+       type: 'pie',
+       data: pieChartData,
+       options: {
+           responsive: true,
+           plugins: {
+               legend: {
+                   display: true,
+                   position: 'right'
+               }
+           }
+       }
+    });
+   </script>
+   
+
+
+
+
+
+
+
+{% endblock %}

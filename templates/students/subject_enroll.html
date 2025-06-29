@@ -1,0 +1,47 @@
+<form method="post" id="enrollment-form">
+    {% csrf_token %}
+    
+    {{ formset.management_form }}  <!-- Required for tracking forms -->
+    
+    <div id="formset-container">
+        {% for form in formset %}
+            <div class="formset-form">
+                {{ form.as_p }}
+                <button type="button" class="remove-form btn btn-danger">Remove</button>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <button type="button" id="add-form" class="btn btn-primary">Add Subject</button>
+    <button type="submit" class="btn btn-success">Submit</button>
+</form>
+
+<!-- JavaScript to handle adding/removing forms -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        var formsetContainer = $("#formset-container");
+        var totalForms = $("#id_student_course_enrollments-TOTAL_FORMS"); // Django formset management
+        var formIndex = totalForms.val(); // Track current number of forms
+
+        // Add new form
+        $("#add-form").click(function () {
+            var newForm = $(".formset-form:first").clone();  // Clone first form
+            newForm.find("input, select").each(function () {
+                var newName = $(this).attr("name").replace(/-\d+-/, "-" + formIndex + "-");
+                var newId = $(this).attr("id").replace(/-\d+-/, "-" + formIndex + "-");
+                $(this).attr({"name": newName, "id": newId}).val(""); // Reset values
+            });
+            newForm.appendTo(formsetContainer);
+            formIndex++;
+            totalForms.val(formIndex); // Update management form count
+        });
+
+        // Remove form
+        $(document).on("click", ".remove-form", function () {
+            $(this).closest(".formset-form").remove();
+            formIndex--;
+            totalForms.val(formIndex); // Update count
+        });
+    });
+</script>

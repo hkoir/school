@@ -1,0 +1,48 @@
+{% extends "sub_base.html" %}
+{% load custom_filters %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow rounded-4 border-0">
+                <div class="card-header bg-primary text-white rounded-top-4">
+                    <h4 class="mb-0">Select Student to Pay Fee</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            {{ student_select_form.student.label_tag }}
+                            {{ student_select_form.student|add_class:"form-select" }}
+                            {% if student_select_form.student.errors %}
+                                <div class="text-danger small">{{ student_select_form.student.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ student_select_form.student_id_input.label_tag }}
+                            {{ student_select_form.student_id_input|add_class:"form-control" }}
+                            {% if student_select_form.student_id_input.errors %}
+                                <div class="text-danger small">{{ student_select_form.student_id_input.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        {% if student_select_form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ student_select_form.non_field_errors.0 }}
+                            </div>
+                        {% endif %}
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-success btn-lg rounded-3">
+                                <i class="bi bi-arrow-right-circle me-1"></i> Continue to Payment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

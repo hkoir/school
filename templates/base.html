@@ -1,0 +1,934 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+{% load static %}
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>bnova</title>
+
+
+<!-- Include jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Bootstrap CSS (Bootstrap 5.3) -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Bootstrap JS (Bootstrap 5.3) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Datepicker -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Font Awesome CSS for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <!-- Font Awesome CDN -->
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"> -->
+
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+<!-- Add CSS for Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- Add JS for Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
+<link rel="stylesheet" href="{% static 'css/core.css' %}">
+
+<script src="{% static 'js/common.js' %}"></script>
+
+
+
+<style>
+
+
+#mainNav, #socialNav{
+    transition: transform 0.3s ease, top 0.3s ease;
+}
+
+    
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&family=Roboto:wght@300;400;500&display=swap');
+
+/* Apply font to entire navbar, including dropdowns */
+.navbar, 
+.navbar .nav-item, 
+.navbar .nav-link, 
+.navbar .dropdown-menu, 
+.navbar .dropdown-item, 
+.navbar .dropdown-submenu .dropdown-menu {
+    font-family: 'Poppins', 'Roboto', sans-serif !important;
+}
+
+.navbar .dropdown-menu .dropdown-item {
+    font-family: "Arial", sans-serif !important; /* Set your desired font */
+}
+
+.navbar .dropdown-menu .dropdown-item i {
+    font-family: inherit !important; /* Make icons follow the text font */
+}
+
+
+/* Ensure icons use FontAwesome's font */
+.navbar .dropdown-menu .dropdown-item i {
+    font-family: "Font Awesome 5 Free", "Font Awesome 5 Pro" !important;
+    font-weight: 900; /* Ensures solid icons show correctly */
+}
+
+.dropdown_caret_color{
+    color:white
+}
+
+.nav-bar li{
+    color:#0dcaf0
+}
+.navbar li, .navbar a, .navbar ul{
+    color:white;
+    
+}
+
+ul .dropdown-item > i{
+    color:cyan
+}
+
+li a {
+    line-height: 1.3rem;
+    margin: 0 !important;
+    padding: 4px 10px !important; /* Adjust as needed */
+}
+
+.menu-color{
+     color:white;
+    
+ }
+
+    
+
+
+
+/* Style for the main dropdown */
+.navbar .dropdown-menu {
+    background-color: #2c3e50; 
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Style for dropdown items */
+.navbar .dropdown-menu .dropdown-item {
+    color: yellow !important; 
+    padding: 10px 20px;
+    font-size: 15px;
+    font-weight: 500;
+    text-decoration: none;
+    font-family: 'Poppins', 'Roboto', sans-serif !important; /* Ensure font applies */
+}
+
+/* Hover effect for dropdown items */
+.navbar .dropdown-menu .dropdown-item:hover {
+    background-color: #34495e; 
+    color: #f1c40f !important; 
+}
+
+
+/* Ensure links stay visible */
+.navbar .dropdown-menu a {
+    color: white !important;
+    font-family: 'Poppins', 'Roboto', sans-serif !important; /* Force font for links */
+}
+
+
+
+/* Dropdown submenu wrapper */
+.dropdown-submenu {
+    position: relative;
+}
+
+/* Dropdown menu with scroll effect */
+.dropdown-submenu > .dropdown-menu {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    margin-top: -1px;
+    display: none;
+    max-height: 300px; /* Adjust height as needed */
+    overflow-y: auto;
+    background-color: #2c3e50;
+    border-radius: 8px;
+    z-index: 10001;
+}
+
+/* Ensure submenu opens only when hovering on the parent */
+.dropdown-submenu:hover > .dropdown-menu {
+    display: block;
+}
+
+/* Prevent flickering */
+.dropdown-submenu:hover {
+    position: relative;
+}
+
+/* Custom scrollbar styling */
+.dropdown-submenu > .dropdown-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dropdown-submenu > .dropdown-menu::-webkit-scrollbar-track {
+    background: #1c2833; 
+}
+
+.dropdown-submenu > .dropdown-menu::-webkit-scrollbar-thumb {
+    background: #f1c40f; /* Change scrollbar color */
+    border-radius: 5px;
+}
+
+/* Hover effect */
+.dropdown-submenu .dropdown-menu .dropdown-item:hover {
+    background-color: #3a4b5c;
+    color: #ffcc00 !important;
+    z-index: 10001;
+}
+
+
+.dropdown-submenu > .dropdown-menu {
+    top: 0;
+    left: 100%;
+    margin-top: -1px;
+}
+
+.dropdown-submenu-left > .dropdown-menu {
+    left: auto;
+    right: 100%; /* Open to the left */
+}
+
+
+
+.navbar-nav .nav-item {
+    margin-right: 0px; 
+}
+
+.navbar-nav .nav-link {
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+
+
+
+/* Handle submenu positioning */
+.dropdown-submenu {
+    position: relative;
+}
+
+.dropdown-submenu > .dropdown-menu {
+    top: 0;
+    left: 100%;
+    margin-top: -1px;
+}
+
+/* On small screens, keep submenus inside the screen */
+@media (max-width: 768px) {
+    .dropdown-submenu > .dropdown-menu {
+        left: auto;
+        right: 100%;
+    }
+
+    /* Or force submenus to drop below instead of to the right */
+    .dropdown-submenu > .dropdown-menu {
+        position: relative;
+        left: 0;
+        top: 100%;
+        margin-top: 0.2rem;
+        box-shadow: none;
+    }
+}
+
+.custom-sidebar {
+    width: 280px;         /* Default for desktop */
+    max-width: 80vw;      /* Limit width on small screens */
+    min-width: 220px;     /* Don't shrink too small */
+}
+
+@media (max-width: 576px) {
+    .custom-sidebar {
+        width: 50vw;      /* Responsive width on mobile */
+    }
+}
+
+.custom-sidebar .dropdown-menu {
+    min-width: 250px !important;
+    width: auto !important;
+    white-space: normal;
+
+    background-color: #2c3e50;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    color: white; /* This sets text color for the dropdown container */
+}
+
+/* Specifically target the links inside the submenu */
+.custom-sidebar .dropdown-menu .dropdown-item {
+    color: white;           /* White text */
+}
+
+.custom-sidebar .dropdown-menu .dropdown-item:hover,
+.custom-sidebar .dropdown-menu .dropdown-item:focus {
+    background-color: #34495e;  /* Slightly lighter background on hover/focus */
+    color: white;
+}
+
+</style>
+
+
+
+</head>
+
+
+<body>
+
+
+
+
+<!-- Social Links Navbar -->
+
+<!-- Social Links Navbar -->
+<nav class="navbar navbar-dark social-nav" id="socialNav">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <!-- Left Section: Social Links -->
+        <span class="navbar-text">Social Links | Contact Us | Follow Us</span>
+
+        <!-- Search Form -->
+        <form class="d-flex w-50" method="GET" action="{% url 'accounts:search_all' %}">
+            <select id="id_search" class="form-control select2 me-2" name="q">
+                <option value="">Search...</option>
+            </select>
+            <button class="btn btn-info" type="submit">Search</button>
+        </form>
+
+        <!-- Right Section: Social Icons -->
+        <div class="social-icons d-flex">
+            <a href="https://www.facebook.com" target="_blank" class="text-light me-3">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="https://www.twitter.com" target="_blank" class="text-light me-3">
+                <i class="fab fa-twitter"></i>
+            </a>
+            <a href="https://www.linkedin.com" target="_blank" class="text-light me-3">
+                <i class="fab fa-linkedin-in"></i>
+            </a>
+            <a href="mailto:contact@yourcompany.com" class="text-light ms-3">
+                <i class="fas fa-envelope"></i> Email Us
+            </a>
+        </div>
+    </div>
+</nav>
+
+
+<!-- Main Navbar -->
+<nav class="navbar navbar-expand-lg main-nav" id="mainNav">
+    <div class="container-fluid">
+
+	 <!-- Custom Hamburger Button for side bar -->
+        <button class="btn float-end border border-primary text-primary rounded m-2"
+                style="background-color: white;"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#offcanvas"
+                role="button"
+                aria-label="Toggle Sidebar">
+            &#9776; <!-- Unicode hamburger icon -->
+        </button>
+
+
+        <a class="navbar-brand" href="{% url 'core:dashboard' %}">bnova</a>
+        <button class="navbar-toggler toggle-button" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse toggle-button" id="navbarNav">
+            <ul class="navbar-nav">
+                <!-- notification menue -->
+               
+                    {% if schema_name != 'public' %}
+                    {% if request.user.is_authenticated %}
+
+                      <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownNotification" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-bell {% if unread_notifications|length > 0 %}new-notification{% endif %}"></i>
+                                {% if unread_notifications|length > 0 %}
+                                    <span class="badge bg-danger">{{ unread_notifications|length }}</span>
+                                {% endif %}
+                            </a>
+                            <ul class="dropdown-menu notification-dropdown" aria-labelledby="navbarDropdownNotification">
+                                <div class="notification-scroll">
+                                    {% for notification in unread_notifications %}
+                                        <li class="notification {% if not notification.is_read %}unread{% endif %}">
+                                            <a href="#" class="dropdown-item mark-as-read" data-id="{{ notification.id }}">
+                                                <p>{{ notification.get_notification_type_display }}:{{ notification.message }}</p>
+                                            </a>
+                                        </li>
+                                    {% empty %}
+                                        <li><a class="dropdown-item" href="#">No new notifications</a></li>
+                                    {% endfor %}
+                                </div>
+                                </ul>
+                            </li>  
+
+
+                        {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounts:login' %}">Log in</a>
+                        </li>
+                        {% endif %}
+                        {% endif %}
+                            
+                            
+               
+                <!-- notification end -->
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle menu-color dropdown-item-gray" href="#" id="navbarDropdownNotices" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa fa-bullhorn" aria-hidden="true"></i> Notices
+                    </a>
+
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownNotices" style="max-height: 400px; overflow-y: auto;">
+                      
+                        <li><a class="dropdown-item" href="{% url 'core:view_notices' %}" style="color:red"><i class="fas fa-eye"></i>&nbsp;View Notices</a></li>
+                        <li><a class="dropdown-item" href="{% url 'core:add_notice' %}" style="color:blue"><i class="fas fa-plus-square"></i>&nbsp;Add notices</a></li>
+                        <li><a class="dropdown-item" href="" style="color:blue"><i class="fas fa-folder-open"></i>&nbsp;Archive old notifications</a></li>
+                    </ul>
+                </li>
+               
+
+
+               
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle dropdown_caret_color" style="color: gray;" href="#" id="navbarDropdownMngSchool" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class=" fas fa-users text-info"></i><span>&nbsp;Manage school</span>            
+                                 
+                    </a>                                       
+                      
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownMngSchool" style="max-height: 400px; overflow-y: auto;">
+                                               
+                        <li><a class="dropdown-item" href="{% url 'school_management:create_school' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Create School </a></li>
+                        <li><a class="dropdown-item" href="{% url 'school_management:create_faculty' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i> &nbsp;Create faculty</a></li>
+                        <li><a class="dropdown-item" href="{% url 'school_management:create_class' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Create Class </a></li>
+                        <li><a class="dropdown-item" href="{% url 'school_management:create_class_assignment' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i> &nbsp;Create Class Assignment</a></li>
+                        <li><a class="dropdown-item" href="{% url 'school_management:create_section' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Create section </a></li>
+                        <li><a class="dropdown-item" href="{% url 'school_management:create_class_room' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Create class room </a></li>
+                        <li><a class="dropdown-item" href="{% url 'school_management:create_subject' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Create subject </a></li>
+                        <li><a class="dropdown-item" href="{% url 'school_management:create_subject_assignment' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i> &nbsp;Create Subject Assignment</a></li>
+                        <li><a class="dropdown-item" href="{% url 'school_management:create_schedule' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Create schedule </a></li>
+                        <li><a class="dropdown-item" href="{% url 'school_management:create_teaching_assignment' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Create teaching assignment </a></li>
+                        <li><a class="dropdown-item" href="{% url 'school_management:create_image_gallery' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Create Image gallery </a></li>
+                        <li><hr class="dropdown-divider"style="background-color:gray;"></li>  
+                        <li><hr class="dropdown-divider"style="background-color:gray;"></li>  
+                        <li><a class="dropdown-item" href="{% url 'results:create_grade' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Create Grade </a></li>
+                        <li><a class="dropdown-item" href="{% url 'results:create_exam_type' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Create Exam type </a></li>
+                        <li><a class="dropdown-item" href="{% url 'results:create_result' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Result Entry </a></li>
+                        <li><hr class="dropdown-divider"style="background-color:gray;"></li>    
+                        <li><a class="dropdown-item" href="{% url 'results:individual_exam_result' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Individual exam result </a></li>
+                        <li><a class="dropdown-item" href="{% url 'results:aggregated_final_result' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Subject wise all exam aggregation </a></li>
+
+                        <li><a class="dropdown-item" href="{% url 'results:student_transcripts' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Student Transcripts </a></li> 
+
+                        <li><hr class="dropdown-divider"style="background-color:gray;"></li>    
+                        <li><a class="dropdown-item" href="{% url 'results:GPA_Final_result_analysis' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;GPA Final result analysis  </a></li> 
+                        <li><a class="dropdown-item" href="{% url 'results:school_toppers' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;School Toppers  </a></li> 
+
+
+                       
+
+                    </ul>                 
+                </li> 
+
+             
+		 <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle dropdown_caret_color"style="color: gray;" href="#" id="navbarDropdownPayment" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class=" fas fa-user-cog text-info"></i>&nbsp;<span style=color:white>Payment</span>            
+                                 
+                    </a>                                       
+                      <ul class="dropdown-menu" aria-labelledby="navbarDropdownPayment" style="max-height: 400px; overflow-y: auto;">                                             
+                        <li><a class="dropdown-item" href="{% url 'payments:create_admissionfee_policy' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Create admissionfee Policy</a></li> 
+                        <li><a class="dropdown-item" href="{% url 'payments:create_admissionfee' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Create admissionfee</a></li> 
+                        <li><a class="dropdown-item" href="{% url 'payments:create_feestructure' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Create fees structure </a></li>
+                        <li><a class="dropdown-item" href="{% url 'payments:create_placeholder_payments' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i> &nbsp;Create Placeholder</a></li>  
+                        <li><a class="dropdown-item" href="{% url 'payments:search_make_payment' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i> &nbsp;Make Payment</a></li>  
+                       <li><a class="dropdown-item" href="{% url 'payments:payment_status_view' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Payment status</a></li>                      
+ 			 <li><a class="dropdown-item" href="{% url 'payments:choose_fee_and_make_manual_payment' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Make manual Payment</a></li>
+			<li><a class="dropdown-item" href="{% url 'payments:choose_fee_and_generate_invoice' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Make online Payment</a></li>
+                    </ul>                 
+                </li> 
+
+
+
+		   <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle dropdown_caret_color" style="color: gray;" href="#" id="navbarDropdownAttendance" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class=" fas fa-user-cog text-info"></i> <span>Attendance</span>            
+                                 
+                    </a>                                       
+                      
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownAttendance" style="max-height: 400px; overflow-y: auto;">
+                                               
+                        <li><a class="dropdown-item" href="{% url 'attendance:create_weekday' %}" ><i class="fas fa-plus-square"></i>&nbsp;Create weekdays</a></li>
+                        <li><a class="dropdown-item" href="{% url 'attendance:create_attendance_policy' %}" ><i class="fas fa-plus-square"></i> &nbsp;Create Policy</a></li>
+                        <li><a class="dropdown-item" href="{% url 'attendance:create_attendance' %}" ><i class="fas fa-plus-square"></i>&nbsp;Create attendance</a></li>
+                        <li><a class="dropdown-item" href="{% url 'attendance:create_attendance_log' %}"><i class="fas fa-plus-square"></i> &nbsp;Create attendance log</a></li>
+                        <li><a class="dropdown-item" href="{% url 'attendance:attendance_report' %}" ><i class="fas fa-plus-square"></i> &nbsp;Attendance Report</a></li>
+                        <li><a class="dropdown-item" href="{% url 'attendance:daily_attendance_summary' %}"><i class="fas fa-plus-square"></i> &nbsp;Daily Attendance Summary</a></li>
+                        
+                                               
+                    </ul>                 
+                </li> 
+
+                
+
+
+ 
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle dropdown_caret_color" style="color: gray;" href="#" id="navbarDropdownStudentTeacher" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class=" fas fa-user-cog text-info"></i><span>&nbsp;Student Teacher</span>            
+                                 
+                    </a>       
+ 		 <ul class="dropdown-menu" aria-labelledby="navbarDropdownStudentTeacher" style="max-height: 400px; overflow-y: auto;">
+
+	        	<li><a class="dropdown-item" href="{% url 'messaging:inbox' %}" style="text-decoration: none;">
+				<i class="fas fa-plus-square"></i>&nbsp;Message Inbox</a></li>
+    			<li>
+      				<a class="dropdown-item" href="{% url 'student_portal:student_landing_page' %}">
+    				 	<i class="fas fa-home"></i> Student Portal
+      				</a>
+    			</li>
+    			<li>
+      				<a class="dropdown-item" href="{% url 'students:create_guardian' %}">
+       			 		<i class="fas fa-user-friends"></i> Create Guardian
+      				</a>
+   			 </li>
+    			<li>
+      				<a class="dropdown-item" href="{% url 'students:create_student' %}">
+        			<i class="fas fa-user-graduate"></i> Create Student
+      				</a>
+    			</li>
+    			<li>
+      				<a class="dropdown-item" href="{% url 'teachers:create_teacher' %}">
+        			<i class="fas fa-chalkboard-teacher"></i> Create Teacher
+   		   		</a>
+    			</li>
+    			<li>
+    				  <a class="dropdown-item" href="{% url 'students:create_student_enrollment' %}">
+        			<i class="fas fa-user-plus"></i> Enroll Student
+      				</a>
+    			</li>
+    			<li>
+      				<a class="dropdown-item" href="{% url 'teachers:view_teacher_vcard' %}">
+        			<i class="fas fa-id-card"></i> Teacher VCard
+      				</a>
+    			</li>
+    			<li>
+    				  <a class="dropdown-item" href="{% url 'students:view_student_vcard' %}">
+        			<i class="fas fa-id-badge"></i> Student VCard
+      				</a>
+    			</li>
+    			<li>
+     				 <a class="dropdown-item" href="{% url 'messaging:create_management_message' %}">
+        			<i class="fas fa-envelope"></i> Create Management Message
+      				</a>
+    				</li>
+    			<li>
+      				<a class="dropdown-item" href="{% url 'students:view_student_weekly_schedule' %}">
+       				 <i class="fas fa-calendar-alt"></i> General Weekly Class Schedule
+      				</a>
+				<li><a class="dropdown-item" href="{% url 'students:student_weekly_schedule' %}"
+				 style="text-decoration: none;"><i class="fas fa-plus-square"></i> &nbsp;Student Class schedule</a></li>
+    			</li>
+  		  </ul>
+		</li>
+
+               
+               
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle dropdown_caret_color" style="color: gray;" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class=" fas fa-user-cog text-info"></i><span>&nbsp;User</span>            
+                                  
+                    </a>   
+                                    
+                      
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown" style="max-height: 400px; overflow-y: auto;">
+                        {% if user.is_authenticated %}                        
+                        <li>
+                            <form action="{% url 'accounts:logout' %}" method="post" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item" style="text-decoration: none;"><i class="fas fa-sign-out-alt"></i>&nbsp;Logout</button>
+                            </form>
+                        </li>                                        
+                        <li><a class="dropdown-item" href="{% url 'accounts:password_change' %}" style="text-decoration: none;"><i class="fas fa-key"></i>&nbsp;Change Password </a></li>
+                        <li><a class="dropdown-item" href="{% url 'accounts:register' %}" style="text-decoration: none;"><i class="fas fa-sign-in-alt"></i> &nbsp;Register</a></li>
+
+                       {% else %}
+                        <li><a class="dropdown-item" href="{% url 'accounts:login' %}" style="text-decoration: none;"><i class="fas fa-sign-in-alt"></i> &nbsp;Login</a></li>
+                        <li><a class="dropdown-item" href="{% url 'accounts:register' %}" style="text-decoration: none;"><i class="fas fa-sign-in-alt"></i> &nbsp;Register</a></li>
+                        <li><a class="dropdown-item" href="{% url 'accounts:pwdreset' %}" style="text-decoration: none;"><i class="fas fa-lock"></i>&nbsp;Forgot Password </a></li>
+                        {% endif %}
+                    </ul>                 
+                </li> 
+
+
+
+
+                          
+
+            </ul>           
+            <!-- this master Ul end  -->
+         
+                
+            <div class="my-3">
+                
+                {% if user.is_authenticated %}
+                {% if user.photo_id %}
+                    <img src="{{ user.photo_id.url }}" alt="Profile" class="rounded-circle" width="30" height="30"><br>
+                    {% endif %}
+                    <span style="color:white"> hi&nbsp;{{ user.username }}!</span>
+                {% else %}
+                <i class="fas fa-user-cog text-info"><span style="color:white">&nbsp;Guest</span></i> &nbsp;
+                 
+                {% endif %}
+            </div>
+            
+              
+            </ul>  <!-- this master Ul end  -->    
+           
+         
+            
+        </div>
+    </div>
+   
+
+</nav>
+
+
+
+
+<!-- Side bar menu -->
+<div class="offcanvas offcanvas-start custom-sidebar" id="offcanvas" tabindex="-1" data-bs-keyboard="true" data-bs-backdrop="true">
+
+        <div class="offcanvas-header">
+            <h6 class="offcanvas-title d-none d-sm-block" id="offcanvas">Menu</h6>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+
+        <div class="offcanvas-body px-0">
+            <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-start" id="menu">
+                <li class="nav-item"><a href="{% url 'clients:tenant_expire_check' %}" class="nav-link text-truncate"><i class="fs-5 bi-house text-primary"></i><span class="ms-1  text-dark">Home</span></a></li>
+                <li><a href="#submenu1" data-bs-toggle="collapse" class="nav-link text-truncate"><i class="fs-5 bi-speedometer2 text-primary"></i><span class="ms-1  text-dark">Dashboard</span> </a></li>
+                                
+                
+                <li class="dropdown"><a href="#" class="nav-link dropdown-toggle  text-truncate" id="dropdown" data-bs-toggle="dropdown" aria-expanded="false"> 
+                    <i class="fas fa-users text-danger"></i><span class="ms-1 text-success">Core HR</span> </a>
+                    <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdown">
+                          {% if request.user.is_staff %}
+                         <li><hr class="dropdown-divider"style="background-color:gray;"></li> 
+                                <li><a class="dropdown-item" href="{% url 'core:manage_department' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Create Department</a></li>
+                                <li><a class="dropdown-item" href="{% url 'core:create_position' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Create Position</a></li>
+                                <li><a class="dropdown-item" href="{% url 'core:create_job_requirement' %}"><i class="fas fa-user-text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Create job requirement</a></li>
+                                <li><a class="dropdown-item" href="{% url 'core:create_job_description' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Create job_description</a></li>
+                                <li><a class="dropdown-item" href="{% url 'core:create_company' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Create Company</a></li>
+                                <li><a class="dropdown-item" href="{% url 'core:manage_location' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Create Company Location</a></li>
+    
+                                <li><hr class="dropdown-divider"style="background-color:gray;"></li> 
+                                <li><hr class="dropdown-divider"style="background-color:gray;"></li>  
+                                
+                                <li><a class="dropdown-item" href="{% url 'core:create_company_policy' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Create Company Level Policy</a></li>
+                                <li><a class="dropdown-item" href="{% url 'core:create_festival' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Create Festival bonus calendar</a></li>
+                                <li><a class="dropdown-item" href="{% url 'core:create_performance_bonus' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Create Performance Bonus calendar</a></li>
+                                <li><a class="dropdown-item" href="{% url 'core:create_salary_structure' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Create Salary structure</a></li>
+                                <li><hr class="dropdown-divider"style="background-color:gray;"></li> 
+                                <li><hr class="dropdown-divider"style="background-color:gray;"></li> 
+                                <li><a class="dropdown-item" href="{% url 'core:manage_employee' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Employee enrollment</a></li>
+                                <li><a class="dropdown-item" href="{% url 'core:employee_list' %}"><i class="fas fa-users text-info"></i><i class="fas fa-tasks text-info"></i>&nbsp;Employee List</a></li>
+                                <li><a class="dropdown-item" href="{% url 'core:view_employee' %}"><i class="fas fa-user text-info"></i><i class="fas fa-credit-card text-info"></i>&nbsp;Employee VCard</a></li>
+    
+                                <li><hr class="dropdown-divider"style="background-color:gray;"></li> 
+                                <li><hr class="dropdown-divider"style="background-color:gray;"></li> 
+                                <li><a class="dropdown-item" href="{% url 'accounts:assign_permissions' %}"><i class="fas fa-user-cog text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;User Permission</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:assign_user_to_group' %}"><i class="fas fa-user-cog text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Assign user to group</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:assign_permissions_to_group' %}"><i class="fas fa-user-cog text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Assign Permission to Group</a></li>
+                                       
+                                <li><a class="dropdown-item" href="{% url 'core:create_salary' %}"><i class="fas fa-plus-circle text-info"></i>&nbsp;Create salary sheet</a></li>                         
+                                <li><a class="dropdown-item" href=""><i class="fas fa-eye text-info"></i>&nbsp;View attendance</a></li>       
+                                <li><hr class="dropdown-divider"style="background-color:gray;"></li> 
+                                <li><hr class="dropdown-divider"style="background-color:gray;"></li>    
+                          {% endif %}       
+                    </ul>
+                </li>
+
+                <li class="dropdown"><a href="#" class="nav-link dropdown-toggle  text-truncate" id="dropdown" data-bs-toggle="dropdown" aria-expanded="false"> 
+                    <i class="fas fa-users text-success"></i><span class="ms-1 text-success">Leave Management</span> </a>
+                    <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdown">
+                          {% if request.user.is_staff %}
+                          <li><hr class="dropdown-divider"style="background-color:gray;"></li> 
+                                <li><hr class="dropdown-divider"style="background-color:gray;"></li> 
+                                <li><a class="dropdown-item" href="{% url 'leavemanagement:leave_dashboard' %}"><i class="fas fa-user"></i><i class="fas fa-plus-circle"></i>&nbsp;Leave dashboard</a></li>  
+                                <li><a class="dropdown-item" href="{% url 'leavemanagement:create_attendance_policy' %}"><i class="fas fa-user"></i><i class="fas fa-plus-circle"></i>&nbsp;Create attendance policy</a></li>                                                                 
+                                <li><a class="dropdown-item" href="{% url 'leavemanagement:create_leave_type' %}"><i class="fas fa-user"></i><i class="fas fa-plus-circle"></i>&nbsp;Create Leave</a></li>                               
+                                <li><a class="dropdown-item" href="{% url 'leavemanagement:apply_leave' %}"><i class="fas fa-user"></i><i class="fas fa-plus-circle"></i>&nbsp;Apply_leave</a></li>
+                                <li><a class="dropdown-item" href="{% url 'leavemanagement:leave_history' %}"><i class="fas fa-user"></i><i class="fas fa-plus-circle"></i>&nbsp;Leave history</a></li>
+                                <li><a class="dropdown-item" href="{% url 'leavemanagement:pending_leave_list' %}"><i class="fas fa-user"></i><i class="fas fa-plus-circle"></i>&nbsp;Pending Leave</a></li>
+                                <li><a class="dropdown-item" href="{% url 'leavemanagement:carry_forward_leave' %}"><i class="fas fa-user"></i><i class="fas fa-plus-circle"></i>&nbsp;Carry forward Leave</a></li>
+                                <li><a class="dropdown-item" href="{% url 'leavemanagement:leave_summary' %}"><i class="fas fa-user"></i><i class="fas fa-plus-circle"></i>&nbsp;Leave Summary</a></li>
+                                <li><a class="dropdown-item" href="{% url 'leavemanagement:check_and_deduct_late_leaves' %}"><i class="fas fa-user"></i><i class="fas fa-plus-circle"></i>&nbsp;Adjust late in</a></li>
+                               
+                                <li><hr class="dropdown-divider"style="background-color:gray;"></li> 
+                                <li><hr class="dropdown-divider"style="background-color:gray;"></li>    
+                          {% endif %}       
+                    </ul>
+                </li>
+
+                
+                <li class="dropdown"><a href="#" class="nav-link dropdown-toggle  text-truncate" id="dropdown" data-bs-toggle="dropdown" aria-expanded="false"> 
+                    <i class="fas fa-truck text-success"></i><span class="ms-1 text-success">Inventory</span> </a>
+                    <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdown">
+                          {% if request.user.is_staff %}
+                        <li><hr class="dropdown-divider"style="background-color:gray;"></li> 
+                        <li><hr class="dropdown-divider"style="background-color:gray;"></li> 
+                         <li><a class="dropdown-item" href="{% url 'inventory:create_warehouse' %}" style="text-decoration: none;"><i class="fas fa-users"></i>&nbsp;Create Warehouse</a></li> 
+                        <li><a class="dropdown-item" href="{% url 'inventory:create_supplier' %}" style="text-decoration: none;"><i class="fas fa-users"></i>&nbsp;Create Supplier</a></li> 
+                        <li><a class="dropdown-item" href="{% url 'inventory:product_list' %}" style="text-decoration: none;"><i class="fas fa-users"></i>&nbsp;Product List </a></li> 
+                        <li><a class="dropdown-item" href="{% url 'inventory:create_category' %}" style="text-decoration: none;"><i class="fas fa-users"></i>&nbsp;Create Category </a></li> 
+                        <li><a class="dropdown-item" href="{% url 'inventory:create_product' %}" style="text-decoration: none;"><i class="fas fa-users"></i>&nbsp;Create Product </a></li>                         
+                        <li><a class="dropdown-item" href="{% url 'inventory:inventory_transaction_view' %}" style="text-decoration: none;"><i class="fas fa-users"></i>&nbsp;Add stock </a></li>                        
+                        <li><a class="dropdown-item" href="{% url 'inventory:inventory_dashboard' %}" style="text-decoration: none;"><i class="fas fa-users"></i>&nbsp;View stock </a></li>   
+                        <li><a class="dropdown-item" href="{% url 'finance:create_asset' %}" style="text-decoration: none;"><i class="fas fa-users"></i>&nbsp;Create Asset </a></li>       
+                        <li><a class="dropdown-item" href="{% url 'finance:add_expense' %}" style="text-decoration: none;"><i class="fas fa-users"></i>&nbsp;Create Expense </a></li>                                                                                                                                                     
+                        <li><hr class="dropdown-divider"style="background-color:gray;"></li> 
+                          {% endif %}       
+                    </ul>
+                </li>
+                
+  		 <li class="dropdown"><a href="#" class="nav-link dropdown-toggle  text-truncate" id="dropdown" data-bs-toggle="dropdown" aria-expanded="false"> 
+                    <i class="fas fa-coins text-success"></i><span class="ms-1 text-success">Finance</span> </a>
+                    <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdown">
+                          {% if request.user.is_staff %}
+                        <li><hr class="dropdown-divider"style="background-color:gray;"></li>                       
+                        <li><a class="dropdown-item" href="{% url 'finance:create_asset' %}" style="text-decoration: none;"><i class="fas fa-users"></i>&nbsp;Create Asset </a></li>       
+                        <li><a class="dropdown-item" href="{% url 'finance:add_expense' %}" style="text-decoration: none;"><i class="fas fa-users"></i>&nbsp;Create Expense </a></li>                                                                                                                                                     
+                        <li><a class="dropdown-item" href="{% url 'finance:generate_monthly_salaries' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Generate Monthly Salary</a></li>
+                        <li><a class="dropdown-item" href="{% url 'finance:profit_loss_report' %}"><i class="fas fa-chart-line text-info"></i>&nbsp;Profit Loss</a></li>          
+			<li><hr class="dropdown-divider"style="background-color:gray;"></li> 
+                        <li><hr class="dropdown-divider"style="background-color:gray;"></li> 
+                          {% endif %}       
+                    </ul>
+                </li>
+
+                <li><a href="#" class="nav-link text-truncate"> <i class="fs-5 bi-grid"></i><span class="ms-1  text-success">Teachers</span></a> </li>
+                <li><a href="#" class="nav-link text-truncate"><i class="fs-5 bi-people"></i><span class="ms-1  text-primary">Students</span> </a></li>
+            </ul>
+     </div>
+ </div>
+
+
+              
+
+    <div class="container-fluid">    
+        {% block content %}
+        {% endblock %}
+    </div>
+    
+    {% include 'footer.html' %}
+
+
+
+
+<!-- Bootstrap Modal -->
+<div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="messageModalLabel">Messages</h5>
+                <!-- Close Button -->
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="messagesContainer">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const dropdowns = document.querySelectorAll('.nav-item.dropdown');
+
+    dropdowns.forEach(function (dropdown) {
+        const toggle = dropdown.querySelector('.nav-link.dropdown-toggle');
+
+        toggle.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const menu = dropdown.querySelector('.dropdown-menu');
+            const isOpen = dropdown.classList.contains('show');
+
+            // Close all dropdowns
+            dropdowns.forEach(d => {
+                d.classList.remove('show');
+                const m = d.querySelector('.dropdown-menu');
+                if (m) m.classList.remove('show');
+            });
+
+            // If it was not open, open it
+            if (!isOpen) {
+                dropdown.classList.add('show');
+                if (menu) menu.classList.add('show');
+            }
+        });
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function (e) {
+        dropdowns.forEach(function (dropdown) {
+            dropdown.classList.remove('show');
+            const menu = dropdown.querySelector('.dropdown-menu');
+            if (menu) menu.classList.remove('show');
+        });
+    });
+});
+</script>
+
+
+
+
+<script>
+    const socialNav = document.getElementById('socialNav');
+    const mainNav = document.getElementById('mainNav');
+    const socialNavHeight = socialNav.offsetHeight;
+    const mainNavHeight = mainNav.offsetHeight;
+
+    // Set base padding just once
+    document.body.style.paddingTop = `${socialNavHeight + mainNavHeight}px`;
+
+    window.addEventListener('scroll', function () {
+        if (window.scrollY > socialNavHeight) {
+            // Hide social nav
+            socialNav.style.top = `-${socialNavHeight}px`;
+
+            // Move main nav to top
+            mainNav.style.top = '0px';
+
+            // Only need padding for main nav now
+            document.body.style.paddingTop = `${mainNavHeight}px`;
+        } else {
+            // Show both navs
+            socialNav.style.top = '0px';
+            mainNav.style.top = `${socialNavHeight}px`;
+
+            // Reset padding to accommodate both navs again
+            document.body.style.paddingTop = `${socialNavHeight + mainNavHeight}px`;
+        }
+    });
+</script>
+
+
+
+
+
+
+  <script>
+  $('#id_search').select2({
+    width: '100%', 
+    placeholder: 'Search...',
+    allowClear: true,
+    ajax: {
+        url: "{% url 'accounts:search_all' %}",
+        dataType: 'json',
+        delay: 250,
+        data: function(params) {
+            return { q: params.term };
+        },
+        processResults: function(data) {
+            return {
+                results: $.map(data.results, function(item) {
+                    return { id: item.id, text: item.text };
+                })
+            };
+        },
+        cache: true
+    },
+    minimumInputLength: 1
+});
+
+    </script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {   
+        const messageModal = document.getElementById('messageModal');
+        const messagesContainer = document.getElementById('messagesContainer');   
+        if (messageModal && messagesContainer && messagesContainer.children.length > 0) { 
+            const modalInstance = new bootstrap.Modal(messageModal);
+            modalInstance.show();
+   
+            setTimeout(() => {
+                modalInstance.hide();
+            }, 5000);
+        }
+    });
+</script>
+
+
+
+
+<script>
+$(document).ready(function () {
+    // Function to mark a notification as read
+    $(".mark-as-read").click(function (e) {
+        e.preventDefault();  // Prevent default link behavior
+        var notificationId = $(this).data("id");  // Get notification ID
+
+        $.ajax({
+            url: "/messaging/notifications/mark-as-read/" + notificationId + "/",
+            type: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}"  // Pass CSRF token
+            },
+            success: function (response) {
+                if (response.success) {
+                    // Hide the clicked notification or change its style
+                    $("a[data-id='" + notificationId + "']").closest(".notification").fadeOut();
+
+                    // Update the notification count badge
+                    var count = parseInt($(".badge.bg-danger").text()) || 0;
+                    if (count > 1) {
+                        $(".badge.bg-danger").text(count - 1);
+                    } else {
+                        $(".badge.bg-danger").remove();  // Remove badge if no more unread notifications
+                    }
+                }
+            },
+            error: function () {
+                alert("Error marking notification as read.");
+            }
+        });
+    });
+});
+</script>
+
+
+</body>
+</html>
+

@@ -1,0 +1,222 @@
+from django.db import models
+from students.models import Student
+from teachers.models import Teacher
+from datetime import datetime
+
+import uuid
+from django.utils import timezone
+from messaging.models import Message
+import requests
+from accounts.models import CustomUser
+from django.conf import settings
+from twilio.rest import Client
+
+
+from payment_gatway.utils import send_sms
+from messaging.utils import create_notification
+
+ 
+
+
+class Weekday(models.Model):
+    WEEKDAY_CHOICES = [
+    ('Monday', 'Monday'),
+    ('Tuesday', 'Tuesday'),
+    ('Wednesday', 'Wednesday'),
+    ('Thursday', 'Thursday'),
+    ('Friday', 'Friday'),
+    ('Saturday', 'Saturday'),
+    ('Sunday', 'Sunday'),
+    ]
+    name = models.CharField(max_length=10, unique=True,choices=WEEKDAY_CHOICES) 
+    def __str__(self):
+        return self.name
+
+
+
+class AttendancePolicy(models.Model):
+    policy_name = models.CharField(max_length=30, null=True,blank=True)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)  
+    weekend = models.ManyToManyField(Weekday, related_name="attendance_policies")  
+    is_dynamic = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)  
+    check_in_time = models.TimeField(null=True, blank=True)  
+    check_out_time = models.TimeField(null=True, blank=True)
+    check_in_threshold = models.TimeField(null=True, blank=True)
+    check_out_threshold = models.TimeField(null=True, blank=True)
+    absent_threshold = models.TimeField(null=True, blank=True)
+    check_in_buffer = models.PositiveIntegerField(default=10)      
+    check_out_buffer = models.PositiveIntegerField(default=10)  
+    absent_buffer = models.PositiveIntegerField(default=30)  
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def get_weekends_list(self): 
+        return self.weekend.split(',') if self.weekend else []
+    def __str__(self):
+        return self.policy_name if self.policy_name else 'Unknown'
+
+ 
+from attendance.utils import get_dynamic_attendance_policy
+
+
+class Attendance(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
+    attendance_policy = models.ForeignKey(AttendancePolicy, on_delete=models.CASCADE, null=True, blank=True)
+    student = models.ForeignKey(Student, null=True, blank=True, on_delete=models.CASCADE, related_name='student_attendance')
+    teacher = models.ForeignKey(Teacher, null=True, blank=True, on_delete=models.CASCADE, related_name='teacher_attendance')
+    date = models.DateField()
+    first_check_in = models.TimeField(null=True, blank=True)
+    last_check_out = models.TimeField(null=True, blank=True)
+    is_late = models.BooleanField(default=False)
+    is_early_out = models.BooleanField(default=False)
+    status = models.CharField(max_length=10,blank=True, null=True, choices=[('Present', 'Present'), ('Absent', 'Absent'), ('Late', 'Late')])
+    status = models.CharField(max_length=10,blank=True, null=True, choices=[('Present', 'Present'), ('Absent', 'Absent'), ('Late', 'Late')])
+    remarks = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    last_sms_sent_date = models.DateField(null=True, blank=True)
+
+   
+    def get_effective_policy(self):      
+        policy = None
+        if self.student:
+            assigned_policy = AttendancePolicy.objects.filter(user=self.student.user).first()
+
+            if assigned_policy:
+                if assigned_policy.is_dynamic:
+                    policy = get_dynamic_attendance_policy(self.student, self.date)
+                else:
+                    policy = {
+                        "check_in_threshold": assigned_policy.check_in_threshold,
+                        "check_out_threshold": assigned_policy.check_out_threshold,
+                        "absent_threshold": assigned_policy.absent_threshold,
+                    }
+        return policy
+    
+    
+    def check_status(self):
+        policy = self.get_effective_policy()
+        if not policy:
+            self.status = 'Present'
+            self.is_late = False
+            self.is_early_out = False
+            return
+
+        # Default values
+        self.is_late = False
+        self.is_early_out = False
+
+        if self.first_check_in:
+            if self.first_check_in > policy["check_in_threshold"]:
+                self.is_late = True
+                self.status = 'Late'
+            else:
+                self.status = 'Present'
+        else:
+            current_time = timezone.localtime(timezone.now()).time()
+            if "absent_threshold" in policy and current_time > policy["absent_threshold"]:
+                self.status = 'Absent'
+            else:
+                self.status = 'Present'
+
+        # Check for early out
+        if self.last_check_out and "check_out_threshold" in policy:
+            if self.last_check_out < policy["check_out_threshold"]:
+                self.is_early_out = True
+
+
+    def save(self, *args, **kwargs):     
+        self.check_status()
+        super().save(*args, **kwargs)
+
+    
+    def update_from_log(self):
+        logs = AttendanceLog.objects.filter(
+            date=self.date,
+            student=self.student if self.student else None,
+            teacher=self.teacher if self.teacher else None
+        ).order_by('check_in_time')
+
+        if logs.exists():
+            first_check_in_before = self.first_check_in  
+
+            self.first_check_in = logs.first().check_in_time
+            self.last_check_out = logs.last().check_out_time
+            self.check_status()
+            self.save()
+        
+            if not first_check_in_before: 
+                self.send_sms_notification(first_check_in=True)
+            if self.status == 'Late' or self.status == 'Absent':
+                self.send_sms_notification()
+
+
+    def send_sms_notification(self, first_check_in=False):
+        if self.last_sms_sent_date == timezone.now().date() and not first_check_in:
+            print("Skipping SMS: Already sent today")
+            return
+
+        if not self.student or not self.student.guardian or not self.student.guardian.phone_number:
+            print("Skipping SMS: No valid guardian phone number") 
+            return
+
+        message_content = ""
+        if first_check_in:
+            message_content = f"Dear {self.student.name}, you checked in today at {self.first_check_in}. Have a great learning day!"
+        elif self.is_late:
+            message_content = f"Dear {self.student.name}, you were late for check-in today at {self.first_check_in}. Please be on time."
+        elif self.status == "Absent":
+            message_content = f"Dear {self.student.name}, you were absent today. Please ensure regular attendance."
+
+        if message_content:
+            Message.objects.create(
+                student=self.student,
+                guardian=self.student.guardian,
+                message_content=message_content,
+                message_type="Attendance"
+            )
+
+            create_notification(
+                user=self.student.user,
+                student=self.student,
+                notification_type='attendance',
+                message=message_content
+            )
+         
+            self.last_sms_sent_date = timezone.now().date()
+            self.save(update_fields=['last_sms_sent_date'])
+
+
+
+
+class AttendanceLog(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
+    biometrict_id = models.CharField(max_length=30,null=True,blank=True)
+    student = models.ForeignKey(Student, null=True, blank=True, on_delete=models.CASCADE, related_name='student_attendance_log')
+    teacher = models.ForeignKey(Teacher, null=True, blank=True, on_delete=models.CASCADE, related_name='teacher_attendance_log')
+    date = models.DateField(default=timezone.now)
+    check_in_time = models.TimeField(null=True, blank=True)
+    check_out_time = models.TimeField(null=True, blank=True)
+    created_by= models.CharField(max_length=100,null=True,blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def save(self, *args, **kwargs):
+        if not self.check_out_time:
+            self.check_out_time = self.check_in_time
+        super().save(*args, **kwargs)  
+        self.create_attendance()  
+
+
+    def create_attendance(self):
+        attendance, created = Attendance.objects.get_or_create(
+            student=self.student, teacher=self.teacher, date=self.date
+        )       
+               
+        attendance.update_from_log() 
+
+
+    def __str__(self):
+            return f"{self.student if self.student else self.teacher} - {self.date} - {self.check_in_time} to {self.check_out_time}"

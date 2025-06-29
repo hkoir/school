@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="alert alert-info col-md-10 col-lg-8">
+            <p><strong>Tuition Fees Due (till today):</strong> ৳{{ tuition_due_total }}</p>
+            <p><strong>Admission Fees Due (till today):</strong> ৳{{ admission_due_total }}</p>
+        </div>
+
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-primary text-white rounded-top-4">
+                    <h4 class="mb-0">Select Fee Types to Pay</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Fee Type Selection -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Select Fee Type(s):</label>
+                            {% for checkbox in form.fee_types %}
+                                <div class="form-check">
+                                    {{ checkbox.tag }}
+                                    <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                                        {{ checkbox.choice_label }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Tuition Months -->
+                        <div class="mb-4" id="tuition_months_section" style="display: none;">
+                            <label class="form-label fw-bold">Select Tuition Month(s):</label>
+                            {% for value, label in form.fields.tuition_months.choices %}
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="tuition_months"
+                                           value="{{ value }}" id="tuition_month_{{ value }}"
+                                           {% if value|stringformat:"s" in form.data.tuition_months or value in form.initial.tuition_months %}checked{% endif %}>
+                                    <label class="form-check-label" for="tuition_month_{{ value }}">
+                                        {{ label }}
+                                        {% if value <= current_month %}
+                                            <span class="badge bg-warning text-dark">Due</span>
+                                        {% else %}
+                                            <span class="badge bg-light text-secondary">Advance</span>
+                                        {% endif %}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Admission Fee Items -->
+                        <div class="mb-4" id="admission_fee_section" style="display: none;">
+                            <label class="form-label fw-bold">Select Admission Fee Item(s):</label>
+                            {% for item in form.fields.admission_fee_items.queryset %}
+                                <div class="form-check d-flex justify-content-between align-items-center border rounded px-3 py-2 mb-2">
+                                    <div>
+                                        <input class="form-check-input" type="checkbox" name="admission_fee_items"
+                                               value="{{ item.id }}" id="fee_{{ item.id }}"
+                                               {% if item.id|stringformat:"s" in form.data.admission_fee_items or item.id in form.initial.admission_fee_items %}checked{% endif %}>
+                                        <label class="form-check-label" for="fee_{{ item.id }}">
+                                            {{ item.get_fee_type_display }}
+                                            {% if item.due_month <= current_month %}
+                                                <span class="badge bg-warning text-dark ms-2">Due</span>
+                                            {% else %}
+                                                <span class="badge bg-light text-secondary ms-2">Advance</span>
+                                            {% endif %}
+                                        </label>
+                                    </div>
+                                    <div class="text-muted">
+                                        {{ item.amount }} BDT
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg rounded-pill">Proceed to Payment</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JS for toggling sections -->
+<script>
+    function toggleSections() {
+        const selectedValues = Array.from(document.querySelectorAll('input[name="fee_types"]:checked'))
+            .map(el => el.value);
+
+        document.getElementById('tuition_months_section').style.display = selectedValues.includes('tuition_fees') ? 'block' : 'none';
+        document.getElementById('admission_fee_section').style.display = selectedValues.includes('admission_fee') ? 'block' : 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        toggleSections();
+        document.querySelectorAll('input[name="fee_types"]').forEach(input => {
+            input.addEventListener('change', toggleSections);
+        });
+    });
+</script>
+{% endblock %}

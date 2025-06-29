@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-5">
+    <h2>Generate Monthly Salaries</h2>
+    <form method="post" class="my-3">
+        {% csrf_token %}
+        <label for="month">Select Month:</label>
+        <input type="month" name="month" required>
+        <button type="submit" class="btn btn-primary mt-2">Generate Salaries</button>
+    </form>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}

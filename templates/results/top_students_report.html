@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+
+<style>
+    canvas {
+        max-width: 100%;  /* Ensures it does not exceed parent width */
+        height: 250px !important;  /* Adjust this value as needed */
+    }
+
+    .col-8, .col-4 {
+        max-height: 300px; /* Limits column height */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+</style>
+
+<div class="container">
+    <div class="row">
+
+        <div class="col-12 mb-3">
+            <div class="card border-0 rounded-lg">
+                <!-- Card Header -->
+                <div class="card-header text-center">
+                    <h5 class="mb-0 text-primary">Choose Filter criteria</h5>
+                </div> 
+                <div class="card-body">                   
+                    <form method="GET" enctype="multipart/form-data">
+                        {% csrf_token %}
+                
+                        <div class="row">
+                            {% for field in form %}
+                                <div class="col-md-3 mb-3">  <!-- Adjust col-md-6 for 2 columns, col-md-4 for 3 columns -->
+                                    <label class="form-label">{{ field.label }}</label>
+                
+                                    {% if field.field.widget.input_type == "textarea" %}
+                                        <textarea class="form-control" rows="2">{{ field.value|default_if_none:"" }}</textarea>
+                                    {% else %}
+                                        {{ field }}
+                                    {% endif %}
+                
+                                    {% if field.help_text %}
+                                        <small class="text-muted">{{ field.help_text }}</small>
+                                    {% endif %}
+                
+                                    {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                
+                        <div>
+                            <button type="submit" name="entity_submit" class="btn btn-success btn-sm">
+                            Submit filter
+                            </button>
+                        </div>   
+                    </form>
+                </div>
+            </div>
+        </div>
+
+  
+    {% if top_students %}
+    <div class="col-12 mb-3 ">
+        <h3 class="text-center"> Grade Point Distribution</h3>
+        <p class="text-center"><b>Academic Year:</b>{{academic_year}}||<b>Class:</b>{{ class_name }}||<b>Section:</b>{{section}}||<b>Shift:</b>{{shift}}||<b>Gender:</b>{{class_gender}}</p>
+        <div class="container-fluid ">
+            <div class="row">                       
+                <div class="col-12">
+                    <div class="container">
+                        <div class="row">                          
+                            <div class="col-12 col-md-8">
+                                <canvas id="barChart" width="400" height="200"></canvas>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <canvas id="pieChart" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>        
+   
+   <div class="col-12 table-responsive">
+    <h3>Students with Golden GPA</h3>
+        <table class="table">
+            <thead class="table-info">
+                <tr>
+                    <th>Counter</th>
+                    <th>Student Name</th>
+                    <th>Student ID</th>
+                    <th>Class</th>
+                    <th>Section</th>
+                    <th>Shift</th>
+                    <th>Gender</th>
+                    <th>Version</th>
+                    <th>Obtained Score </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students_with_golden_gpa %}
+                <tr>
+                    <td>{{ forloop.counter }}</td> 
+                    <td>{{ student.name }}</td>
+                    <td>{{ student.student_id }}</td>
+                    <td>{{ student.enrolled_students__student_class__name }}</td>
+                    <td>{{ student.enrolled_students__section__name }}</td>
+                    <td>{{ student.enrolled_students__student_class__shift }}</td>
+                    <td>{{ student.enrolled_students__section__class_gender }}</td>
+                    <td>{{ student.enrolled_students__student_class__language_version }}</td>
+                    <td>{{ student.calculated_percentage|floatformat:"2" }}&nbsp;%</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2">No students with Golden GPA</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+   </div>   
+   <div class="col-12">
+     <h3>Students with highest scorer</h3>
+        <table class="table">
+            <thead class="table-success">
+                <tr>
+                    <th>Counter</th>
+                    <th>Student Name</th>
+                    <th>Student ID</th>
+                    <th>Class</th>
+                    <th>Section</th>
+                    <th>Shift</th>
+                    <th>Gender</th>
+                    <th>Version</th>
+                    <th>Highest Score </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in top_students %}
+                <tr>
+                    <td>{{ forloop.counter }}</td> 
+                    <td>{{ student.student__name }}</td>
+                    <td>{{ student.student__student_id }}</td>
+                    <td>{{ student.student__enrolled_students__student_class__name }}</td>
+                    <td>{{ student.student__enrolled_students__section__name }}</td>
+                    <td>{{ student.student__enrolled_students__student_class__shift }}</td>
+                    <td>{{ student.student__enrolled_students__section__class_gender }}</td>
+                    <td>{{ student.student__enrolled_students__student_class__language_version }}</td>
+                    <td>{{ student.calculated_percentage|floatformat:"2" }}&nbsp;%</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2">No students with Golden GPA</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        </div>
+    {% endif %}  
+
+    </div>
+</div>
+
+
+<script>
+  
+    var labels = JSON.parse('{{ grade_point_labels|escapejs }}');
+    var counts = JSON.parse('{{ grade_point_counts|escapejs }}');
+
+    function generateRandomColor() {
+        return 'rgba(' + Math.floor(Math.random() * 256) + ',' + Math.floor(Math.random() * 256) + ',' + Math.floor(Math.random() * 256) + ', 0.6)';
+    }
+
+    var randomColors = labels.map(function() {
+        return generateRandomColor();
+    });
+
+    var ctxBar = document.getElementById('barChart').getContext('2d');
+    var barChart = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: labels,  
+            datasets: [{
+                label: 'GPA VS Student Count',
+                data: counts,  
+                backgroundColor: randomColors,  
+                borderColor: randomColors,     
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+
+    var ctxPie = document.getElementById('pieChart').getContext('2d');
+    var pieChart = new Chart(ctxPie, {
+        type: 'pie',
+        data: {
+            labels: labels, 
+            datasets: [{
+                data: counts,  
+                backgroundColor: randomColors,  
+                borderColor: randomColors,     
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+</script>
+
+
+
+
+
+
+{% endblock %}

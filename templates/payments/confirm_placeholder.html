@@ -1,0 +1,15 @@
+
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="alert alert-warning p-4 rounded shadow">
+    <h2>⚠️ Are you sure?</h2>
+    <p>This will create placeholder payment records for <strong>all students</strong> for the entire academic year</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, Create Placeholder Payments</button>
+        <a href="{% url 'students:view_student_vcard' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

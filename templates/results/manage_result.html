@@ -1,0 +1,342 @@
+
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+
+    <style>
+    .special-field {
+        background-color: #f0f8ff;  /* Light blue background */
+        border-color: #4682b4;      /* Blue border */
+        color: #000080;             /* Dark blue text */
+    }
+</style>
+
+
+
+<div class="container-fluid main-content">
+    <div class="row">
+
+
+ <div class="col-12">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <!-- Card Header -->
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="mb-0">{% if instance %} Update Result data {% else %} Enter result  {% endif %}</h3>
+                </div> 
+                <div class="card-body">                   
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+        
+                        <div class="row">
+                            <!-- Render the exam field first -->
+                            <div class="col-md-auto mb-3">
+                                <label class="form-label">{{ form.exam.label }}</label>
+                                {{ form.exam|add_class:'form-control' }}
+                                {% if form.exam.help_text %}
+                                    <small class="text-muted">{{ form.exam.help_text }}</small>
+                                {% endif %}
+                                {% for error in form.exam.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+        
+                            <div class="col-md-auto mb-3">
+                                <label class="form-label">{{ form.exam_type.label }}</label>
+                                <!-- Make sure exam_type is visible initially -->
+                                <select id="id_exam_type" name="exam_type" class="form-control">
+                                    <option value="">Select Exam Type</option>
+                                </select>
+                                
+                                {% if form.exam_type.help_text %}
+                                    <small class="text-muted">{{ form.exam_type.help_text }}</small>
+                                {% endif %}
+                                {% for error in form.exam_type.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            
+                            
+                            <!-- Render other fields -->
+                            {% for field in form %}
+                                {% if field.name != "exam" and field.name != "exam_type" %}
+                                    <div class="col-md-auto mb-3">
+                                        <label class="form-label">{{ field.label }}</label>
+        
+                                        {% if field.field.widget.input_type == "textarea" %}
+                                            <textarea class="form-control" rows="2">{{ field.value|default_if_none:"" }}</textarea>
+                                        {% else %}
+                                            {{ field|add_class:'form-control' }}
+                                        {% endif %}
+        
+                                        {% if field.help_text %}
+                                            <small class="text-muted">{{ field.help_text }}</small>
+                                        {% endif %}
+        
+                                        {% for error in field.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+        
+                            <div class="col-md-auto align-self-end mb-3">
+                                <button type="submit" name="entity_submit" class="btn btn-success btn-sm">
+                                    {% if instance %} Update {% else %} Add {% endif %}
+                                </button>
+                            </div>
+                        </div>                
+                    </form>
+                </div>
+            </div>
+        </div>                
+        
+        <div class="col-12 table-responsive my-5">
+            <table class="table table-hover">
+                <thead class="table-dark">
+
+		  <tr>
+  			<th>Student</th>
+                        <td>Academic Year</td>    
+                        <td>Subject </td>
+                        <td>Subject Teacher</td>
+                        <th>Exam</th>
+                        <td>Exam type</td>                   
+                        <td>Exam date</td>    
+                        <th>Exam marks</th> 
+                        <th>Obtained marks</th>               
+                         <td>Actions</td>                    
+                       
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entity in page_obj %}
+                        <tr>
+                            
+  			   <td> {{ entity.student.name }}</td>
+                            <td> {{ entity.academic_year}}</td>
+                            <td> {{ entity.exam_type.subject.name}}</td>
+                            <td> {{ entity.subject_teacher.name}}</td>
+                            <td> {{ entity.exam_type.exam}}</td>
+                            <td> {{ entity.exam_type}}</td>
+                            <td> {{ entity.exam_type.exam_date}}</td>
+                            <td> {{ entity.exam_marks}}</td>
+                            <td> {{ entity.obtained_marks}}</td>
+                          
+                           
+                            <td class="text-center">
+                                <a href="{% url 'results:create_result' %}" class="btn btn-sm btn-info">Add</a>
+                                <a href="{% url 'results:update_result' entity.id %}" class="btn btn-sm btn-info">Edit</a>
+                               
+                                <a href="#" 
+                                    class="btn btn-danger btn-sm" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#deleteModal" 
+                                    data-id="{{ entity.id }}" 
+                                    data-name="{{ entity.name }}">
+                                        Delete
+                                    </a>
+                               
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="text-center">No record available.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+    
+     <!-- Pagination Controls -->
+     <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+
+</div>
+
+
+
+ <!-- Delete Confirmation Modal -->
+ <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete the record: <strong id="modal-entity-name"></strong>?
+            </div>
+            <div class="modal-footer">
+                <form method="post" id="delete-form">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+<script>
+   $(document).ready(function(){
+
+    $('#id_exam').change(function() {
+        var examId = $(this).val();
+        if (examId) {
+            $.ajax({
+                url: "{% url 'results:get_exam_types' %}",
+                data: {'exam_id': examId},
+                dataType: 'json',
+                success: function(data) {
+                    var examTypeSelect = $('#id_exam_type');
+                    console.log("Exam type response:", data);
+                    examTypeSelect.empty();  // Clear existing options
+
+                    // Add placeholder
+                    examTypeSelect.append($('<option>', {
+                        value: '',
+                        text: 'Select Exam Type'
+                    }));
+
+                    if (data.exam_types && data.exam_types.length > 0) {
+                        $.each(data.exam_types, function(index, examType) {
+                            examTypeSelect.append($('<option>', {
+                                value: examType.id,
+                                text: examType.label
+                            }));
+                        });
+                    } else {
+                        // If no exam types are found
+                        examTypeSelect.append($('<option>', {
+                            value: '',
+                            text: 'No exam types found'
+                        }));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("AJAX error:", error);
+                }
+            });
+        } else {
+            // If no exam is selected, reset exam_type dropdown
+            $('#id_exam_type').empty().append('<option value="">Select Exam Type</option>');
+        }
+    });
+
+
+});
+
+</script>
+
+
+
+<script>
+  $(document).ready(function() {
+    $("#student-dropdown").change(function() {
+        var studentId = $(this).val();
+
+        if (studentId) {
+            console.log("Request URL: {% url 'results:get_student_details' %}");  
+            $.ajax({
+                url: "{% url 'results:get_student_details' %}",
+                data: {'student_id': studentId},
+                dataType: 'json',
+                success: function(data) {
+                    console.log(data);
+                    if (data.error) {
+                        alert(data.error);
+                    } else {                       
+                        // Populate fields
+                        $("#id_academic_year").val(data.academic_year).change();                                
+                        $("#id_subject_teacher").val(data.subject_teacher).change();
+                       
+                    }
+                },
+                error: function() {
+                    alert("Error fetching student details");
+                }
+            });
+        }
+    });
+});
+
+
+</script>
+
+
+<script>
+  $(document).ready(function() {
+    console.log("Request URL: {% url 'results:get_exam_marks' %}");
+
+    $("#id_exam_type").change(function() {
+        var examTypeId = $(this).val();
+
+        if (examTypeId) {
+            console.log("Request URL: {% url 'results:get_exam_marks' %}");
+            $.ajax({
+                url: "{% url 'results:get_exam_marks' %}",
+                data: {'exam_type_id': examTypeId},
+                dataType: 'json',
+                success: function(data) {
+                    console.log(data);
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        $("#exam_marks").val(data.exam_marks).change();
+                        $("#exam_date").val(data.exam_date).change();
+                    }
+                },
+                error: function() {
+                    alert("Error fetching exam details");
+                }
+            });
+        }
+    });
+});
+
+  
+  </script>
+
+
+<script>
+    const deleteModal = document.getElementById('deleteModal');
+    deleteModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget; 
+        const entityId = button.getAttribute('data-id');
+        const entityName = button.getAttribute('data-name');
+
+          const modalEntityName = deleteModal.querySelector('#modal-entity-name');
+        modalEntityName.textContent = entityName;
+  
+        const deleteForm = deleteModal.querySelector('#delete-form');
+        deleteForm.action = `/results/delete_result/${entityId}/`;
+    });
+</script>
+
+
+
+{% endblock %}

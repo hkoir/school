@@ -1,0 +1,16 @@
+{% extends "student_portal_base.html" %}
+
+{% block content %}
+
+<div class="container">
+    <form method="POST" action="{% url 'student_portal:download_final_result' %}" class="mb-3">
+        {% csrf_token %}     
+        <div class="form-group">
+            <label for="academic_year">Enter Academic Year</label>
+            <input type="number" class="form-control" id="academic_year" name="academic_year" required>
+        </div>
+        <button type="submit" class="btn btn-primary my-2">Generate Result</button>
+    </form>
+
+
+    {% endblock %}

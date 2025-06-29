@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+{% block content %}
+
+<div class="container mt-5 mb-5">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Manual Payment Review</h4>
+        </div>
+        <div class="card-body p-4">
+
+            <!-- Student Info -->
+            <h5 class="mb-3">Student Information</h5>
+           <div class="col-12 table-responsive">
+	    <table class="table table-bordered">
+                <tbody>
+                    <tr>
+                        <th>Name</th>
+                        <td>{{ student.name }}</td>
+                        <th>Student ID</th>
+                        <td>{{ student.student_id }}</td>
+                    </tr>
+                    <tr>
+                        <th>Class</th>
+                        <td>{{ student.enrolled_students.first.student_class.academic_class.name }}</td>
+                        <th>Section</th>
+                        <td>{{ student.enrolled_students.first.section }}</td>
+                    </tr>
+                    <tr>
+                        <th>Shift</th>
+                        <td>{{ student.enrolled_students.first.section.class_assignment.shift }}</td>
+                        <th>Language</th>
+                        <td>{{ student.enrolled_students.first.section.class_assignment.language_version }}</td>
+                    </tr>
+                </tbody>
+            </table>
+	    </div>
+
+            <!-- Tuition Summary -->
+            <h5 class="mt-4 mb-2">Tuition Payment Summary</h5>
+            <p><strong>Selected Months:</strong> {{ selected_month_names|join:", " }}</p>
+            <p><strong>Tuition Fee Total:</strong> {{ tuition_fee_total }} ৳</p>
+
+            <!-- Admission Fees -->
+            <h5 class="mt-4 mb-2">Admission Fee Items</h5>
+            {% if selected_admission_fees %}
+                <ul class="list-group mb-3">
+                    {% for fee in selected_admission_fees %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ fee.name }}
+                            <span>{{ fee.amount }} ৳</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <p><strong>Admission Fee Total:</strong> {{ admission_fee_total }} ৳</p>
+            {% else %}
+                <p>No admission fees selected.</p>
+            {% endif %}
+
+            <hr>
+            <!-- Grand Total -->
+            <h4 class="text-right">Grand Total: {{ tuition_fee_total|add:admission_fee_total }} ৳</h4>
+
+            <!-- Confirmation Button -->
+           <form method="post" action="{% url 'payments:finalize_online_payment' %}">
+                {% csrf_token %}
+                <div class="text-right mt-4">
+                    <button type="submit" class="btn btn-success btn-lg">✔ Confirm & Submit Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

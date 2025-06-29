@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    .table-double-bordered td,
+    .table-double-bordered th {
+        border: 3px double #000 !important;
+    }
+</style>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12 table-responsive">
+            <form method="get" class="mb-4 d-flex align-items-center gap-3">
+		  {% if request.user.is_staff or request.user.is_superuser %}
+                    <input type="text" name="student_id" placeholder="Student ID" class="form-control w-50" value="{{ request.GET.student_id }}">
+                {% endif %}
+
+                <label for="day" class="form-label mb-0"><strong>Filter:</strong></label>
+                <select name="day" id="day" class="form-select w-auto" onchange="this.form.submit()">
+                    <option value="">-- All Days --</option>
+                    <option value="Monday" {% if day_filter == "Monday" %}selected{% endif %}>Monday</option>
+                    <option value="Tuesday" {% if day_filter == "Tuesday" %}selected{% endif %}>Tuesday</option>
+                    <option value="Wednesday" {% if day_filter == "Wednesday" %}selected{% endif %}>Wednesday</option>
+                    <option value="Thursday" {% if day_filter == "Thursday" %}selected{% endif %}>Thursday</option>
+                    <option value="Friday" {% if day_filter == "Friday" %}selected{% endif %}>Friday</option>
+                    <option value="Saturday" {% if day_filter == "Saturday" %}selected{% endif %}>Saturday</option>
+                </select>
+            </form>
+        </div>
+
+        <div class="col-12 table-responsive">
+            <p>
+                <strong>Student Name:</strong> {{ student.name }} |
+                <strong>ID:</strong> {{ student.student_id }}<br>
+                <strong>Class:</strong> {{ academic_class.name }} |
+                <strong>Section:</strong> {{ section.name }}<br>
+                <strong>Shift:</strong> {{ shift }} |
+                <strong>Version:</strong> {{ version }}<br>
+                <strong>Gender:</strong> {{ gender }} |
+                <strong>Academic Year:</strong> {{ academic_year }}
+            </p>
+
+            <table class="table table-bordered table-striped table-double-bordered">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Time</th>
+                        <th>Subject</th>
+                        <th>Subject Teacher</th>
+                        <th>Class Room Name</th>
+                        <th>Room Number</th>
+                        <th>Location</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if day_filter %}
+                        {% for schedule in filtered_schedule %}
+                            <tr>
+                                <td><strong>{{ schedule.day_of_week }}</strong></td>
+                                <td>{{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}</td>
+                                <td>{{ schedule.subject_assignment.subject.name }}</td>
+                                <td>{{ schedule.subject_assignment.subject_teacher.name }}</td>
+                                <td>{{ schedule.class_room.name }}</td>
+                                <td>{{ schedule.class_room.room_number }}</td>
+                                <td>{{ schedule.class_room.location }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="7" class="text-center">No schedule found for {{ day_filter }}.</td></tr>
+                        {% endfor %}
+                    {% else %}
+                        {% for day, schedules in schedule_by_day.items %}
+                            {% for schedule in schedules %}
+                                <tr>
+                                    {% if forloop.first %}
+                                        <td rowspan="{{ schedules|length }}"><strong>{{ day }}</strong></td>
+                                    {% endif %}
+                                    <td>{{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}</td>
+                                    <td>{{ schedule.subject_assignment.subject.name }}</td>
+                                    <td>{{ schedule.subject_assignment.subject_teacher.name }}</td>
+                                    <td>{{ schedule.class_room.name }}</td>
+                                    <td>{{ schedule.class_room.room_number }}</td>
+                                    <td>{{ schedule.class_room.location }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

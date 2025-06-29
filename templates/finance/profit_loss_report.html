@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+{% load custom_filters %}
+{% block content %}
+
+
+
+
+<div class="container py-5">
+    <div class="card shadow-lg rounded-4 border-0">
+        <div class="card-header bg-dark text-white rounded-top-4 d-flex justify-content-between align-items-center">
+          <div class="col-12 table-responsive">  
+	  <h4 class="mb-0">Profit & Loss Report</h4>
+
+	     <form method="get" class="row g-2 align-items-end">
+                <div class="col-12 col-sm-auto">
+                    <label for="start_date" class="form-label text-white mb-1">Start Date</label>
+                    <input type="date" id="start_date" name="start_date" value="{{ start_date }}"
+                        class="form-control form-control-sm bg-white text-dark" required>
+                </div>
+
+                <div class="col-12 col-sm-auto">
+                    <label for="end_date" class="form-label text-white mb-1">End Date</label>
+                    <input type="date" id="end_date" name="end_date" value="{{ end_date }}"
+                        class="form-control form-control-sm bg-white text-dark" required>
+                </div>
+
+                <div class="col-12 col-sm-auto">
+                    <button type="submit" class="btn btn-sm btn-light w-100 mt-3 mt-sm-0">Filter</button>
+                </div>
+            </form>
+	  </div>
+        </div>
+        <div class="card-body">
+            <p><strong>Reporting Period:</strong> {{ start_date }} to {{ end_date }}</p>
+            
+            <div class="row row-cols-1 row-cols-md-3 g-4 mt-3">
+                <div class="col">
+                    <div class="card border-success shadow-sm h-100">
+                        <div class="card-body">
+                            <h6 class="card-title text-success">Tuition Revenue</h6>
+                            <h5 class="card-text">৳ {{ tuition_revenue|floatformat:2|add_commas }}</h5>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col">
+                    <div class="card border-primary shadow-sm h-100">
+                        <div class="card-body">
+                            <h6 class="card-title text-primary">Admission Revenue</h6>
+                            <h5 class="card-text">৳ {{ admission_revenue|floatformat:2|add_commas }}</h5>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col">
+                    <div class="card border-info shadow-sm h-100">
+                        <div class="card-body">
+                            <h6 class="card-title text-info">Total Revenue</h6>
+                            <h5 class="card-text">৳ {{ total_revenue|floatformat:2|add_commas }}</h5>
+                        </div>
+                    </div>
+                </div>
+
+               <div class="col">
+                <a href="{% url 'finance:expense_list' %}?start_date={{ start_date }}&end_date={{ end_date }}" style="text-decoration: none;">
+                    <div class="card border-danger shadow-sm h-100">
+                        <div class="card-body">
+                            <h6 class="card-title text-danger">Total Expenses</h6>
+                            <h5 class="card-text text-dark">৳ {{ total_expenses|floatformat:2|add_commas }}</h5>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+
+                <div class="col-12 table-responsive">
+                    <div class="card border-dark shadow-sm h-100">
+                        <div class="card-body">
+                            <h6 class="card-title text-dark">Net Profit / Loss</h6>
+                            <h5 class="card-text fw-bold {% if profit_loss < 0 %}text-danger{% else %}text-success{% endif %}">
+                                {% if profit_loss < 0 %}-{% endif %}৳ {{ profit_loss|floatformat:2|add_commas }}
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                <a href="{% url 'finance:asset_list' %}" style="text-decoration: none;">
+                    <div class="card border-warning shadow-sm h-100">
+                        <div class="card-body">
+                            <h6 class="card-title text-warning">Total Asset Value</h6>
+                            <h5 class="card-text text-dark">৳ {{ total_asset_value|floatformat:2|add_commas }}</h5>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            </div>
+
+        </div>
+    </div>
+{% if shareholders %}
+<div class="mt-5">
+    <div class="card shadow rounded-4 border-0">
+        <div class="card-header bg-gradient bg-primary text-white rounded-top-4">
+            <h5 class="mb-0">💼 Shareholder Profit Distribution (Based on Ownership)</h5>
+        </div>
+        <div class="card-body p-0">
+	  <div class="col-12 table-responsive">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">👤 Investor</th>
+                        <th scope="col">📊 Ownership</th>
+                        <th scope="col">💰 Profit/Loss Share</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in shareholders %}
+                    <tr>
+                        <td class="fw-semibold text-dark">{{ s.name }}</td>
+                        <td>
+                            <span class="badge bg-info text-dark">
+                                {{ s.percentage|floatformat:2 }}%
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge {% if s.share_amount < 0 %}bg-info{% else %}bg-success{% endif %} fs-6">
+                                ৳ {{ s.share_amount|floatformat:2 }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+	    </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+</div>
+
+{% endblock %}

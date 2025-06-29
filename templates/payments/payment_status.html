@@ -1,0 +1,279 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% load custom_filters %}
+
+{% block content %}
+
+<div class="container mb-5">
+    <div class="row">
+
+        <h1>Tuition fee Payment status</h1>
+        <div class="col-12 mb-3" style="border:1px solid goldenrod">
+            <div class="card border-0 rounded-lg">
+              
+                    <h3 class=" text-center mb-0">Choose Filter criteria</h3>
+            
+                <div class="card-body">                   
+                    <form method="GET" enctype="multipart/form-data">
+                        {% csrf_token %}
+                
+                        <div class="row">
+                            {% for field in form %}
+                                <div class="col-md-3">  <!-- Adjust col-md-6 for 2 columns, col-md-4 for 3 columns -->
+                                    <label class="form-label">{{ field.label }}</label>
+                
+                                    {% if field.field.widget.input_type == "textarea" %}
+                                        <textarea class="form-control" rows="2">{{ field.value|default_if_none:"" }}</textarea>
+                                    {% else %}
+                                        {{ field }}
+                                    {% endif %}
+                
+                                    {% if field.help_text %}
+                                        <small class="text-muted">{{ field.help_text }}</small>
+                                    {% endif %}
+                
+                                    {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                
+                        <div>
+                            <button type="submit" name="entity_submit" class="btn btn-success btn-sm">
+                               Submit filter
+                            </button>
+                        </div>   
+                    </form>
+                </div>
+            </div>
+        </div>
+    
+
+
+
+        {% if data %}
+
+        <div class="col-12 my-5 table-responsive">
+            <h4>Monthly Tuition Fees Payment status</h4>
+            <table class="table">
+                <thead class="table-info">
+                    <tr>
+                        <th>Student Name</th>
+                        {% for month in months %}
+                            <th>{{ month }}</th>  <!-- Display month names -->
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                        <tr>
+                            <td>{{ row.student.name }}</td>
+                            {% range_to 12 as months_range %}
+                            {% for i in months_range %}                      
+                                <td>
+
+                                    {% if row.status_by_month|get_item:i == 'paid' %}
+                                <span class="badge bg-success">Paid</span>
+                            {% elif row.status_by_month|get_item:i == 'partial-paid' %}
+                                <span class="badge bg-warning">Partial Paid</span>
+                            {% elif row.status_by_month|get_item:i == 'due' %}
+                                <span class="badge bg-info">Due</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Not Set</span>
+                            {% endif %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+        </div>
+        <div class="col-12">
+            <div class="container">
+                <div class="row">
+                    <div class="col-5">
+                        <h4>Admission Fees Payment status</h4>
+                        <table class="table table-striped">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Admission Fee</th>
+                                
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in data %}
+                                    <tr>
+                                        <td>{{ row.student.name }}</td>
+            
+                                        <td>
+                                            {% if row.admission_status == 'paid' %}
+                                                <span class="badge bg-success">Paid</span>
+                                            {% elif row.admission_status == 'partial-paid' %}
+                                                <span class="badge bg-info text-dark">Partial</span>
+                                            {% elif row.admission_status == 'due' %}
+                                                <span class="badge bg-warning text-dark">Due</span>
+                                            {% elif row.admission_status == 'not-applicable' %}
+                                                <span class="badge bg-secondary">N/A</span>
+                                            {% else %}
+                                                <span class="badge bg-light text-dark">Unknown</span>
+                                            {% endif %}
+                                        </td>
+                                        
+                                        
+                                        
+                                    
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+            
+                    </div>                  
+                  
+                    <div class="col-4">
+                        <h6 class="text-center"> Admission fee payment status</h6>
+                        <canvas id="attendanceBarChart" width="400" height="200"></canvas>
+                    </div>
+                    <div class="col-3">
+                        <h6 class="text-center"> Tuition status</h6>
+                        <canvas id="attendancePieChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+           
+       
+        {% else %}
+        <span> No data availabe</span>
+       {% endif %}
+
+      <a href="{% url 'payments:choose_fee_and_generate_invoice' %}" class="btn btn-success mt-3">Make Online Payment</a>      
+	<a href="{% url 'payments:choose_fee_and_make_manual_payment' %}" class="btn btn-success mt-3">Make Manual Payment</a>    
+
+    </div>
+</div>
+
+
+
+
+
+
+  <script>
+
+    function getRandomColor() {
+        return `#${Math.floor(Math.random()*16777215).toString(16)}`;
+        }
+    
+    var colors = Array(5).fill().map(() => getRandomColor()); 
+    var pieColors = Array(4).fill().map(() => getRandomColor()); 
+    var attendanceData = JSON.parse('{{ payment_status_data|escapejs }}');  
+    
+    
+    // Bar Chart
+    var ctxBar = document.getElementById('attendanceBarChart').getContext('2d');
+    var attendanceBarChart = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: ['Payment Summary'],
+            datasets: [
+
+            {
+                    label: 'Total Student',
+                    data: [attendanceData.total_student],
+                    backgroundColor: colors[0],
+                    borderColor: colors[0],
+                    borderWidth: 1
+                },
+                {
+                    label: 'Total paid',
+                    data: [attendanceData.total_paid],
+                    backgroundColor: colors[4],
+                    borderColor: colors[4],
+                    borderWidth: 1
+                },
+                {
+                    label: 'Total due',
+                    data: [attendanceData.total_due],
+                    backgroundColor: colors[1],
+                    borderColor: colors[1],
+                    borderWidth: 1
+                },
+                {
+                    label: 'Total partial pay',
+                    data: [attendanceData.total_partial],
+                    backgroundColor: colors[2],
+                    borderColor: colors[2],
+                    borderWidth: 1
+                },
+                {
+                    label: 'Not applicable',
+                    data: [attendanceData.total_not_applicable],
+                    backgroundColor: colors[3],
+                    borderColor: colors[3],
+                    borderWidth: 1
+                },
+              
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top', 
+                    labels: {
+                        font: {
+                            size: 14
+                        },
+                        color: '#333'
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Pie Chart
+    var ctxPie = document.getElementById('attendancePieChart').getContext('2d');
+    var attendancePieChart = new Chart(ctxPie, {
+        type: 'pie',
+        data: {
+            labels: ['Total Paid', 'Total Due'],
+            datasets: [{
+                label: 'Payment Summary',
+                data: [attendanceData.total_paid_amount, attendanceData.total_due_amount],
+                backgroundColor: pieColors,
+                borderColor: pieColors,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(tooltipItem) {
+                            return tooltipItem.label + ": " + tooltipItem.raw;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    </script>
+    
+
+{% endblock %}

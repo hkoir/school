@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+
+
+
+
+    <h2>Generate Student Report</h2>
+    <form method="POST" action="{% url 'results:generate_student_report' %}">
+        {% csrf_token %}
+        <label for="student_id">Student ID:</label>
+        <input type="text" id="student_id" name="student_id" required><br><br>
+        
+        <label for="academic_year">Academic Year:</label>
+        <input type="text" id="academic_year" name="academic_year" required><br><br>
+        
+        <button type="submit">Generate Report</button>
+    </form>
+
+
+
+{% endblock %}

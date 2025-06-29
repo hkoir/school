@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Student Exam Results</h2>
+
+    <!-- Exam Result Form -->
+    <form method="GET" class="mb-4">
+        <div class="row">
+            <div class="col-md-3">
+                <label>Student ID:</label>
+                {{ form.student_id }}
+            </div>
+            <div class="col-md-3">
+                <label>Academic Year:</label>
+                {{ form.academic_year }}
+            </div>
+           
+	   <div class="col-md-3">
+                <label>Exam:</label>
+                {{ form.exam }}
+            </div>
+            <div class="col-md-3">
+                <label>&nbsp;</label><br>
+                <button type="submit" class="btn btn-primary">Get Results</button>
+            </div>
+        </div>
+    </form>
+
+    {% if exam_results %}
+        <!-- Student & Exam Details in a Single Row -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <!-- Student Details (Left) -->
+                    <div class="col-md-6 d-flex">
+                        <div class="mx-3 mt-5">
+                            {% if exam_results.0.student.profile_picture %}
+                                <img src="{{ exam_results.0.student.profile_picture.url }}" alt="Student Profile" class="rounded-circle" width="100" height="100">
+                            {% else %}
+                                <img src="/static/default-profile.png" alt="Default Profile" class="rounded-circle" width="100" height="100">
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h5>Student Information</h5>
+			 <p><strong>Name:</strong> {{ exam_results.0.student.name }}<br>
+                            <strong>Student ID:</strong> {{ exam_results.0.student.student_id }}<br>
+                            <strong>Class:</strong> {{ exam_results.0.exam_type.academic_class.name }}<br>
+                            <strong>Section:</strong> {{ exam_results.0.student.enrolled_students.first.section.name }}<br>
+                            <strong>Shift:</strong> {{ exam_results.0.student.enrolled_students.first.student_class.shift }}<br>                       
+                           </p>
+
+                        </div>
+                    </div>
+
+                    <!-- Exam Details (Right) -->
+                    <div class="col-md-6">
+                        <h5>Exam Details</h5>
+			 <p><strong>Exam Type:</strong> {{ exam_results.0.exam_type.exam.name }}<br>
+                        <strong>Academic Year:</strong> {{ exam_results.0.exam_type.exam.academic_year }}<br>
+                        <strong>Exam Date:</strong> {{ exam_results.0.exam_type.exam_date }}<br>
+                        <strong>Version:</strong> {{ exam_results.0.student.enrolled_students.first.student_class.language_version }}<br>
+                        <strong>Class Teacher:</strong> {{ exam_results.0.student.enrolled_students.first.section.teacher_in_charge }}</p>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Table -->
+         <div class="col-12 table-responsive">
+
+ 
+        <table class="table table-bordered">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Subject</th>
+                    <th>Subject Teacher</th>
+                    <th>Obtained Marks</th>
+                    <th>Total Marks</th>
+                    <th>Percentage</th>
+                    <th>Grade</th>
+                    <th>Grade Point</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in exam_results %}
+                <tr>
+
+		  <td>{{ result.exam_type.subject.name }}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            {% if result.subject_teacher.profile_picture %}
+                                <img src="{{ result.subject_teacher.profile_picture.url }}" alt="Teacher Profile" class="rounded-circle mr-2" width="25" height="25">
+                            {% else %}
+                                <img src="/static/default-profile.png" alt="Default Profile" class="rounded-circle mr-2" width="25" height="25">
+                            {% endif %}
+                            {{ result.subject_teacher.name }}
+                        </div>
+                    </td>
+                    <td>{{ result.obtained_marks }}</td>
+                    <td>{{ result.exam_marks }}</td>
+                    <td>{{ overall_percentage|floatformat:2 }}%</td>
+                    <td>{{ final_grade.name }}</td>
+                    <td>{{ final_grade.grade_point }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            
+        </table>
+    </div>
+    {% elif form.is_bound %}
+        <div class="alert alert-warning">No results found.</div>
+    {% endif %}
+</div>
+{% endblock %}

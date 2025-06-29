@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow border-0 rounded-4">
+                <div class="card-header bg-primary text-white rounded-top-4">
+                    <h4 class="mb-0">Add New Expense</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_category" class="form-label">Category</label>
+                            {{ form.category|add_class:"form_control" }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_amount" class="form-label">Amount</label>
+                            {{ form.amount|add_class:"form-control" }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_date" class="form-label">Date</label>
+                            {{ form.date|add_class:"form-control" }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_description" class="form-label">Description</label>
+                            {{ form.description|add_class:"form-control" }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_employee" class="form-label">Related Employee</label>
+                            {{ form.employee|add_class:"form-select" }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_inventory_purchase" class="form-label">Inventory Purchase</label>
+                            {{ form.inventory_purchase|add_class:"form-select" }}
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-success px-4">Save Expense</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="text-start mt-3">
+                <a href="{% url 'finance:expense_list' %}" class="btn btn-secondary">← Back to Expense List</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

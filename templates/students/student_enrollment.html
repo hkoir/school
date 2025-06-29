@@ -1,0 +1,103 @@
+
+{% extends 'base.html' %}  
+
+{% block content %}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <form method="post" id="enrollmentForm" class="p-4 bg-white shadow rounded">
+                {% csrf_token %}
+
+                <h4 class="mb-3 text-center text-primary">Student Enrollment Form</h4>
+
+                <div class="row">
+                    <!-- Academic Year -->
+                    <div class="col-md-auto mb-3">
+                        <label class="form-label fw-bold">Academic Year:</label>
+                        <input type="number" name="academic_year" class="form-control" required placeholder="Enter academic year">
+                    </div>
+
+                    <!-- Student -->
+                    <div class="col-md-auto mb-3">
+                        <label class="form-label fw-bold">Student:</label>
+                        <select name="student" class="form-select" required>
+                            <option value="">Select Student</option>
+                            {% for student in students %}
+                                <option value="{{ student.id }}">{{ student.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Class -->
+                    <div class="col-md-auto mb-3">
+                        <label class="form-label fw-bold">Class:</label>
+                        <select id="id_student_class" name="student_class" class="form-select" required>
+                            <option value="">Select Class</option>
+                            {% for class in student_classes %}
+                                <option value="{{ class.id }}">{{ class.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Section -->
+                    <div class="col-md-auto mb-3">
+                        <label class="form-label fw-bold">Section:</label>
+                        <select id="id_section" name="section" class="form-select">
+                            <option value="">Select Section</option>
+                            {% for section in sections %}
+                                <option value="{{ section.id }}">{{ section.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Roll Number -->
+                    <div class="col-md-auto mb-3">
+                        <label class="form-label fw-bold">Roll Number:</label>
+                        <input type="text" name="roll_number" class="form-control" required placeholder="Enter roll number">
+                    </div>
+
+                    <!-- Subjects -->
+                    <div class="col-md-auto mb-3">
+                        <label class="form-label fw-bold">Subjects:</label>
+                        <select id="id_subjects" name="subjects" class="form-select" multiple required>
+                            <option value="">Select Subjects</option>
+                        </select>
+                        <small class="form-text text-muted">Hold Ctrl (Windows) or Cmd (Mac) to select multiple subjects.</small>
+                    </div>
+                     <!-- Submit Button -->
+                  <div class="col-md-auto mt-5">
+                    <button type="submit" class="btn btn-primary px-4">Enroll Student</button>
+                </div>
+                </div>
+
+               
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function() {
+        $("#id_student_class").change(function() {
+            var classId = $(this).val();
+            $("#id_subjects").empty().append('<option value="">Select Subjects</option>');
+
+            if (classId) {
+                $.ajax({
+                    url: "{% url 'students:get_subjects' %}",
+                    data: {class_id: classId},
+                    dataType: "json",
+                    success: function(data) {
+                        $.each(data, function(index, subject) {
+                            $("#id_subjects").append('<option value="' + subject.id + '">' + subject.name + '</option>');
+                        });
+                    }
+                });
+            }
+        });
+    });
+</script>
+
+{% endblock %}

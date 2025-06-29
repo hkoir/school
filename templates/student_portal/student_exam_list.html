@@ -1,0 +1,44 @@
+{% extends "student_portal_base.html" %}
+{% block content %}
+{% load static %}
+
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12 table-responsive">
+
+
+    <h2>Admit Card for {{ student.name }}</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>Exam</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for exam in exam_types %}
+        <tr>
+          <td>{{ exam.subject.name }}</td>
+          <td>{{ exam.name }}</td>
+          <td>{{ exam.exam_date|date:"d M Y" }}</td>
+          <td>
+            <a href="{% url 'student_portal:preview_admit_card' exam.id %}" target="_blank">
+              Download Admit Card
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="3">No exams found for this student.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+{% endblock %}

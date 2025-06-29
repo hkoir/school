@@ -1,0 +1,158 @@
+
+{% extends "student_portal_base.html" %}
+{% load static %}
+
+{% load custom_filters %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row">
+
+        <h1 class="text-center">Student Payment Dashboard </h1>
+        <div class="col-12 mb-3">
+            <div class="card border-0 rounded-lg">              
+                               
+                <div class="card-body">                   
+                    <form method="GET" enctype="multipart/form-data">
+                        {% csrf_token %}
+                
+                        <div class="row">
+                            {% for field in form %}
+                                <div>  <!-- Adjust col-md-6 for 2 columns, col-md-4 for 3 columns -->
+                                    <label class="form-label">{{ field.label }}</label>
+                
+                                    {% if field.field.widget.input_type == "textarea" %}
+                                        <textarea class="form-control" rows="2">{{ field.value|default_if_none:"" }}</textarea>
+                                    {% else %}
+                                        {{ field }}
+                                    {% endif %}
+                
+                                    {% if field.help_text %}
+                                        <small class="text-muted">{{ field.help_text }}</small>
+                                    {% endif %}
+                
+                                    {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                
+                        <div>
+                            <button type="submit" name="entity_submit" class="btn btn-success btn-sm">
+                               Submit filter
+                            </button>
+                        </div>   
+                    </form>
+                </div>
+            </div>
+        </div>
+    
+
+
+
+        {% if data %}
+
+        <div class="col-12">
+            <h4>Monthly Tuition Fees</h4>
+            <table class="table">
+                <thead class="table-info">
+                    <tr>
+                        <th>Student Name</th>
+                        {% for month in months %}
+                            <th>{{ month }}</th>  <!-- Display month names -->
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                        <tr>
+                            <td>{{ row.student.name }}</td>
+                            {% range_to 12 as months_range %}
+                            {% for i in months_range %}                      
+                                <td>
+
+                                    {% if row.status_by_month|get_item:i == 'paid' %}
+                                <span class="badge bg-success">Paid</span>
+                            {% elif row.status_by_month|get_item:i == 'partial-paid' %}
+                                <span class="badge bg-warning">Partial Paid</span>
+                            {% elif row.status_by_month|get_item:i == 'due' %}
+                                <span class="badge bg-info">Due</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Not Set</span>
+                            {% endif %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+        </div>
+        <div class="col-12">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12 col-md-5 table-responsive">
+                        <h4>Admission Fees</h4>
+                        <table class="table table-striped">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Admission Fee</th>
+                                
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in data %}
+                                    <tr>
+                                        <td>{{ row.student.name }}</td>
+            
+                                        <td>
+                                            {% if row.admission_status == 'paid' %}
+                                                <span class="badge bg-success">Paid</span>
+                                            {% elif row.admission_status == 'partial-paid' %}
+                                                <span class="badge bg-info text-dark">Partial</span>
+                                            {% elif row.admission_status == 'due' %}
+                                                <span class="badge bg-warning text-dark">Due</span>
+                                            {% elif row.admission_status == 'not-applicable' %}
+                                                <span class="badge bg-secondary">N/A</span>
+                                            {% else %}
+                                                <span class="badge bg-light text-dark">Unknown</span>
+                                            {% endif %}
+                                        </td>
+                                        
+                                        
+                                        
+                                    
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+            
+                    </div>                  
+                  
+                   
+                </div>
+            </div>
+        </div>
+
+           
+       
+        {% else %}
+        <span> No data availabe</span>
+       {% endif %}
+      
+    
+    </div>
+
+    <a href="#" class="btn btn-primary text-center"> Pay Tuition Fee</a>
+    <a href="#" class="btn btn-primary text-center"> Pay Admission fee</a>
+</div>
+
+
+
+
+
+
+{% endblock %}

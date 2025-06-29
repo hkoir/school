@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% load custom_filters %}
+
+{% block content %}
+
+
+<style>
+    .form-label {
+    line-height: 1.2; /* Adjust as needed */
+    margin-bottom: 2px; /* Reduce space below label */
+}
+
+.form-control {
+    line-height: 1.2; /* Adjust input text spacing */
+    padding: 4px 8px; /* Reduce input padding */
+}
+
+.text-muted {
+    font-size: 12px; /* Make help text smaller */
+    line-height: 1.1;
+}
+
+.text-danger {
+    font-size: 12px;
+    line-height: 1.1;
+}
+
+</style>
+
+
+
+
+
+<div class="container mb-4">
+    <div class="row">    
+        <h1>Attendance Summary Report</h1>
+        <div class="col-12 mb-3">
+            <div class="card border-0 rounded-lg">
+              
+                    <h3 class=" text-center mb-0">Choose Filter criteria</h3>
+            
+                <div class="card-body">                   
+                    <form method="GET" enctype="multipart/form-data">
+                        {% csrf_token %}
+                
+                        <div class="row">
+                            {% for field in form %}
+                                <div class="col-6 col-md-3">  <!-- Adjust col-md-6 for 2 columns, col-md-4 for 3 columns -->
+                                    <label class="form-label">{{ field.label }}</label>
+                
+                                    {% if field.field.widget.input_type == "textarea" %}
+                                        <textarea class="form-control" rows="2">{{ field.value|default_if_none:"" }}</textarea>
+                                    {% else %}
+                                        {{ field|add_class:"form-control" }}
+                                    {% endif %}
+                
+                                    {% if field.help_text %}
+                                        <small class="text-muted">{{ field.help_text }}</small>
+                                    {% endif %}
+                
+                                    {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                
+                        <div>
+                            <button type="submit" name="entity_submit" class="btn btn-success btn-sm">
+                               Submit filter
+                            </button>
+                        </div>   
+                    </form>
+                </div>
+            </div>
+        </div>
+    
+
+   
+{% if total_students %}
+  <div class="col-12 mt-4">
+    <div class="card shadow border-0 rounded-lg">
+        <div class="card-body">  
+          <div class="row">     
+            <div class="col-12 col-md-4">    
+                <!-- Attendance Data Table -->
+                <table>
+                    <p class="text-center"><b>Academic Year:</b>{{academic_year}}||<b>Class:</b>{{ class_name }}||<b>Section:</b>{{section}}||<b>Shift:</b>{{shift}}||<b>Gender:</b>{{class_gender}}</p>
+                    <thead>
+                        <tr>
+                            <th>Total Students</th>
+                            <th>Total Present</th>
+                            <th>Total Absent</th>
+                            <th>Total Late</th>
+                            <th>Total Early Out</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ total_students}}</td>
+                            <td>{{ total_present }}</td>
+                            <td>{{ total_absent }}</td>
+                            <td>{{ total_late }}</td>
+                            <td>{{ total_early_out }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-12 col-md-5">
+                <canvas id="attendanceBarChart" width="400" height="200"></canvas>
+            </div>
+            <div class="col-12 col-md-3">
+                <canvas id="attendancePieChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+     </div>
+    </div>
+  </div>
+  {% else %}
+  <span>No records found for selected criteria</span>
+  {% endif %}
+   
+ </div>
+</div>
+
+
+<script>
+
+function getRandomColor() {
+    return `#${Math.floor(Math.random()*16777215).toString(16)}`;
+    }
+
+var colors = Array(5).fill().map(() => getRandomColor()); 
+var pieColors = Array(4).fill().map(() => getRandomColor()); 
+var attendanceData = JSON.parse('{{ attendance_summary_data|escapejs }}');  
+
+
+// Bar Chart
+var ctxBar = document.getElementById('attendanceBarChart').getContext('2d');
+var attendanceBarChart = new Chart(ctxBar, {
+    type: 'bar',
+    data: {
+        labels: ['Attendance Summary'],
+        datasets: [
+            {
+                label: 'Total Students',
+                data: [attendanceData.total_students],
+                backgroundColor: colors[0],
+                borderColor: colors[0],
+                borderWidth: 1
+            },
+            {
+                label: 'Present',
+                data: [attendanceData.total_present],
+                backgroundColor: colors[1],
+                borderColor: colors[1],
+                borderWidth: 1
+            },
+            {
+                label: 'Absent',
+                data: [attendanceData.total_absent],
+                backgroundColor: colors[2],
+                borderColor: colors[2],
+                borderWidth: 1
+            },
+            {
+                label: 'Late',
+                data: [attendanceData.total_late],
+                backgroundColor: colors[3],
+                borderColor: colors[3],
+                borderWidth: 1
+            },
+            {
+                label: 'Early Out',
+                data: [attendanceData.total_early_out],
+                backgroundColor: colors[4],
+                borderColor: colors[4],
+                borderWidth: 1
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top', 
+                labels: {
+                    font: {
+                        size: 14
+                    },
+                    color: '#333'
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Pie Chart
+var ctxPie = document.getElementById('attendancePieChart').getContext('2d');
+var attendancePieChart = new Chart(ctxPie, {
+    type: 'pie',
+    data: {
+        labels: ['Present', 'Absent', 'Late', 'Early Out'],
+        datasets: [{
+            label: 'Attendance Summary',
+            data: [attendanceData.total_present, attendanceData.total_absent, attendanceData.total_late, attendanceData.total_early_out],
+            backgroundColor: pieColors,
+            borderColor: pieColors,
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(tooltipItem) {
+                        return tooltipItem.label + ": " + tooltipItem.raw;
+                    }
+                }
+            }
+        }
+    }
+});
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,619 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+{% load static %}
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>bnova</title>
+
+
+<!-- Include jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Bootstrap CSS (Bootstrap 5.3) -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Bootstrap JS (Bootstrap 5.3) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Datepicker -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Font Awesome CSS for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <!-- Font Awesome CDN -->
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"> -->
+
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+<!-- Add CSS for Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- Add JS for Select2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
+<link rel="stylesheet" href="{% static 'css/core.css' %}">
+
+<script src="{% static 'js/common.js' %}"></script>
+{% block extra_head %}
+
+
+{% endblock %}
+<style>
+
+    
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&family=Roboto:wght@300;400;500&display=swap');
+
+/* Apply font to entire navbar, including dropdowns */
+.navbar, 
+.navbar .nav-item, 
+.navbar .nav-link, 
+.navbar .dropdown-menu, 
+.navbar .dropdown-item, 
+.navbar .dropdown-submenu .dropdown-menu {
+    font-family: 'Poppins', 'Roboto', sans-serif !important;
+}
+
+.navbar .dropdown-menu .dropdown-item {
+    font-family: "Arial", sans-serif !important; /* Set your desired font */
+}
+
+.navbar .dropdown-menu .dropdown-item i {
+    font-family: inherit !important; /* Make icons follow the text font */
+}
+
+/* Apply font-family to dropdown items */
+.navbar .dropdown-menu .dropdown-item {
+    font-family: "Arial", sans-serif !important; /* Set your desired font */
+}
+
+/* Ensure icons use FontAwesome's font */
+.navbar .dropdown-menu .dropdown-item i {
+    font-family: "Font Awesome 5 Free", "Font Awesome 5 Pro" !important;
+    font-weight: 900; /* Ensures solid icons show correctly */
+}
+
+.dropdown_caret_color{
+    color:white
+}
+
+.nav-bar i{
+    color:#0dcaf0
+}
+.navbar li, .navbar a, .navbar ul{
+    color:white;
+    
+}
+
+ul .dropdown-item > i{
+    color:cyan
+}
+
+li a {
+    line-height: 1.3rem;
+    margin: 0 !important;
+    padding: 4px 15px !important; /* Adjust as needed */
+}
+
+.menu-color{
+     color:white;
+    
+ }
+
+    
+
+/* Ensure the main dropdown opens on hover */
+.nav-item.dropdown:hover > .dropdown-menu {
+    display: block;
+    background-color: #2d2d2d; /* Darker gray */
+    color: #ffffff; 
+}
+
+
+/* Style for the main dropdown */
+.navbar .dropdown-menu {
+    background-color: #2c3e50; 
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Style for dropdown items */
+.navbar .dropdown-menu .dropdown-item {
+    color: white !important; 
+    padding: 10px 20px;
+    font-size: 15px;
+    font-weight: 500;
+    text-decoration: none;
+    font-family: 'Poppins', 'Roboto', sans-serif !important; /* Ensure font applies */
+}
+
+/* Hover effect for dropdown items */
+.navbar .dropdown-menu .dropdown-item:hover {
+    background-color: #34495e; 
+    color: #f1c40f !important; 
+}
+
+
+/* Ensure links stay visible */
+.navbar .dropdown-menu a {
+    color: white !important;
+    font-family: 'Poppins', 'Roboto', sans-serif !important; /* Force font for links */
+}
+
+
+
+/* Dropdown submenu wrapper */
+.dropdown-submenu {
+    position: relative;
+}
+
+/* Dropdown menu with scroll effect */
+.dropdown-submenu > .dropdown-menu {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    margin-top: -1px;
+    display: none;
+    max-height: 300px; /* Adjust height as needed */
+    overflow-y: auto;
+    background-color: #2c3e50;
+    border-radius: 8px;
+    z-index: 10001;
+}
+
+/* Ensure submenu opens only when hovering on the parent */
+.dropdown-submenu:hover > .dropdown-menu {
+    display: block;
+}
+
+/* Prevent flickering */
+.dropdown-submenu:hover {
+    position: relative;
+}
+
+/* Custom scrollbar styling */
+.dropdown-submenu > .dropdown-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dropdown-submenu > .dropdown-menu::-webkit-scrollbar-track {
+    background: #1c2833; 
+}
+
+.dropdown-submenu > .dropdown-menu::-webkit-scrollbar-thumb {
+    background: #f1c40f; /* Change scrollbar color */
+    border-radius: 5px;
+}
+
+/* Hover effect */
+.dropdown-submenu .dropdown-menu .dropdown-item:hover {
+    background-color: #3a4b5c;
+    color: #ffcc00 !important;
+    z-index: 10001;
+}
+
+
+.dropdown-menu {
+    width: 250px !important; /* Adjust width as needed */
+}
+/* Increase the notification dropdown width */
+.notification-dropdown {
+    min-width: 450px;  /* or any desired width, e.g., 400px */
+    max-width: 100%;   /* optional: ensures it doesn’t overflow on small screens */
+    white-space: normal; /* allows content to wrap inside */
+}
+
+
+@media (max-width: 991.98px) {
+    .navbar-toggler {
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border: 2px solid white;
+        background-color: #16213e;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .navbar-toggler-icon {
+        width: 100%;
+        height: 100%;
+        background-size: 60% 60%;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='white' stroke-width='2' stroke-linecap='round' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+        border-radius: 4px; /* optional */
+
+
+</style>
+
+
+</head>
+
+
+<body>
+
+
+<!-- Social Links Navbar -->
+
+ 
+<!-- Social Links Navbar -->
+<nav class="navbar navbar-dark social-nav" id="socialNav">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <!-- Left Section: Social Links -->
+        <span class="navbar-text">Social Links | Contact Us | Follow Us</span>
+
+
+        <!-- Right Section: Social Icons -->
+        <div class="social-icons d-flex">
+            <a href="https://www.facebook.com" target="_blank" class="text-light me-3">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="https://www.twitter.com" target="_blank" class="text-light me-3">
+                <i class="fab fa-twitter"></i>
+            </a>
+            <a href="https://www.linkedin.com" target="_blank" class="text-light me-3">
+                <i class="fab fa-linkedin-in"></i>
+            </a>
+            <a href="mailto:contact@yourcompany.com" class="text-light ms-3">
+                <i class="fas fa-envelope"></i> Email Us
+            </a>
+        </div>
+    </div>
+</nav>
+
+
+<!-- Main Navbar -->
+<nav class="navbar navbar-expand-lg main-nav" id="mainNav">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'student_portal:student_landing_page' %}">bnova
+            <img src="{% static 'images/Logo.png' %}" 
+                 class="rounded-circle border"                                    
+                 style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #007bff;">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <!-- notification menue -->
+               
+                    {% if schema_name != 'public' %}
+
+
+
+{% if request.user.is_authenticated %}
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-bell {% if unread_notifications|length > 0 %}new-notification{% endif %}"></i>
+            {% if unread_notifications|length > 0 %}
+                <span class="badge bg-danger">{{ unread_notifications|length }}</span>
+            {% endif %}
+        </a>
+        <ul class="dropdown-menu notification-dropdown" aria-labelledby="navbarDropdown">
+            {% if unread_notifications %}
+                <div class="notification-scroll">
+                    {% for notification in unread_notifications %}
+                        <li class="notification {% if not notification.is_read %}unread{% endif %}">
+                            <a href="#" class="dropdown-item mark-as-read" data-id="{{ notification.id }}">
+                                <p>{{ notification.get_notification_type_display }}: {{ notification.message }}</p>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <li class="dropdown-item">No new notifications</li>
+            {% endif %}
+        </ul>
+    </li>
+{% else %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'accounts:login' %}">Log in</a>
+    </li>
+{% endif %}
+
+ {% endif %}
+                            
+                            
+               
+                <!-- notification end -->
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle menu-color" style="color: white;" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa fa-bullhorn" aria-hidden="true"></i> Notices
+                    </a>
+
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown" style="max-height: 400px; overflow-y: auto;">
+                      
+                        <li><a class="dropdown-item" href="{% url 'student_portal:view_notices' %}" style="color:red"><i class="fas fa-eye"></i>&nbsp;View Notices</a></li>
+                        
+                    </ul>
+                </li>
+               
+
+
+               
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle dropdown_caret_color"href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class=" fas fa-user-cog text-info"></i>  &nbsp;<span style="color:gray">Dashboard</span>            
+                                 
+                    </a>                                       
+                      
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown" style="max-height: 400px; overflow-y: auto;">
+
+			<li><a class="dropdown-item" href="{% url 'student_portal:inbox' %}" style="text-decoration: none;">
+				<i class="fas fa-plus-square"></i>&nbsp;Message Inbox</a></li>
+
+                        <li class="nav-item"><a class="nav-link" href="{% url 'student_portal:student_exam_schedule' %}">
+                            <i class="fas fa-tasks"></i>&nbsp;Student Admit Card</a></li>
+
+                        <li class="nav-item"><a class="nav-link" href="{% url 'student_portal:attendance_report' %}">
+                            <i class="fas fa-tasks"></i>&nbsp;Attendance</a></li>
+
+                        <li class="nav-item"><a class="nav-link" href="{% url 'student_portal:individual_exam_result' %}">
+                            <i class="fas fa-tasks"></i>&nbsp;Individual Exam Result</a></li>
+                        
+                        <li class="nav-item"><a class="nav-link" href="{% url 'student_portal:aggregated_final_result' %}">
+                        <i class="fas fa-tasks"></i>&nbsp;Final result</a></li>
+
+                        <li class="nav-item"><a class="nav-link" href="{% url 'student_portal:payment_status_view' %}">
+                            <i class="fas fa-tasks"></i>&nbsp;Payment Dashboard</a></li>
+
+                            <li class="nav-item"><a class="nav-link" href="{% url 'student_portal:class_schedule' %}">
+                                <i class="fas fa-tasks"></i>&nbsp;Class Schedule</a></li>
+			 <li><a class="dropdown-item" href="{% url 'payments:choose_fee_and_generate_invoice' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Make online Payment</a></li>                       
+
+                    </ul>                 
+                </li> 
+
+               
+               
+              
+
+               
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle dropdown_caret_color"href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class=" fas fa-user-cog text-info"></i>  &nbsp;<span style="color:gray">User Account</span>            
+                                  
+                    </a>   
+                                    
+                      
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown" style="max-height: 400px; overflow-y: auto;">
+                        {% if user.is_authenticated %}                        
+                        <li>
+                            <form action="{% url 'accounts:logout' %}" method="post" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item" style="text-decoration: none;"><i class="fas fa-sign-out-alt"></i>&nbsp;Logout</button>
+                            </form>
+                        </li>                    
+                         <li><a class="dropdown-item" href="{% url 'accounts:password_change' %}" style="text-decoration: none;"><i class="fas fa-key"></i>&nbsp;Change Password </a></li>
+                        {% else %}
+                        <li><a class="dropdown-item" href="" style="text-decoration: none;"><i class="fas fa-user"></i></a>&nbsp;Your account</li>
+                        <li><a class="dropdown-item" href="{% url 'accounts:login' %}" style="text-decoration: none;"><i class="fas fa-sign-in-alt"></i> &nbsp;Login</a></li>                     
+                        <li><a class="dropdown-item" href="{% url 'accounts:pwdreset' %}" style="text-decoration: none;"><i class="fas fa-lock"></i>&nbsp;Forgot Password </a></li>
+                        <li><a class="dropdown-item" href="{% url 'accounts:register_student' %}" style="text-decoration: none;"><i class="fas fa-sign-in-alt"></i> &nbsp;Register</a></li>
+			
+			{% endif %}
+                    </ul>                 
+                </li> 
+
+
+
+
+                <div>
+                
+                    {% if user.is_authenticated %}
+                    {% if user.photo_id %}
+                        <img src="{{ user.photo_id.url }}" alt="Profile" class="rounded-circle" width="30" height="30">
+                        {% endif %}
+                        <span style="color:gray">{{ user.username }}</span>
+                    {% else %}
+                    <i class="fas fa-user-cog text-info"><span style="color:gray">Guest</span></i> &nbsp;
+                     
+                    {% endif %}
+                </div>
+                
+         
+                          
+              
+            </ul>  <!-- this master Ul end  -->    
+                                
+          
+         
+            
+        </div>
+    </div>
+    
+
+</nav>
+     
+   
+
+    <div class="container-fluid">    
+        {% block content %}
+        {% endblock %}
+    </div>
+    
+    {% include 'footer.html' %}
+
+
+
+
+<!-- Bootstrap Modal -->
+<div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="messageModalLabel">Messages</h5>
+                <!-- Close Button -->
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="messagesContainer">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    let dropdowns = document.querySelectorAll('.dropdown-submenu');
+
+    dropdowns.forEach(function(dropdown) {
+        dropdown.addEventListener('mouseenter', function() {
+            let submenu = this.querySelector('.dropdown-menu');
+            if (submenu) {
+                submenu.style.display = 'block';
+            }
+        });
+
+        dropdown.addEventListener('mouseleave', function() {
+            let submenu = this.querySelector('.dropdown-menu');
+            if (submenu) {
+                submenu.style.display = 'none';
+            }
+        });
+    });
+
+
+    document.querySelectorAll('.dropdown-submenu').forEach((submenu) => {
+    let timeout;
+    submenu.addEventListener('mouseenter', function () {
+        clearTimeout(timeout);
+        this.querySelector('.dropdown-menu').style.display = 'block';
+    });
+    submenu.addEventListener('mouseleave', function () {
+        timeout = setTimeout(() => {
+            this.querySelector('.dropdown-menu').style.display = 'none';
+        }, 300); // Delay in milliseconds
+    });
+});
+
+
+
+
+});
+
+
+
+</script>
+
+
+
+<script>
+    const socialNav = document.getElementById('socialNav');
+    const mainNav = document.getElementById('mainNav');
+    const socialNavHeight = socialNav.offsetHeight;
+
+    window.addEventListener('scroll', function () {
+        if (window.scrollY > socialNavHeight) {
+            socialNav.style.top = `-${socialNavHeight}px`;
+            mainNav.style.top = '0px'; // Move main-nav to the top
+        } else {
+            socialNav.style.top = '0';
+            mainNav.style.top = `${socialNavHeight}px`; // Push it below social-nav
+        }
+    });
+</script>
+
+  <script>
+  $('#id_search').select2({
+    width: '100%', 
+    placeholder: 'Search...',
+    allowClear: true,
+    ajax: {
+        url: "{% url 'accounts:search_all' %}",
+        dataType: 'json',
+        delay: 250,
+        data: function(params) {
+            return { q: params.term };
+        },
+        processResults: function(data) {
+            return {
+                results: $.map(data.results, function(item) {
+                    return { id: item.id, text: item.text };
+                })
+            };
+        },
+        cache: true
+    },
+    minimumInputLength: 1
+});
+
+    </script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {   
+        const messageModal = document.getElementById('messageModal');
+        const messagesContainer = document.getElementById('messagesContainer');   
+        if (messageModal && messagesContainer && messagesContainer.children.length > 0) { 
+            const modalInstance = new bootstrap.Modal(messageModal);
+            modalInstance.show();
+   
+            setTimeout(() => {
+                modalInstance.hide();
+            }, 5000);
+        }
+    });
+</script>
+
+
+
+
+
+<script>
+$(document).ready(function () {
+    // Function to mark a notification as read
+    $(".mark-as-read").click(function (e) {
+        e.preventDefault();  // Prevent default link behavior
+        var notificationId = $(this).data("id");  // Get notification ID
+
+        $.ajax({
+            url: "/messaging/notifications/mark-as-read/" + notificationId + "/",
+            type: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}"  // Pass CSRF token
+            },
+            success: function (response) {
+                if (response.success) {
+                    // Hide the clicked notification or change its style
+                    $("a[data-id='" + notificationId + "']").closest(".notification").fadeOut();
+
+                    // Update the notification count badge
+                    var count = parseInt($(".badge.bg-danger").text()) || 0;
+                    if (count > 1) {
+                        $(".badge.bg-danger").text(count - 1);
+                    } else {
+                        $(".badge.bg-danger").remove();  // Remove badge if no more unread notifications
+                    }
+                }
+            },
+            error: function () {
+                alert("Error marking notification as read.");
+            }
+        });
+    });
+});
+</script>
+
+
+
+</body>
+</html>
+

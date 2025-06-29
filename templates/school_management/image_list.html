@@ -1,0 +1,49 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .slideshow-container {
+        max-width: 100%;
+        position: relative;
+        margin: auto;
+    }
+    .slide {
+        display: none;
+        width: 100%;
+    }
+    .active {
+        display: block;
+    }
+</style>
+
+
+
+
+<h2 class="text-center">Image Gallery</h2>
+<div class="slideshow-container">
+    {% for image in images %}
+        <img class="slide" src="{{ image.image.url }}" alt="Gallery Image">
+    {% empty %}
+        <p>No images available.</p>
+    {% endfor %}
+</div>
+
+<script>
+    let slideIndex = 0;
+    const slides = document.querySelectorAll('.slide');
+
+    function showSlides() {
+        slides.forEach(slide => slide.style.display = 'none');
+        slideIndex = (slideIndex + 1) % slides.length;
+        slides[slideIndex].style.display = 'block';
+        setTimeout(showSlides, 3000); // Change image every 3 seconds
+    }
+
+    if (slides.length > 0) {
+        showSlides();
+    }
+</script>
+
+{% endblock %}

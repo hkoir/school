@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% block content %}
+
+
+
+
+
+<style>
+    .form-label {
+    line-height: 1.2; /* Adjust as needed */
+    margin-bottom: 2px; /* Reduce space below label */
+}
+
+.form-control {
+    line-height: 1.2; /* Adjust input text spacing */
+    padding: 4px 8px; /* Reduce input padding */
+}
+
+.text-muted {
+    font-size: 12px; /* Make help text smaller */
+    line-height: 1.1;
+}
+
+.text-danger {
+    font-size: 12px;
+    line-height: 1.1;
+}
+
+table td{
+    line-height: .8;
+}
+
+</style>
+
+
+
+<div class="container mb-4">
+    <div class="row">
+
+   
+    <h2>Attendance Report</h2>
+
+    <div class="col-12 mb-3">
+        <div class="card border-0 rounded-lg">          
+            <h4 class="mb-0 text-center">Filter by choices</h4>          
+            <div class="card-body">                   
+                <form method="GET" enctype="multipart/form-data">
+                    {% csrf_token %}
+            
+                    <div class="row">
+                        {% for field in form %}
+                            <div class="col-6 col-md-3" style="height:50px">  <!-- Adjust col-md-6 for 2 columns, col-md-4 for 3 columns -->
+                                <label class="form-label">{{ field.label }}</label>
+            
+                                {% if field.field.widget.input_type == "textarea" %}
+                                    <textarea class="form-control" rows="2">{{ field.value|default_if_none:"" }}</textarea>
+                                {% else %}
+                                    {{ field|add_class:"form-control" }}
+                                {% endif %}
+            
+                                {% if field.help_text %}
+                                    <small class="text-muted">{{ field.help_text }}</small>
+                                {% endif %}
+            
+                                {% for error in field.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+            
+                    <div>
+                        <button type="submit" name="entity_submit" class="btn btn-success btn-sm">
+                            Submit filter
+                        </button>
+                    </div>   
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 table-responsive">    
+    <!-- Attendance Table -->
+
+    <table class="table table-bordered mt-4">
+        <p class="text-center"><b>Academic Year:</b>{{academic_year}}||<b>Class:</b>{{ class_name }}||<b>Section:</b>{{section}}||<b>Shift:</b>{{shift}}||<b>Gender:</b>{{class_gender}}</p>
+        <thead class = table-info>
+            <tr>
+                <th>Date</th>
+                <th>Student</th>
+             
+                <th>Status</th>
+                <th>Check-in</th>
+                <th>Check-out</th>
+                <th>Late</th>
+                <th>Early Out</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in attendance_records %}
+            <tr>
+                <td>{{ record.date }}</td>
+                <td>{{ record.student.name|default:"N/A" }}</td>
+               
+                <td>
+                    {% if record.status == 'Present' %}
+                    <strong class="text-success">Present</strong>
+                    {% else %}
+                    <strong class="text-danger">Absent</strong>
+                    {% endif %}
+                </td>
+                <td>{{ record.first_check_in|default:"N/A" }}</td>
+                <td>{{ record.last_check_out|default:"N/A" }}</td>
+                <td>
+                    {% if record.is_late %}
+                    <strong class="text-danger">Yes</strong>
+                    {% else %}
+                    <strong class="text-success">No</strong>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if record.is_early_out %}
+                    <strong class="text-danger">Yes</strong>
+                    {% else %}
+                    <strong class="text-success">No</strong>
+                    {% endif %}
+                </td>
+                
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center">No attendance records found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</div>
+</div>
+{% endblock %}

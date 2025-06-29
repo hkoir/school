@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+
+<style>
+    .table th,td{
+        font-size: 14px;
+        line-height: 5px;
+    }
+</style>
+
+
+<div class="container-fluid">
+
+<form method="POST" action="{% url 'results:student_details_report' %}" class="mb-3">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="student_id">Enter Student ID</label>
+        <input type="text" class="form-control" id="student_id" name="student_id" required>
+    </div>
+
+    <div class="form-group">
+        <label for="academic_year">Enter Academic Year</label>
+        <input type="number" class="form-control" id="academic_year" name="academic_year" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary my-2">Generate Result</button>
+</form>
+
+
+
+<div class="row" id="report-content">
+
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <!-- Student Details (Left) -->
+            <div class="col-md-5 d-flex">
+
+                <div class="mx-3 mt-5">
+                    {% if student.profile_picture %}
+                        <img src="{{ student.profile_picture.url }}" alt="Student Profile" class="rounded-circle" width="50" height="50">
+                    {% else %}
+                        <img src="/static/default-profile.png" alt="Default Profile" class="rounded-circle" width="50" height="50">
+                    {% endif %}
+                </div>
+               
+                <div>
+                    <h5>Student Information</h5>
+                    <p><strong>Name:</strong> {{ student.name }}<br>
+                       <strong>Student ID:</strong> {{ student.student_id }}<br>
+                       <strong>Class:</strong> {{ student.enrolled_students.first.student_class}}<br>
+                       <strong>Section:</strong> {{ student.enrolled_students.first.section }}<br>
+                       <strong>Shift:</strong> {{ student.enrolled_students.first.student_class.shift }}<br>
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-2 d-flex flex-column align-items-center">
+                <h5>Grand Total:</h5>
+                <p>
+                    <strong>Total marks:</strong> {{ yearly_total }}<br>
+                    <strong>Obtained:</strong> {{ yearly_obtained}}<br>             
+                    <strong>Highest: </strong>{{ year_highest }}<br>                     
+                    <strong>{% if golden_gpa %}GPA:Golden 5.0{% else %}GPA:{{ yearly_gpa }}{% endif %}</strong>
+                </p>
+            </div>
+
+            <!-- Exam Details (Right) -->
+            <div class="col-md-3">
+                <h5>Report Info</h5>
+                <p><strong>Report Type:</strong> Final Report<br>
+                   <strong>Academic Year:</strong> {{ academic_year }}<br>                                     
+                   <strong>Version:</strong> {{ student.enrolled_students.first.student_class.language_version }}<br>
+                   <strong>Class Gender:</strong> {{ student.enrolled_students.first.section.class_gender}}<br>
+                   <strong>Class Teacher:</strong> {{student.enrolled_students.first.student_class.teacher_in_charge }}</p>
+            </div>
+              <!-- Exam Details (Right) -->
+              <div class="col-md-2 d-flex flex-column align-items-end text-end">
+                <h5>Result Legend: </h5>
+                <p><strong>Total marks:</strong>TM<br>
+                   <strong>Obtained Marks:</strong>OM<br>                                     
+                   <strong>Highest Marks:</strong>HM<br>  
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class=" col-12 table-responsive">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th rowspan="2">Subject</th>
+                {% for exam in exam_types %}
+                    <th colspan="3">{{ exam.name }}</th>
+                {% endfor %}
+                <th colspan="5">Final Result</th>
+            </tr>
+            <tr>
+                {% for exam in exam_types %}
+                    <th>TM</th>
+                    <th>OM</th>
+                    <th>HM</th>
+                {% endfor %}
+                    <th>TM</th>
+                    <th>OM</th>
+                    <th>HM</th>
+                <th>GPA</th>
+                <th>Grade</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for subject_info in subjects %}
+            <tr>
+                <td>{{ subject_info.subject }}</td>
+                {% for exam in exam_types %}
+                    <td>{{ subject_info.exam_data|get_item:exam.name|get_item:"total"|default:"0" }}</td>
+                    <td>{{ subject_info.exam_data|get_item:exam.name|get_item:"obtained"|default:"0" }}</td>
+                    <td>{{ subject_info.exam_data|get_item:exam.name|get_item:"highest_obtained"|default:"0" }}</td>
+                {% endfor %}
+                <td>{{ subject_info.final_total }}</td>
+                <td>{{ subject_info.final_obtained }}</td>
+                <td>{{ subject_info.final_highest }}</td>
+                <td>{{ subject_info.subject_gpa }}</td>
+                <td>{{ subject_info.subject_letter_grade }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+</div>
+
+</div>
+
+
+<button id="download-pdf" class="btn btn-success mt-3">Download PDF</button>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.0/purify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+   document.getElementById('download-pdf').addEventListener('click', function () {
+       const { jsPDF } = window.jspdf;
+       const doc = new jsPDF('1', 'mm', 'a4'); // Set 'l' for landscape orientation
+       //const doc = new jsPDF('p', 'mm', 'letter');  // Portrait
+       //const doc = new jsPDF('l', 'mm', 'letter');  // Landscape
+
+
+       // Get the content of the report
+       const reportContent = document.getElementById('report-content');
+
+       // Wait for all images to load before creating the PDF
+       const images = reportContent.querySelectorAll('img');
+       let loadedImages = 0;
+
+       images.forEach((img) => {
+           if (img.complete && img.naturalWidth > 0) {
+               loadedImages += 1;
+           } else {
+               img.onload = function() {
+                   loadedImages += 1;
+                   if (loadedImages === images.length) {
+                       // Proceed with rendering the PDF after all images are loaded
+                       generatePDF(doc, reportContent);
+                   }
+               };
+           }
+       });
+
+       // If all images are already loaded, proceed with the rendering immediately
+       if (loadedImages === images.length) {
+           generatePDF(doc, reportContent);
+       }
+   });
+
+   // Function to generate PDF (callback style)
+   function generatePDF(doc, reportContent) {
+       html2canvas(reportContent, {
+           onrendered: function (canvas) {
+               const imgData = canvas.toDataURL("image/png");
+               // Adjust the position and size of the image for landscape layout
+               const pageWidth = doc.internal.pageSize.width;
+               const pageHeight = doc.internal.pageSize.height;
+
+               // Adjust image size to fit within the page
+               const imgWidth = pageWidth - 20;  // 10mm margin on each side
+               const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+               doc.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+               doc.save('student_report.pdf');
+           }
+       });
+   }
+</script>
+
+
+
+{% endblock %}

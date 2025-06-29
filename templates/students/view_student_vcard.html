@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block content %}
+
+
+
+
+<div class="container-fluid main-content">
+    <h4 class="text-center">Student Database</h4>
+    <div class="row">                   
+     
+        <form method="GET" action="{% url 'students:view_student_vcard' %}" class="mb-2">
+            Student ID: {{ form.student_id }}
+            <button type="submit" class="btn btn-primary">Find student</button> 
+        </form>  
+        <hr>
+        {% for student in page_obj %}
+        <div class="col-12 col-sm-6 col-md-3 col-lg-2 mb-4">
+            <div class="card shadow-lg border-0" style="background-color: #f8f9fa; border-radius: 15px;">
+                <!-- Employee Photo -->
+                <div class="d-flex justify-content-center mt-3">
+                    {% if student.profile_picture %}
+                        <img src="{{ student.profile_picture.url }}" 
+                             class="rounded-circle border" 
+                             alt="{{ student.name }}" 
+                             style="width: 50px; height: 50px; object-fit: cover; border: 2px solid #007bff;">
+                    {% else %}
+                        <img src="https://via.placeholder.com/80" 
+                             class="rounded-circle border" 
+                             alt="No Photo Available" 
+                             style="width: 50px; height: 50px; object-fit: cover; border: 2px solid #007bff;">
+                    {% endif %}
+                </div>
+                <!-- Employee Details -->
+                <div class="card-body text-center">
+                    <h5 class="card-title mb-1" style="font-weight: 600;">
+                        <a href="#" class="student-name" data-student-id="{{ student.student_id }}" style="text-decoration: none;">
+                            {{ student.name }}
+                        </a>    
+                    </h5>                 
+
+                    <p class="text-muted mb-2" style="font-size: 14px;">ID:{{ student.student_id }}</p>
+                    <p class="text-muted mb-2" style="font-size: 14px;">{{ student.enrolled_students.first.student_class }}||                  
+                       {{ student.enrolled_students.first.student_class.shift }}
+                    </p>
+                     <span><a href="{% url 'students:student_exam_schedule' student.id %}">Exam Schedule</a></span>
+                     <span><a href="{% url 'students:student_weekly_schedule_with_id' student.id %}">Class Schedule</a></span>
+                   
+                </div>
+            </div>
+        </div>
+        
+    {% endfor %}
+    
+        
+    </div>
+
+
+
+
+
+     <!-- Pagination Controls -->
+     <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+
+
+</div>
+
+<!-- Student Details Modal (Bootstrap 5) -->
+<div id="studentDetailsModal" class="modal fade " tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable"> 
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header" style="background-color:chocolate;">
+                <h5 class="modal-title">Student Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="display: block;"></button>
+            </div>
+
+            <div class="modal-body" style="max-height: 300px;overflow-y: auto;background-color: aquamarine;">
+                <p><strong>Name:</strong> <span id="studentName"></span><br>
+                <strong>Student ID:</strong> <span id="studentID"></span><br>
+                <strong>Class:</strong> <span id="studentClass"></span><br>
+                <strong>Section:</strong> <span id="studentSection"></span><br>
+                <strong>Shift:</strong> <span id="studentShift"></span><br>
+                <strong>Gender:</strong> <span id="studentGender"></span><br>
+                <strong>Language Version:</strong> <span id="studentLanguage"></span><br>
+               
+                <strong>Phone:</strong> <span id="studentPhone"></span><br>
+                <strong>Email:</strong> <span id="studentEmail"></span><br>
+                <strong>Address:</strong> <span id="studentAddress"></span><br>
+                <strong>Guardian Name:</strong> <span id="GuardianName"></span><br>
+                <strong>Guardian Phone:</strong> <span id="GuardianPhone"></span><br>
+                <strong>Guardian Email:</strong> <span id="GuardianEmail"></span><br>
+                <strong>Guardian Relationship:</strong> <span id="GuardianRelationship"></span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function() {
+        $(".student-name").click(function(e) {
+            e.preventDefault();
+            var studentId = $(this).data("student-id");
+
+            $.ajax({
+                url: "/students/student-details/" + studentId + "/",
+                type: "GET",
+                success: function(response) {
+                    // Populate the modal with student details
+                    $("#studentName").text(response.name);
+                    $("#studentID").text(response.student_id);
+                    $("#studentClass").text(response.class);
+                    $("#studentSection").text(response.section);
+                    $("#studentShift").text(response.shift);
+                    $("#studentGender").text(response.gender);
+                    $("#studentLanguage").text(response.language_version);
+
+                    $("#studentPhone").text(response.phone_number);
+                    $("#studentEmail").text(response.Email);
+                    $("#studentAddress").text(response.address);
+
+                    $("#GuardianName").text(response.guardian);
+                    $("#GuardianPhone").text(response.guardian_phone);
+                    $("#GuardianEmail").text(response.guardian_email);
+                    $("#GuardianRelationship").text(response.Relationship);
+                    
+                    // Show the modal
+                    $("#studentDetailsModal").modal("show");
+                },
+                error: function() {
+                    alert("Error fetching student details.");
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}

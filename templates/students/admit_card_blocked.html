@@ -1,0 +1,16 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<h2>Admit Card Unavailable</h2>
+<p>{{ message }}</p>
+<p>Please visit the accounts office or your dashboard to clear all dues before attempting again.</p>
+
+{% if total_due %}
+    <p><strong>Total Due:</strong> {{ total_due }} BDT</p>
+{% endif %}
+
+
+{% endblock %}

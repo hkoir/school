@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <h2 class="text-success">Thank you!</h2>
+    <p>Your payment was successful.</p>
+    <a href="{% url 'payments:payment_status_view' %}" class="btn btn-primary mt-3">Go to Payment Status</a>
+</div>
+{% endblock %}

@@ -1,0 +1,114 @@
+ 
+ -------------- celery@ubuntu-s-1vcpu-1gb-sgp1-01 v5.4.0 (opalescent)
+--- ***** ----- 
+-- ******* ---- Linux-5.15.0-113-generic-x86_64-with-glibc2.35 2025-05-22 22:37:51
+- *** --- * --- 
+- ** ---------- [config]
+- ** ---------- .> app:         myproject:0x7fe9f9377ca0
+- ** ---------- .> transport:   redis://localhost:6379/0
+- ** ---------- .> results:     redis://localhost:6379/0
+- *** --- * --- .> concurrency: 1 (prefork)
+-- ******* ---- .> task events: OFF (enable -E to monitor tasks in this worker)
+--- ***** ----- 
+ -------------- [queues]
+                .> celery           exchange=celery(direct) key=celery
+                
+
+[tasks]
+  . attendance.tasks.daily_attendance_update_task
+  . clients.tasks.check_and_renew_subscriptions
+  . clients.tasks.check_trial_expiry
+  . myproject.celery.debug_task
+
+[2025-05-22 22:37:51,738: WARNING/MainProcess] /home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/celery/worker/consumer/consumer.py:508: CPendingDeprecationWarning: The broker_connection_retry configuration setting will no longer determine
+whether broker connection retries are made during startup in Celery 6.0 and above.
+If you wish to retain the existing behavior for retrying connections on startup,
+you should set broker_connection_retry_on_startup to True.
+  warnings.warn(
+
+[2025-05-22 22:37:51,756: INFO/Beat] beat: Starting...
+[2025-05-22 22:37:51,775: INFO/MainProcess] Connected to redis://localhost:6379/0
+[2025-05-22 22:37:51,776: WARNING/MainProcess] /home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/celery/worker/consumer/consumer.py:508: CPendingDeprecationWarning: The broker_connection_retry configuration setting will no longer determine
+whether broker connection retries are made during startup in Celery 6.0 and above.
+If you wish to retain the existing behavior for retrying connections on startup,
+you should set broker_connection_retry_on_startup to True.
+  warnings.warn(
+
+[2025-05-22 22:37:51,795: INFO/MainProcess] mingle: searching for neighbors
+[2025-05-22 22:37:52,826: INFO/MainProcess] mingle: all alone
+[2025-05-22 22:37:52,841: INFO/MainProcess] celery@ubuntu-s-1vcpu-1gb-sgp1-01 ready.
+[2025-06-22 20:12:17,918: WARNING/MainProcess] consumer: Connection to broker lost. Trying to re-establish the connection...
+Traceback (most recent call last):
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/celery/worker/consumer/consumer.py", line 340, in start
+    blueprint.start(self)
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/celery/bootsteps.py", line 116, in start
+    step.start(parent)
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/celery/worker/consumer/consumer.py", line 746, in start
+    c.loop(*c.loop_args())
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/celery/worker/loops.py", line 97, in asynloop
+    next(loop)
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/kombu/asynchronous/hub.py", line 373, in create_loop
+    cb(*cbargs)
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/kombu/transport/redis.py", line 1352, in on_readable
+    self.cycle.on_readable(fileno)
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/kombu/transport/redis.py", line 569, in on_readable
+    chan.handlers[type]()
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/kombu/transport/redis.py", line 918, in _receive
+    ret.append(self._receive_one(c))
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/kombu/transport/redis.py", line 928, in _receive_one
+    response = c.parse_response()
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/redis/client.py", line 865, in parse_response
+    response = self._execute(conn, try_read)
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/redis/client.py", line 841, in _execute
+    return conn.retry.call_with_retry(
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/redis/retry.py", line 65, in call_with_retry
+    fail(error)
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/redis/client.py", line 843, in <lambda>
+    lambda error: self._disconnect_raise_connect(conn, error),
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/redis/client.py", line 830, in _disconnect_raise_connect
+    raise error
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/redis/retry.py", line 62, in call_with_retry
+    return do()
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/redis/client.py", line 842, in <lambda>
+    lambda: command(*args, **kwargs),
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/redis/client.py", line 863, in try_read
+    return conn.read_response(disconnect_on_error=False, push_request=True)
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/redis/connection.py", line 592, in read_response
+    response = self._parser.read_response(disable_decoding=disable_decoding)
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/redis/_parsers/resp2.py", line 15, in read_response
+    result = self._read_response(disable_decoding=disable_decoding)
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/redis/_parsers/resp2.py", line 25, in _read_response
+    raw = self._buffer.readline()
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/redis/_parsers/socket.py", line 115, in readline
+    self._read_from_socket()
+  File "/home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/redis/_parsers/socket.py", line 68, in _read_from_socket
+    raise ConnectionError(SERVER_CLOSED_CONNECTION_ERROR)
+redis.exceptions.ConnectionError: Connection closed by server.
+[2025-06-22 20:12:17,938: WARNING/MainProcess] /home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/celery/worker/consumer/consumer.py:391: CPendingDeprecationWarning: 
+In Celery 5.1 we introduced an optional breaking change which
+on connection loss cancels all currently executed tasks with late acknowledgement enabled.
+These tasks cannot be acknowledged as the connection is gone, and the tasks are automatically redelivered
+back to the queue. You can enable this behavior using the worker_cancel_long_running_tasks_on_connection_loss
+setting. In Celery 5.1 it is set to False by default. The setting will be set to True by default in Celery 6.0.
+
+  warnings.warn(CANCEL_TASKS_BY_DEFAULT, CPendingDeprecationWarning)
+
+[2025-06-22 20:12:17,955: WARNING/MainProcess] /home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/celery/worker/consumer/consumer.py:508: CPendingDeprecationWarning: The broker_connection_retry configuration setting will no longer determine
+whether broker connection retries are made during startup in Celery 6.0 and above.
+If you wish to retain the existing behavior for retrying connections on startup,
+you should set broker_connection_retry_on_startup to True.
+  warnings.warn(
+
+[2025-06-22 20:12:17,960: ERROR/MainProcess] consumer: Cannot connect to redis://localhost:6379/0: Error 111 connecting to localhost:6379. Connection refused..
+Trying again in 2.00 seconds... (1/100)
+
+[2025-06-22 20:12:19,967: INFO/MainProcess] Connected to redis://localhost:6379/0
+[2025-06-22 20:12:19,968: WARNING/MainProcess] /home/humayun/myprojectdir/myenv/lib/python3.10/site-packages/celery/worker/consumer/consumer.py:508: CPendingDeprecationWarning: The broker_connection_retry configuration setting will no longer determine
+whether broker connection retries are made during startup in Celery 6.0 and above.
+If you wish to retain the existing behavior for retrying connections on startup,
+you should set broker_connection_retry_on_startup to True.
+  warnings.warn(
+
+[2025-06-22 20:12:19,974: INFO/MainProcess] mingle: searching for neighbors
+[2025-06-22 20:12:20,980: INFO/MainProcess] mingle: all alone
+[2025-06-25 20:00:54,294: ERROR/MainProcess] Process 'ForkPoolWorker-2' pid:666786 exited with 'signal 9 (SIGKILL)'

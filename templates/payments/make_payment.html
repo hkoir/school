@@ -1,0 +1,117 @@
+
+
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="container-fluid main-content">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <!-- Card Header -->
+                <div class="card-header bg-primary text-white text-center">
+                    <h3>Make Payment for {{ student.name }}</h3>
+                </div> 
+                <div class="card-body">                   
+             
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {{ form.non_field_errors }}
+
+                    <div class="form-row">
+                        {{ form.academic_year.label_tag }} {{ form.academic_year }}
+                        {{ form.month.label_tag }} {{ form.month }}
+                        {{ form.due_date.label_tag }} {{ form.due_date }}
+                    </div>
+
+                    <hr>
+                    <h4>Due Summary</h4>
+                    <div class="form-row">
+                        {{ form.monthly_fee_due.label_tag }} {{ form.monthly_fee_due }}
+                        {{ form.admission_fee_due.label_tag }} {{ form.admission_fee_due }}
+                    </div>
+
+                    <h4>Payment Input</h4>
+                    <div class="form-row">
+                        {{ form.monthly_tuition_fee_paid.label_tag }} {{ form.monthly_tuition_fee_paid }}
+                        {{ form.admission_fee_paid.label_tag }} {{ form.admission_fee_paid }}
+                    </div>
+
+                    <div class="form-row">
+                        {{ form.payment_method.label_tag }} {{ form.payment_method }}
+                        {{ form.transaction_id.label_tag }} {{ form.transaction_id }}
+                    </div>
+
+                    <button type="submit" class="btn btn-success mt-3">Submit Payment</button>
+                </form>
+
+                <a href="{% url 'payments:search_make_payment' %}" class="btn btn-secondary mt-3">Back</a>
+                <a href="{% url 'payments:payment_status_view' %}" class="btn btn-secondary mt-3">Due history</a>
+
+
+
+                </div>
+                
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script>
+function updateFeeFields() {
+    let studentId = "{{ student.student_id }}";
+    let academicYear = $('#id_academic_year').val();
+    let month = $('#id_month').val();
+
+    if (academicYear && month) {
+        $.ajax({
+            url: "{% url 'payments:get_fee_due_data' %}",
+            data: {
+                'student_id': studentId,
+                'academic_year': academicYear,
+                'month': month
+            },
+            success: function (data) {
+                if (data.monthly_due !== undefined) {
+                    $('#id_monthly_fee_due').val(data.monthly_due.toFixed(2));
+                }
+                if (data.admission_due !== undefined) {
+                    $('#id_admission_fee_due').val(data.admission_due.toFixed(2));
+                }
+            }
+        });
+    }
+}
+
+// Bind to changes
+$(document).ready(function () {
+    $('#id_academic_year, #id_month').change(updateFeeFields);
+});
+</script>
+
+
+
+
+
+{% endblock %}

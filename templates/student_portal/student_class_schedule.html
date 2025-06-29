@@ -1,0 +1,78 @@
+{% extends "student_portal_base.html" %}
+
+{% block content %}
+
+
+,<style>
+    .table-double-bordered td,
+.table-double-bordered th {
+    border: 3px double #000 !important;
+}
+
+</style>
+
+<div class="container">
+    <div class="row">
+        <form method="get" class="mb-4">
+            <label>Academic Year</label>
+            <input type="number" name="academic_year">
+            <label>Start Date</label>
+            <input type="date" name="start_date">
+            <label>End Date</label>
+            <input type="date" name="end_date">
+            
+            <label>Date</label>
+            <input type="date" name="date" placeholder="Specific Date">
+           
+            <select name="subject">
+                <option value="">All Subjects</option>
+                {% for subj in subjects %}
+                    <option value="{{ subj.id }}" {% if selected_subject_id == subj.id|stringformat:"s" %}selected{% endif %}>
+                        {{ subj.name }}
+                    </option>
+                {% endfor %}
+            </select>
+           
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </form>
+        <div class="col-12 table-responsive">
+            <h3 class="text-center">Student Class Routine</h3>
+          
+            <table class="table table-bordered table-striped table-double-bordered">
+                <thead class="table-info">
+                    <tr>
+                        <th>Day</th>
+                        <th>Time</th>
+                        <th>Subject</th>
+                        <th>Subject Teacher</th>
+                        <th>Class Room name</th>
+                        <th>Class Room Number</th>
+                        <th>Class Room Location</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for day, schedules in schedule_by_day.items %}
+                        {% for schedule in schedules %}
+                            <tr>
+                                {% if forloop.first %}
+                                    <td rowspan="{{ schedules|length }}"><strong>{{ day }}</strong></td>
+                                {% endif %}
+                              
+                                <td>{{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}</td>
+                                <td>{{ schedule.subject_assignment.subject.name }}</td>
+                                <td>{{ schedule.subject_assignment.subject_teacher.name }}</td>
+                                <td>{{ schedule.class_room.name }}</td>
+                                <td>{{ schedule.class_room.room_number }}</td>
+                                <td>{{ schedule.class_room.location }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
