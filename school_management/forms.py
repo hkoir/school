@@ -1,11 +1,10 @@
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from school_management.models import Subject,School,Faculty,Section,AcademicClass
-from django.core.exceptions import ValidationError
-from .models import Schedule,ImageGallery
-from.models import ClassRoom,Subject,Schedule,TeachingAssignment,ImageGallery
-from.models import ClassAssignment,SubjectAssignment
+from.models import ClassRoom,Subject,Schedule,ImageGallery
+from.models import AcademicClass,Subject,SubjectAssignment
 
 
 
@@ -40,24 +39,38 @@ class FacultyForm(forms.ModelForm):
 class SectionForm(forms.ModelForm):
     class Meta:
         model = Section
-        exclude=['user']
+        exclude=['user','class_assignment']
        
 
 
 class ClassAssignmentorm(forms.ModelForm):
     class Meta:
-        model = ClassAssignment
+        model = AcademicClass
         exclude=['user']
        
 
 
-class SubjectAssignmentorm(forms.ModelForm):
+from django.forms import modelformset_factory
+
+class SubjectAssignmentForm(forms.ModelForm):
     class Meta:
         model = SubjectAssignment
-        exclude=['user']
-           
+        fields = ['subject', 'academic_class']
+        widgets = {
+            'subject': forms.Select(attrs={'class': 'form-select'}),
+            'academic_class': forms.Select(attrs={'class': 'form-select'}),
+        }
 
 
+SubjectAssignmentFormSet = modelformset_factory(
+    SubjectAssignment,
+    form=SubjectAssignmentForm,
+    extra=3, 
+    can_delete=True  
+)
+
+class SubjectAssignmentSimpleForm(forms.Form):
+    subject = forms.ModelChoiceField(queryset=Subject.objects.all(), widget=forms.Select(attrs={'class': 'form-select'}))
 
 
 
@@ -70,14 +83,12 @@ class ImageGalleryForm(forms.ModelForm):
 class ScheduleForm(forms.ModelForm):
     class Meta:
         model = Schedule
-        exclude=['user']
-        widgets={
-            'start_time':forms.TimeInput(attrs={'type':'time'}),
-            'end_time':forms.TimeInput(attrs={'type':'time'})
+        exclude = ['user']
+        widgets = {
+            'start_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+            'end_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
-
-
-
 
 
 
@@ -100,21 +111,15 @@ class ClassRoomForm(forms.ModelForm):
 
 
 
+from django import forms
+from .models import Subject, AcademicClass, Faculty
+
+
+
 class SubjectForm(forms.ModelForm):
     class Meta:
         model = Subject
-        exclude=['user']
-        widgets={
-            'start_time':forms.TimeInput(attrs={'type':'time'}),
-            'end_time':forms.TimeInput(attrs={'type':'time'})
-        }
-
-
-
-class TeachingAssignmentForm(forms.ModelForm):
-    class Meta:
-        model = TeachingAssignment
-        exclude=['user']
+        fields = ['name', 'faculty']  
        
 class ImageGalleryForm(forms.ModelForm):
     class Meta:
@@ -123,6 +128,25 @@ class ImageGalleryForm(forms.ModelForm):
        
        
              
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

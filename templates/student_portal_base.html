@@ -7,7 +7,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>bnova</title>
+<title>enova</title>
 
 
 <!-- Include jQuery -->
@@ -44,6 +44,9 @@
 <link rel="stylesheet" href="{% static 'css/core.css' %}">
 
 <script src="{% static 'js/common.js' %}"></script>
+
+<script src="https://unpkg.com/htmx.org@1.9.2"></script>
+
 {% block extra_head %}
 
 
@@ -53,6 +56,40 @@
     
 /* Import Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&family=Roboto:wght@300;400;500&display=swap');
+
+
+
+
+html, body {
+    background-color: white;
+    color: #333333;
+    padding-top: 35px; /* Offset for fixed navbars */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .social-nav {   
+        background-color: #1a1a2e;
+        color: white;
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 1030;
+        transition: top 0.3s ease-in-out;
+    }
+
+    .main-nav {
+        background-color: #16213e;
+        color: white;
+        position: fixed;
+        top: 56px;
+        width: 100%;
+        z-index: 1029;
+        transition: top 0.3s ease-in-out;
+    }
+
+    .main-nav.fixed-top {
+        top: 0;
+    }
 
 /* Apply font to entire navbar, including dropdowns */
 .navbar, 
@@ -215,28 +252,6 @@ li a {
 }
 
 
-@media (max-width: 991.98px) {
-    .navbar-toggler {
-        width: 40px;
-        height: 40px;
-        padding: 0;
-        border: 2px solid white;
-        background-color: #16213e;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .navbar-toggler-icon {
-        width: 100%;
-        height: 100%;
-        background-size: 60% 60%;
-        background-repeat: no-repeat;
-        background-position: center;
-        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='white' stroke-width='2' stroke-linecap='round' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
-        border-radius: 4px; /* optional */
-
-
 </style>
 
 
@@ -246,43 +261,25 @@ li a {
 <body>
 
 
-<!-- Social Links Navbar -->
-
- 
-<!-- Social Links Navbar -->
-<nav class="navbar navbar-dark social-nav" id="socialNav">
-    <div class="container-fluid d-flex justify-content-between align-items-center">
-        <!-- Left Section: Social Links -->
-        <span class="navbar-text">Social Links | Contact Us | Follow Us</span>
-
-
-        <!-- Right Section: Social Icons -->
-        <div class="social-icons d-flex">
-            <a href="https://www.facebook.com" target="_blank" class="text-light me-3">
-                <i class="fab fa-facebook-f"></i>
-            </a>
-            <a href="https://www.twitter.com" target="_blank" class="text-light me-3">
-                <i class="fab fa-twitter"></i>
-            </a>
-            <a href="https://www.linkedin.com" target="_blank" class="text-light me-3">
-                <i class="fab fa-linkedin-in"></i>
-            </a>
-            <a href="mailto:contact@yourcompany.com" class="text-light ms-3">
-                <i class="fas fa-envelope"></i> Email Us
-            </a>
-        </div>
-    </div>
-</nav>
-
 
 <!-- Main Navbar -->
-<nav class="navbar navbar-expand-lg main-nav" id="mainNav">
+<nav class="navbar navbar-expand-lg fixed-top main-nav" id="mainNav">
     <div class="container-fluid">
+
+	 {% if request.user.student_type == "school" %}
         <a class="navbar-brand" href="{% url 'student_portal:student_landing_page' %}">bnova
             <img src="{% static 'images/Logo.png' %}" 
                  class="rounded-circle border"                                    
                  style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #007bff;">
         </a>
+        {% else %}
+          <a class="navbar-brand" href="{% url 'varsity_portal:student_landing_page' %}">bnova
+            <img src="{% static 'images/Logo.png' %}" 
+                 class="rounded-circle border"                                    
+                 style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #007bff;">
+        </a>
+        {% endif %}
+
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -291,40 +288,37 @@ li a {
                 <!-- notification menue -->
                
                     {% if schema_name != 'public' %}
-
-
-
-{% if request.user.is_authenticated %}
-    <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="fas fa-bell {% if unread_notifications|length > 0 %}new-notification{% endif %}"></i>
-            {% if unread_notifications|length > 0 %}
-                <span class="badge bg-danger">{{ unread_notifications|length }}</span>
-            {% endif %}
-        </a>
-        <ul class="dropdown-menu notification-dropdown" aria-labelledby="navbarDropdown">
-            {% if unread_notifications %}
-                <div class="notification-scroll">
-                    {% for notification in unread_notifications %}
-                        <li class="notification {% if not notification.is_read %}unread{% endif %}">
-                            <a href="#" class="dropdown-item mark-as-read" data-id="{{ notification.id }}">
-                                <p>{{ notification.get_notification_type_display }}: {{ notification.message }}</p>
+                   {% if request.user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-bell {% if unread_notifications|length > 0 %}new-notification{% endif %}"></i>
+                                {% if unread_notifications|length > 0 %}
+                                    <span class="badge bg-danger">{{ unread_notifications|length }}</span>
+                                {% endif %}
                             </a>
+                            <ul class="dropdown-menu notification-dropdown" aria-labelledby="navbarDropdown">
+                                {% if unread_notifications %}
+                                    <div class="notification-scroll">
+                                        {% for notification in unread_notifications %}
+                                            <li class="notification {% if not notification.is_read %}unread{% endif %}">
+                                                <a href="#" class="dropdown-item mark-as-read" data-id="{{ notification.id }}">
+                                                    <p>{{ notification.get_notification_type_display }}: {{ notification.message }}</p>
+                                                </a>
+                                            </li>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <li class="dropdown-item">No new notifications</li>
+                                {% endif %}
+                            </ul>
                         </li>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <li class="dropdown-item">No new notifications</li>
-            {% endif %}
-        </ul>
-    </li>
-{% else %}
-    <li class="nav-item">
-        <a class="nav-link" href="{% url 'accounts:login' %}">Log in</a>
-    </li>
-{% endif %}
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounts:login' %}">Log in</a>
+                        </li>
+                    {% endif %}
 
- {% endif %}
+                        {% endif %}
                             
                             
                
@@ -347,16 +341,13 @@ li a {
                
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle dropdown_caret_color"href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class=" fas fa-user-cog text-info"></i>  &nbsp;<span style="color:gray">Dashboard</span>            
+                        <i class=" fas fa-user-cog text-info"></i>  &nbsp;<span style="color:gray">School Dashboard</span>            
                                  
                     </a>                                       
                       
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown" style="max-height: 400px; overflow-y: auto;">
-
-			<li><a class="dropdown-item" href="{% url 'student_portal:inbox' %}" style="text-decoration: none;">
-				<i class="fas fa-plus-square"></i>&nbsp;Message Inbox</a></li>
-
-                        <li class="nav-item"><a class="nav-link" href="{% url 'student_portal:student_exam_schedule' %}">
+                        <li><a class="dropdown-item" href="{% url 'student_portal:inbox' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Message Inbox</a></li> 
+                        <li class="nav-item"><a class="nav-link" href="{% url 'student_portal:exam_schedule_view' %}">
                             <i class="fas fa-tasks"></i>&nbsp;Student Admit Card</a></li>
 
                         <li class="nav-item"><a class="nav-link" href="{% url 'student_portal:attendance_report' %}">
@@ -368,13 +359,45 @@ li a {
                         <li class="nav-item"><a class="nav-link" href="{% url 'student_portal:aggregated_final_result' %}">
                         <i class="fas fa-tasks"></i>&nbsp;Final result</a></li>
 
+                         <li class="nav-item"><a class="nav-link" href="{% url 'student_portal:student_transcripts' %}">
+                        <i class="fas fa-tasks"></i>&nbsp;Transcripts</a></li>
+
                         <li class="nav-item"><a class="nav-link" href="{% url 'student_portal:payment_status_view' %}">
-                            <i class="fas fa-tasks"></i>&nbsp;Payment Dashboard</a></li>
+                            <i class="fas fa-tasks"></i>&nbsp;Payment Status</a></li>
 
                             <li class="nav-item"><a class="nav-link" href="{% url 'student_portal:class_schedule' %}">
-                                <i class="fas fa-tasks"></i>&nbsp;Class Schedule</a></li>
-			 <li><a class="dropdown-item" href="{% url 'payments:choose_fee_and_generate_invoice' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Make online Payment</a></li>                       
+                             <i class="fas fa-tasks"></i>&nbsp;Class Schedule</a></li>
+                            
+                             <li><a class="dropdown-item" href="{% url 'student_portal:review_and_pay_online' %}" style="text-decoration: none;">
+                            <i class="fas fa-plus-square"></i>&nbsp;Make online Payment</a></li>   
+                             
+                            <li><a class="dropdown-item" href="{% url 'student_portal:payment_invoice_list' %}" style="text-decoration: none;">
+                            <i class="fas fa-plus-square"></i>&nbsp;Invoice</a></li>   
+                        
+                            <li><a class="dropdown-item" href="{% url 'student_portal:exam_list' %}" style="text-decoration: none;">
+                            <i class="fas fa-plus-square"></i>&nbsp;Exam list</a></li>   
+                            
 
+
+                              <li><a class="dropdown-item" href="{% url 'student_portal:view_student_vcard' %}" style="text-decoration: none;">
+                            <i class="fas fa-plus-square"></i>&nbsp;Student data</a></li>   
+                            
+                                                   
+                    </ul>                 
+                </li> 
+
+
+                 <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle dropdown_caret_color"href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class=" fas fa-user-cog text-info"></i>  &nbsp;<span style="color:gray">Varsity Dashboard</span>            
+                                 
+                    </a>                                       
+                      
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown" style="max-height: 400px; overflow-y: auto;">
+                        <li><a class="dropdown-item" href="{% url 'student_portal:inbox' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Message Inbox</a></li> 
+                        <li class="nav-item"><a class="nav-link" href="{% url 'varsity_portal:enrollment_list' %}">
+                            <i class="fas fa-tasks"></i>&nbsp;Enrollment</a></li>                      
+                                                                               
                     </ul>                 
                 </li> 
 
@@ -403,9 +426,7 @@ li a {
                         <li><a class="dropdown-item" href="" style="text-decoration: none;"><i class="fas fa-user"></i></a>&nbsp;Your account</li>
                         <li><a class="dropdown-item" href="{% url 'accounts:login' %}" style="text-decoration: none;"><i class="fas fa-sign-in-alt"></i> &nbsp;Login</a></li>                     
                         <li><a class="dropdown-item" href="{% url 'accounts:pwdreset' %}" style="text-decoration: none;"><i class="fas fa-lock"></i>&nbsp;Forgot Password </a></li>
-                        <li><a class="dropdown-item" href="{% url 'accounts:register_student' %}" style="text-decoration: none;"><i class="fas fa-sign-in-alt"></i> &nbsp;Register</a></li>
-			
-			{% endif %}
+                        {% endif %}
                     </ul>                 
                 </li> 
 
@@ -435,13 +456,19 @@ li a {
             
         </div>
     </div>
+    <form class="d-flex ms-2" method="GET" action="{% url 'accounts:search_all' %}">
+        <select id="id_search" class="form-control" name="q">
+            <option value="">Search...</option>
+        </select>
+        <button class="btn btn-info" type="submit">Search</button>
+    </form>
     
 
 </nav>
      
    
 
-    <div class="container-fluid">    
+    <div class="container-fluid my-4">
         {% block content %}
         {% endblock %}
     </div>
@@ -516,8 +543,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 
 
-
-<script>
+  <script>
     const socialNav = document.getElementById('socialNav');
     const mainNav = document.getElementById('mainNav');
     const socialNavHeight = socialNav.offsetHeight;
@@ -525,10 +551,10 @@ document.addEventListener("DOMContentLoaded", function() {
     window.addEventListener('scroll', function () {
         if (window.scrollY > socialNavHeight) {
             socialNav.style.top = `-${socialNavHeight}px`;
-            mainNav.style.top = '0px'; // Move main-nav to the top
+            mainNav.classList.add('fixed-top');
         } else {
             socialNav.style.top = '0';
-            mainNav.style.top = `${socialNavHeight}px`; // Push it below social-nav
+            mainNav.classList.remove('fixed-top');
         }
     });
 </script>
@@ -575,8 +601,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 
-
-
 <script>
 $(document).ready(function () {
     // Function to mark a notification as read
@@ -611,8 +635,6 @@ $(document).ready(function () {
     });
 });
 </script>
-
-
 
 </body>
 </html>

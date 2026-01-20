@@ -1,6 +1,6 @@
 from django.contrib import admin
 from.models import Notification,ManagementMessage,Message,Conversation,CommunicationMessage,MessageReadStatus
-from.models import TenantEmailConfig,TenantSMSConfig,GlobalSMSConfig
+from.models import TenantEmailConfig,TenantSMSConfig,GlobalSMSConfig,HeroSlider
 
 
 admin.site.register(Notification)
@@ -14,3 +14,4 @@ admin.site.register(MessageReadStatus)
 admin.site.register(TenantEmailConfig)
 admin.site.register(GlobalSMSConfig)
 admin.site.register(TenantSMSConfig)
+admin.site.register(HeroSlider)

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admit Card - {{ student.name }}</title>
+ <style>
+    body {
+        font-family: "Times New Roman", Georgia, serif;
+        margin: 0;
+        padding: 0;
+        color: #111;
+        background: #fff;
+    }
+
+    .invoice-paper {
+        width: 180mm;
+        margin: 0 auto;
+        padding: 12mm;
+        border: 1px solid #000;
+    }
+
+    /* ================= HEADER ================= */
+
+    header {
+        display: flex;
+        justify-content: center;   /* horizontal center */
+        align-items: center;       /* vertical center */
+        border-bottom: 2px solid #000;
+        padding-bottom: 10px;
+        margin-bottom: 18px;
+    }
+
+    .header-center {
+        text-align: center;
+    }
+
+    header img {
+        height: 80px;
+        width: auto;
+        display: block;
+        margin: 0 auto 6px;  /* center logo */
+    }
+
+
+    .header-center h1 {
+        font-size: 22px;
+        margin: 0;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .header-center h2 {
+        font-size: 15px;
+        margin: 6px 0 0;
+        font-weight: normal;
+    }
+
+    .header-center p {
+        font-size: 13px;
+        margin: 4px 0;
+        line-height: 1.4;
+    }
+
+    /* ================= STUDENT INFO ================= */
+    .student-info {
+        display: grid;
+        grid-template-columns: auto 1fr 1fr;
+        gap: 14px;
+        margin-bottom: 18px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #000;
+        font-size: 14px;
+    }
+
+    .student-photo img {
+        width: 70px;
+        height: 70px;
+        object-fit: cover;
+        border: 1px solid #000;
+    }
+
+    .student-info p {
+        margin: 4px 0;
+    }
+
+    /* ================= TABLE ================= */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        font-size: 14px;
+    }
+
+    th {
+        border: 1px solid #000;
+        padding: 8px;
+        font-weight: 700;
+        background: #f4f4f4;
+        text-transform: uppercase;
+        font-size: 13px;
+    }
+
+    td {
+        border: 1px solid #000;
+        padding: 8px;
+        text-align: center;
+    }
+
+    /* ================= NOTICE ================= */
+    .notice {
+        text-align: center;
+        font-style: italic;
+        margin-top: 12px;
+        font-size: 13px;
+    }
+
+    
+    .footer {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 50px;
+    }
+
+    .signature {
+        text-align: center;
+    }
+
+    .signature img {
+        height: 40px;          /* adjust as needed */
+        width: auto;
+        display: block;
+        margin: 0 auto 6px;    /* space between image & text */
+    }
+
+    .signature span {
+        display: inline-block;
+        border-top: 1px solid #000;
+        padding-top: 4px;
+        font-weight: 600;
+    }
+
+    @media print {
+        .no-print {
+            display: none;
+        }
+    }
+</style>
+
+</head>
+<body>
+    <div class="container invoice-paper">
+        <header>
+         
+            <div class="header-center">
+            {% if student.varsity_student_enrollments.first.program.department.faculty.school.logo %}
+                <img src="{{ student.varsity_student_enrollments.first.program.department.faculty.school.logo.url }}" alt="School Logo">
+           
+            {% endif %}
+                <h1>{{ exam.program.department.faculty.school.name }}</h1>
+                <p>
+                    <strong>Reg. Code:</strong> {{ student.varsity_student_enrollments.first.program.department.faculty.school.code }}<br>
+                    {{ student.varsity_student_enrollments.first.program.department.faculty.school.address }}<br>
+                    {{ student.varsity_student_enrollments.first.program.department.faculty.school.website }}
+                </p>
+                <h2> {{ exam.exam_type|title }} <strong>Admit Card</strong></h2>
+                
+            </div>
+           
+        </header>
+
+       <div class="student-info">
+            <div class="student-photo">
+                {% if student.profile_picture %}
+                    <img src="{{ student.profile_picture.url }}">
+                {% elif request.user.photo_id %}
+                    <img src="{{ request.user.photo_id.url }}">
+                {% endif %}
+            </div>
+
+            <div>
+                <p><strong>Name:</strong> {{ student.name }}</p>
+                <p><strong>ID:</strong> {{ student.student_id }}</p>
+                <p><strong>Roll:</strong> {{ student.varsity_student_enrollments.first.roll_number }}</p>
+            </div>
+
+            <div>
+                <p><strong>Program:</strong> {{ exam.program }}</p>
+                <p><strong>Level:</strong> {{ exam.level }} | <strong>Term:</strong> {{ exam.term.name }}</p>
+                <p><strong>Session:</strong> {{ exam.academic_session.name }} | <strong>Year:</strong>{{exam.academic_year}}</p>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Venue</th>
+                    <th>Max Marks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in schedules %}
+                <tr>
+                    <td>{{ s.subject_offering.subject.name }}</td>
+                    <td>{{ s.exam_date|date:"d-m-Y" }}</td>
+                    <td>{{ s.start_time|time:"H:i" }} - {{ s.end_time|time:"H:i" }}</td>
+                    <td>{{ s.venue }}</td>
+                    <td>{{ s.max_marks }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <p style="text-align:center; font-style:italic;">
+            Please bring this admit card to the exam hall. Keep it safe.
+        </p>
+
+       
+        <div class="footer">
+            <div class="signature">
+                <img src="/static/images/signature-1.png" alt="Controller Signature">
+                <span>Principal / Head</span>
+            </div>
+
+            <div class="signature">
+                <img src="/static/images/signature-1.png" alt="Registrar Signature">
+                <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Exam Controller&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            </div>
+        </div>
+
+
+     <div class="no-print" style="margin-top:20px;text-align:center;">
+        <button onclick="window.print()">🖨️ Print</button>
+         <button><a href="{% url 'varsity_portal:common_dashboard' %}"
+        style="text-decoration: none;"> Home</a></button>
+    </div>
+    
+    </div>
+
+     
+</body>
+</html>

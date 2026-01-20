@@ -1,0 +1,86 @@
+{% extends 'student_portal_base.html' %}
+
+{% block content %}
+
+<div class="container py-5">
+    <h2 class="text-center mb-4 text-primary fw-bold">Student Dues Overview({{selected_student.name}})</h2>   
+  
+  
+  <div class="row justify-content-center">
+    {% if selected_student %}
+    <div class="col-md-4">
+        <div class="card shadow-lg mb-4 p-4">
+            <div class="row align-items-center">  <!-- <== vertical center -->
+
+                <!-- Image Left -->
+                <div class="col-md-3 d-flex justify-content-center">
+                    <img src="{{ selected_student.profile_picture.url }}" 
+                         style="width:80px;height:80px;object-fit:cover;border-radius:5px;">
+                </div>
+
+                <!-- Info Right -->
+                <div class="col-md-9">
+                    <h5 class="fw-semibold mb-3">Student Information</h5>
+                    <p class="mb-0">
+                        <strong>Name:</strong> {{ selected_student.name }}<br>
+                        <strong>Class:</strong> {% if selected_student.enrolled_students.exists %}{{ selected_student.enrolled_students.first.academic_class.name }}{% else %}N/A{% endif %}<br>
+                        <strong>Version:</strong> {% if selected_student.enrolled_students.exists %}{{ selected_student.enrolled_students.first.language.name }}{% else %}N/A{% endif %}<br>
+                        <strong>Gender:</strong> {{ selected_student.enrolled_students.first.gender.name }}<br>
+                        <strong>Shift:</strong> {{ selected_student.enrolled_students.first.shift.name }}<br>
+                        <strong>Section:</strong> {{ selected_student.enrolled_students.first.section.name }}<br>
+                        <strong>Total Due:</strong> <span class="text-danger fw-bold">৳ {{ total_due|floatformat:2 }}</span>
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>  
+</div>
+
+
+
+    {% if total_due > 0 %}
+     <div class="row justify-content-center">
+        <div class="col-md-8">        
+        <!-- Dues Table -->
+        <div class="card shadow-sm p-4">
+            <h5 class="fw-semibold mb-3">Fee Breakdown</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle">
+                    <thead class="table-light text-center">
+                        <tr>
+                            <th>Fee Type</th>                           
+                            <th>Due (৳)</th>
+                        </tr>
+                    </thead>
+                   <tbody>
+                  {% for fee_type, data in dues.items %}
+                      <tr class="text-center">
+                          <td class="text-capitalize">{{ fee_type }}</td>
+                          <td class="text-end text-danger">৳ {{ data.net_due|floatformat:2 }}</td>
+                      </tr>
+                  {% endfor %}
+              </tbody>
+              <tfoot class="table-light fw-bold text-end">
+                  <tr>
+                      <td>Total</td>
+                      <td class="text-end text-danger">৳ {{ total_due|floatformat:2 }}</td>
+                  </tr>
+              </tfoot>
+
+                </table>
+                      <div class="d-flex justify-content-between">  
+                        <a href="{% url 'student_portal:review_and_pay_online' %}" class="btn btn-sm btn-outline-primary">Make online Payment</a>
+                       
+                      </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+  
+    {% endif %}
+   
+</div>
+ </div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "../base.html" %}
+{% block title %}Trial Balance{% endblock %}
+
+{% block content %}
+
+{% include 'accounting/quick_access_link.html' %}
+
+<div class="container mt-4">
+
+    <div class="row">
+        <div class="col d-flex my-4">
+            <div class="col">
+                <form method="get">
+                <label for="date">Report Date:</label>
+                <input type="date" name="date" id="date" value="{{ report_date }}">
+                <button type="submit" class="btn btn-primary btn-sm">Show</button>
+                </form>
+            </div>
+            <div class="col">
+                <h2 class="my-4">Trial Balance (As of {{ report_date }})</h2>
+            </div>
+        </div>        
+         
+        <div class="table-responsive"> 
+            <table class="table table-bordered table-striped table-sm">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Account code</th>
+                        <th>Account</th>
+                        <th class="text-end">Debit</th>
+                        <th class="text-end">Credit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in report_rows %}
+                    <tr>
+                        <td>{{ row.account.code }}</td>
+                        <td>
+                            <a href="{% url 'accounting:ledger' row.account.id %}">
+                                {{ row.account.code }} - {{ row.account.name }}
+                            </a>
+                        </td>
+                        <td class="text-end">{{ row.balance.debit|floatformat:2 }}</td>
+                        <td class="text-end">{{ row.balance.credit|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="fw-bold table-dark">
+                        <td colspan="2" class="text-end">Totals</td>
+                        <td class="text-end">{{ total_debits|floatformat:2 }}</td>
+                        <td class="text-end">{{ total_credits|floatformat:2 }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

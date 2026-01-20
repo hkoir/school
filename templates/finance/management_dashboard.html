@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+
+
+
+<style>
+.dashboard-container {
+    padding: 40px 20px;
+    background: linear-gradient(to bottom right, #f8f9fa, #eef2f7);
+    min-height: 100vh;
+}
+
+/* Toolbar */
+.filter-toolbar {
+    background: white;
+    padding: 15px 25px;
+    border-radius: 1rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+.filter-toolbar label {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.filter-toolbar .btn {
+    border-radius: 0.75rem;
+}
+
+/* Revenue Cards */
+.kpi-card {
+    border: none;
+    border-radius: 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+.kpi-icon {
+    font-size: 1.8rem;
+    opacity: 0.7;
+}
+
+.card-header h4 {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* Switches */
+#todayCheck.form-check-input,
+#monthCheck.form-check-input {
+    background-color: #e0e0e0;
+    border-color: #ccc;
+}
+#todayCheck.form-check-input:checked,
+#monthCheck.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+#todayCheck.form-check-input:focus,
+#monthCheck.form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.filter-toolbar {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Center alignment fix for toggles */
+.toggle-box {
+    min-width: 160px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Prevent Bootstrap’s form-switch left padding issue */
+.toggle-box .form-check-input {
+    position: relative;
+    margin-left: 0 !important;
+}
+
+/* Optional – make toggles look modern */
+.form-check-input {
+    cursor: pointer;
+    width: 2.6em;
+    height: 1.4em;
+}
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+.form-check-label {
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Responsive alignment */
+@media (max-width: 768px) {
+    #filterForm {
+        flex-direction: column;
+        align-items: center;
+    }
+    .toggle-box {
+        width: 80%;
+    }
+}
+</style>
+
+
+
+
+
+
+
+<div class="container mt-4 d-flex justify-content-between">         
+    <a href="{% url 'finance:management_dashboard' %}" class="btn btn-sm btn-primary g-2">Executive Dashboard</a>
+   <a href="{% url 'finance:finance_dashboard' %}" class="btn btn-sm btn-warning g-2">Outstanding</a>
+    <a href="{% url 'finance:profit_loss_report' %}" class="btn btn-sm btn-success g-2">Executive Summary</a>
+</div>
+
+
+
+<div class="dashboard-container container-fluid">
+    <!-- Header Section -->
+    <div class="row justify-content-between align-items-center mb-4">
+      <div class="col-12 col-md-auto">
+        <h2 class="fw-bold text-dark mb-0">
+            📊 Executive Dashboard
+        </h2>
+      </div>
+	<div class="col-12 col-md-auto">
+        <small class="text-muted">Reporting Period: {{ report_start }} → {{ report_end }}</small>
+      </div>
+  </div>
+   
+
+ <!-- Filter Toolbar -->
+ <!-- Filter Toolbar -->
+
+    <form method="get" id="filterForm">
+        <div class=" row filter-toolbar mb-4 text-center">
+
+        <!-- Today Toggle -->
+        <div class="col-6 col-md-3 mb-2">
+            <div class="toggle-box border border-success bg-light rounded-3 px-3 py-2 d-flex align-items-center justify-content-center">
+                <input type="checkbox" class="form-check-input me-2" id="todayCheck" name="today" value="1" {% if today %}checked{% endif %}>
+                <label class="form-check-label fw-semibold mb-0" for="todayCheck">Today</label>
+            </div>
+        </div>
+
+        <!-- This Month Toggle -->
+         <div class="col-6 col-md-3 mb-2">
+            <div class="toggle-box border border-warning bg-light rounded-3 px-3 py-2 d-flex align-items-center justify-content-center">
+                <input type="checkbox" class="form-check-input me-2" id="monthCheck" name="this_month" value="1" {% if this_month %}checked{% endif %}>
+                <label class="form-check-label fw-semibold mb-0" for="monthCheck">This Month</label>
+            </div>
+        </div>
+
+        <!-- Start Date -->
+         <div class="col-6 col-md-3 mb-2">
+            <label for="start_date" class="form-label fw-semibold d-block mb-1">Start Date</label>
+            <input type="date" id="start_date" name="start_date" value="{{ start_date }}"
+                class="form-control form-control-sm text-center w-100">
+        </div>
+
+        <!-- End Date -->
+       <div class="col-6 col-md-3 mb-2">
+            <label for="end_date" class="form-label fw-semibold d-block mb-1">End Date</label>
+            <input type="date" id="end_date" name="end_date" value="{{ end_date }}"
+                class="form-control form-control-sm text-center w-100">
+        </div>
+
+        <!-- Filter Button -->
+        <div class="col-6 col-md-3 mb-2">
+            <button type="submit" class="btn btn-primary btn-sm fw-semibold w-100">Filter</button>
+        </div>
+        </div>
+    </form>
+
+
+
+
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <a href="{% url 'finance:expenses_details' %}?start_date={{ start|date:'Y-m-d' }}&end_date={{ end|date:'Y-m-d' }}" class="text-decoration-none">
+                <div class="card shadow-sm border-danger h-100 text-center">
+                    <div class="card-body">
+                        <h6 class="text-danger">Total Expenses</h6>
+                        <h4>৳ {{ total_expense|floatformat:2}}</h4>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+
+        <div class="col-md-4">
+            <a href="{% url 'finance:revenue_details' %}?start_date={{ start|date:'Y-m-d' }}&end_date={{ end|date:'Y-m-d' }}" class="text-decoration-none">
+                <div class="card shadow-sm border-danger h-100 text-center">
+                    <div class="card-body">
+                        <h6 class="text-danger">Total revenue</h6>
+                        <h4>৳ {{ total_revenue|floatformat:2 }}</h4>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-info h-100 text-center">
+                <div class="card-body">
+                    <h6 class="text-info">Net Profit</h6>
+                    <h4 class="{% if net_profit < 0 %}text-danger{% else %}text-success{% endif %}">
+                        ৳ {{ net_profit|floatformat:2}}
+                    </h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+
+
+<div class="row g-4 mb-5">
+  <div class="col-md-8">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-header bg-light fw-semibold">Revenue & Expense Overview</div>
+      <div class="card-body">
+        <!-- Scrollable wrapper -->
+        <div class="chart-scroll-wrapper" style="overflow-x: auto;">
+          <div style="min-width: 600px;"> <!-- Force larger width for scroll -->
+            <canvas id="barChart" style="width: 100%; height: 300px;"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-header bg-light fw-semibold">Revenue Composition</div>
+      <div class="card-body">
+        <canvas id="pieChart" style="width: 100%; height: 300px;"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+
+
+
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('filterForm');
+    const todayCheck = document.getElementById('todayCheck');
+    const monthCheck = document.getElementById('monthCheck');
+
+    todayCheck.addEventListener('change', function() {
+        if (this.checked) monthCheck.checked = false; // optional: uncheck other
+        form.submit();
+    });
+
+    monthCheck.addEventListener('change', function() {
+        if (this.checked) todayCheck.checked = false; // optional: uncheck other
+        form.submit();
+    });
+});
+</script>
+
+
+
+
+
+
+
+<!-- Hidden JSON data for charts -->
+<script id="chart-data" type="application/json">
+    {{ chart_data_json|safe }}
+</script>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const chartData = JSON.parse(document.getElementById('chart-data').textContent);
+
+    const barCtx = document.getElementById('barChart').getContext('2d');
+    new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: chartData.bar.labels,
+            datasets: [{
+                label: 'Amount (৳)',
+                data: chartData.bar.data,
+                backgroundColor: chartData.bar.colors || ['#28a745','#dc3545']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: 'Revenue vs Expenses' }
+            }
+        }
+    });
+
+    const pieCtx = document.getElementById('pieChart').getContext('2d');
+    new Chart(pieCtx, {
+        type: 'pie',
+        data: {
+            labels: chartData.pie.labels,
+            datasets: [{
+                data: chartData.pie.data,
+                backgroundColor: chartData.pie.colors || ['#28a745','#dc3545']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' },
+                title: { display: true, text: 'Revenue Distribution' }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
+
+

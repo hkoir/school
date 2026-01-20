@@ -25,8 +25,10 @@ urlpatterns = [
 
     path('leavemanagement/',include('leavemanagement.urls',namespace='leavemanagement')),
     path('finance/',include('finance.urls',namespace='finance')),
-   path('inventory/',include('inventory.urls',namespace='inventory')),
-
+    path('inventory/',include('inventory.urls',namespace='inventory')),
+    path('accounting/',include('accounting.urls',namespace='accounting')),
+    path('university_management/',include('university_management.urls',namespace='university_management')),  
+    path('varsity_portal/',include('varsity_portal.urls',namespace='varsity_portal')),  
 
 ]
 

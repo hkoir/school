@@ -194,7 +194,7 @@ def manage_product(request, id=None):
         messages.success(request, message_text)
         return redirect('inventory:create_product') 
 
-    datas = Product.objects.all().order_by('supplier')
+    datas = Product.objects.all().order_by('-id')
     paginator = Paginator(datas, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -246,6 +246,7 @@ def inventory_transaction_view(request):
 
 
 
+
 @login_required
 def inventory_dashboard(request):
     table_data = Inventory.objects.select_related('product', 'warehouse', 'location')
@@ -262,12 +263,12 @@ def inventory_dashboard(request):
             location=form.cleaned_data['location']
 
             if product:
-                table_data = table_data.filter(product__name__icontains=product)
+                table_data = table_data.filter(product=product)
            
             if warehouse:
-                table_data = table_data.filter(warehouse__name__icontains=warehouse)
+                table_data = table_data.filter(warehouse=warehouse)
             if location:
-                table_data = table_data.filter(location__name__icontains=location)
+                table_data = table_data.filter(location=location)
 
         else:
             print(form.errors)
@@ -312,4 +313,3 @@ def inventory_dashboard(request):
   
     
     return render(request, 'inventory/inventory_dashboard.html', context)
-

@@ -24,33 +24,36 @@
 
 
 </style>
-
 <div class="container-fluid py-4" id="messaging-container" data-selected="{% if selected_conversation %}true{% else %}false{% endif %}">
-  <div class="row">
+  <div class="d-flex justify-content-between gap-2 mb-3">
+    <a class="btn btn-sm btn-outline-success" href="{% url 'messaging:send_message' %}">
+      📨 Send New Message
+    </a>
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'messaging:create_group' %}">
+      👥 Create Group
+    </a>
+    <button class="btn btn-sm btn-secondary" onclick="goBackToInbox()">← Back to Inbox</button>
+  </div>
 
+  <div class="row">
     <!-- LEFT COLUMN: Inbox -->
     <div class="col-md-4 border-end" id="inbox-column" style="max-height: 90vh; overflow-y: auto;">
       <h5 class="mb-3">Inbox</h5>
-
-	<div class="d-flex">
-          <form method="get" class="d-flex align-items-center gap-2 mb-3">
-            {{ filter_form.conversation }}
-            <button type="submit" class="btn btn-sm btn-primary">Filter</button>
-          </form>
-        </div>
+      <form method="get" class="d-flex align-items-center gap-2 mb-3">
+        {{ filter_form.conversation }}
+        <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+      </form>
 
       <ul class="list-group">
         {% for msg in page_obj %}
-
-	<div class="inbox-item">
-          <strong>{{ msg.conversation }}</strong>
-          {% with unread_count_map|dict_key:msg.conversation.id as unread %}
-            {% if unread %}
-              <span class="badge bg-warning">{{ unread }}</span>
-            {% endif %}
-          {% endwith %}     
-       </div>
-
+          <div class="inbox-item">
+            <strong>{{ msg.conversation }}</strong>
+            {% with unread_count_map|dict_key:msg.conversation.id as unread %}
+              {% if unread %}
+                <span class="badge bg-warning">{{ unread }}</span>
+              {% endif %}
+            {% endwith %}
+          </div>
           <a href="{% url 'messaging:inbox' pk=msg.conversation.id %}" class="list-group-item list-group-item-action {% if selected_conversation and msg.conversation.id == selected_conversation.id %}active{% endif %}">
             <div class="fw-bold">
               {% if msg.conversation.is_group %}
@@ -70,30 +73,22 @@
       </ul>
     </div>
 
-    <!-- RIGHT COLUMN: Conversation Detail -->
+    <!-- RIGHT COLUMN: Conversation -->
     <div class="col-md-8" id="conversation-column">
-	<button class="btn btn-sm btn-secondary d-md-none mb-2" onclick="goBackToInbox()">← Back to Inbox</button>
       {% if selected_conversation %}
-	 <script>
-   	 document.addEventListener('DOMContentLoaded', hideInboxOnMobile);
-	 </script>
+        <script>document.addEventListener('DOMContentLoaded', hideInboxOnMobile);</script>
 
-
-        
-       <div class="dropdown text-end mb-2">
+        <div class="dropdown text-end mb-2">
           <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" id="messageActionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
             ⋮
           </button>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="messageActionsDropdown">
-            <li> <a class="dropdown-item text-success" href="{% url 'messaging:add_participants' selected_conversation.id %}"> ➕ Add Participants </a></li>
-            <li><a class="dropdown-item text-danger" href="{% url 'messaging:remove_participants' selected_conversation.id %}"> ❌ Remove Participants </a> </li>
-            <li> <a class="dropdown-item text-info" href="{% url 'messaging:send_message' %}"> 📨 Send New Message</a></li>
-            <li> <a class="dropdown-item text-primary" href="{% url 'messaging:create_group' %}">👥 Create Group</a> </li>
+            <li><a class="dropdown-item text-success" href="{% url 'messaging:add_participants' selected_conversation.id %}">➕ Add Participants</a></li>
+            <li><a class="dropdown-item text-danger" href="{% url 'messaging:remove_participants' selected_conversation.id %}">❌ Remove Participants</a></li>
+            <li><a class="dropdown-item text-info" href="{% url 'messaging:send_message' %}">📨 Send New Message</a></li>
+            <li><a class="dropdown-item text-primary" href="{% url 'messaging:create_group' %}">👥 Create Group</a></li>
           </ul>
         </div>
-
-
-
 
         <div class="card mt-3">
           <div class="card-header">
@@ -101,7 +96,7 @@
               {% if selected_conversation.is_group %}
                 Group: {{ selected_conversation.name }}
               {% else %}
-                Chat with: 
+                Chat with:
                 {% for p in selected_conversation.participants.all %}
                   {% if p != user %}{{ p.get_full_name|default:p.username }}{% endif %}
                 {% endfor %}
@@ -116,16 +111,15 @@
                     <strong class="text-primary">{{ msg.sender.get_full_name|default:msg.sender.username }}</strong>
                     <small class="text-muted">({{ msg.timestamp|naturaltime }})</small>
                   </div>
-            
-
-		<div class="dropdown text-end">
+                  <div class="dropdown text-end">
                     <button class="btn btn-sm btn-light border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                      <i class="bi bi-three-dots-vertical"></i> <!-- Or just use ⋮ if you don't use icons -->
+                      ⋮
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
-                      <li><a class="dropdown-item text-primary" href="{% url 'messaging:edit_message' msg.id %}">✏️ Edit</a> </li>
-                      <li> <a class="dropdown-item text-danger" href="{% url 'messaging:delete_message' msg.id %}">🗑️ Delete </a></li>
-                      <li> <button class="dropdown-item reply-btn"
+                      <li><a class="dropdown-item text-primary" href="{% url 'messaging:edit_message' msg.id %}">✏️ Edit</a></li>
+                      <li><a class="dropdown-item text-danger" href="{% url 'messaging:delete_message' msg.id %}">🗑️ Delete</a></li>
+                      <li>
+                        <button class="dropdown-item reply-btn"
                                 data-msg-id="{{ msg.id }}"
                                 data-sender="{{ msg.sender.get_full_name|default:msg.sender.username|escapejs }}"
                                 data-body="{{ msg.body|escapejs|truncatechars:50 }}">
@@ -134,9 +128,6 @@
                       </li>
                     </ul>
                   </div>
-		
-
-
                 </div>
 
                 {% if msg.reply_to %}
@@ -179,9 +170,9 @@
             <form method="post" enctype="multipart/form-data">
               {% csrf_token %}
               <input type="hidden" name="reply_to" id="reply_to_input">
-              Body:{{ form.body }}
-              Image:{{ form.image }}
-              Clip:{{ form.video }}
+              <div class="mb-2">Body: {{ form.body }}</div>
+              <div class="mb-2">Image: {{ form.image }}</div>
+              <div class="mb-2">Clip: {{ form.video }}</div>
               <button class="btn btn-success">Send</button>
             </form>
           </div>
@@ -192,7 +183,6 @@
         </div>
       {% endif %}
     </div>
-
   </div>
 </div>
 

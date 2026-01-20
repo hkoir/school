@@ -11,34 +11,43 @@
                     <h4 class="mb-0">Add New Expense</h4>
                 </div>
                 <div class="card-body">
-                    <form method="post" novalidate>
+                    <form method="POST" enctype="multipart/form-data" class="p-4">
                         {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="id_category" class="form-label">Category</label>
-                            {{ form.category|add_class:"form_control" }}
+                        
+                        <div class="row">
+                            {% for field in form %}
+                            <div class="col-6 col-md-3">
+
+                                {# Handle Boolean Fields Differently #}
+                                {% if field.field.widget.input_type == "checkbox" %}
+                                    <div class="form-check mt-4">
+                                        {{ field }}
+                                        <label class="form-check-label fw-semibold ms-1" for="{{ field.id_for_label }}">
+                                            {{ field.label }}
+                                        </label>
+                                    </div>
+                                {% else %}
+                                    <label class="form-label fw-semibold" for="{{ field.id_for_label }}">
+                                        {{ field.label }}
+                                    </label>
+                                    {{ field|add_class:"form-control" }}
+                                {% endif %}
+
+                                {% if field.help_text %}
+                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                {% endif %}
+
+                                {% for error in field.errors %}
+                                    <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
                         </div>
-                        <div class="mb-3">
-                            <label for="id_amount" class="form-label">Amount</label>
-                            {{ form.amount|add_class:"form-control" }}
-                        </div>
-                        <div class="mb-3">
-                            <label for="id_date" class="form-label">Date</label>
-                            {{ form.date|add_class:"form-control" }}
-                        </div>
-                        <div class="mb-3">
-                            <label for="id_description" class="form-label">Description</label>
-                            {{ form.description|add_class:"form-control" }}
-                        </div>
-                        <div class="mb-3">
-                            <label for="id_employee" class="form-label">Related Employee</label>
-                            {{ form.employee|add_class:"form-select" }}
-                        </div>
-                        <div class="mb-3">
-                            <label for="id_inventory_purchase" class="form-label">Inventory Purchase</label>
-                            {{ form.inventory_purchase|add_class:"form-select" }}
-                        </div>
-                        <div class="text-end">
-                            <button type="submit" class="btn btn-success px-4">Save Expense</button>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                {% if instance %} Update {% else %} Create{% endif %}
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -49,5 +58,37 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const categoryField = document.getElementById("id_category");
+    const employeeFieldWrapper = document.querySelector('[for="id_employee"]')?.closest(".col-6, .col-md-3");
+    const inventoryFieldWrapper = document.querySelector('[for="id_inventory_purchase"]')?.closest(".col-6, .col-md-3");
+
+    function toggleFields() {
+        const selected = categoryField.value;
+
+        if (!employeeFieldWrapper || !inventoryFieldWrapper) return;
+
+        // Hide both by default
+        employeeFieldWrapper.style.display = "none";
+        inventoryFieldWrapper.style.display = "none";
+
+        // Show based on category
+        if (selected === "SALARY") {
+            employeeFieldWrapper.style.display = "block";
+        } else if (selected === "INVENTORY") {
+            inventoryFieldWrapper.style.display = "block";
+        }
+    }
+
+    // Run on page load and on change
+    toggleFields();
+    categoryField.addEventListener("change", toggleFields);
+});
+</script>
+
+
+
 {% endblock %}
 

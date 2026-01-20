@@ -6,22 +6,23 @@
 
 {% block content %}
 
-<div class="container mb-5">
+<div class="container-fluid">
     <div class="row">
+        <div class="d-flex gap-2 mb-5">
+            <a href="{% url 'payments:review_and_pay_online' %}" class="btn btn-sm btn-outline-success">Make Online Payment</a>
+            <a href="{% url 'payments:manual_payment_multiple' %}" class="btn btn-sm btn-outline-primary">Make Manual Payment</a>
+        </div>
 
         <h1>Tuition fee Payment status</h1>
         <div class="col-12 mb-3" style="border:1px solid goldenrod">
-            <div class="card border-0 rounded-lg">
-              
-                    <h3 class=" text-center mb-0">Choose Filter criteria</h3>
-            
+            <div class="card border-0 rounded-lg">              
+            <h3 class=" text-center mb-0">Choose Filter criteria</h3>            
                 <div class="card-body">                   
                     <form method="GET" enctype="multipart/form-data">
-                        {% csrf_token %}
-                
+                        {% csrf_token %}                
                         <div class="row">
                             {% for field in form %}
-                                <div class="col-md-3">  <!-- Adjust col-md-6 for 2 columns, col-md-4 for 3 columns -->
+                                <div class="col-6 col-md-3">  <!-- Adjust col-md-6 for 2 columns, col-md-4 for 3 columns -->
                                     <label class="form-label">{{ field.label }}</label>
                 
                                     {% if field.field.widget.input_type == "textarea" %}
@@ -41,7 +42,7 @@
                             {% endfor %}
                         </div>
                 
-                        <div>
+                           <div>
                             <button type="submit" name="entity_submit" class="btn btn-success btn-sm">
                                Submit filter
                             </button>
@@ -49,10 +50,17 @@
                     </form>
                 </div>
             </div>
+        </div>  
+
+        <div class="col-12 col-md-4 my-5">
+            <h6 class="text-center"> Monthly Tuition status</h6>
+            <canvas id="attendancePieChart" width="400" height="200"></canvas>
         </div>
-    
-
-
+         <div class="col-12 col-md-8 my-5">
+            <h6 class="text-center"> Admission fee payment status</h6>
+            <canvas id="attendanceBarChart" width="400" height="200"></canvas>
+        </div>
+        
 
         {% if data %}
 
@@ -68,14 +76,14 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for row in data %}
+                    {% for row in page_obj %}
                         <tr>
                             <td>{{ row.student.name }}</td>
                             {% range_to 12 as months_range %}
                             {% for i in months_range %}                      
-                                <td>
+                            <td>
 
-                                    {% if row.status_by_month|get_item:i == 'paid' %}
+                            {% if row.status_by_month|get_item:i == 'paid' %}
                                 <span class="badge bg-success">Paid</span>
                             {% elif row.status_by_month|get_item:i == 'partial-paid' %}
                                 <span class="badge bg-warning">Partial Paid</span>
@@ -90,71 +98,106 @@
                     {% endfor %}
                 </tbody>
             </table>
-            
+            <!-- Pagination Controls -->
+            <nav>
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+
+                <li class="page-item active">
+                <span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                </li>
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+            </nav>
         </div>
-        <div class="col-12">
+        <div class="col-12 table-responsive">
             <div class="container">
                 <div class="row">
-                    <div class="col-5">
-                        <h4>Admission Fees Payment status</h4>
-                        <table class="table table-striped">
-                            <thead class="table-light">
+                    <div class="table-responsive">
+                       <h4>Overall due status</h4>
+                          <table class="table table-bordered align-middle">
+                            <thead class="table-light text-center">
                                 <tr>
-                                    <th>Student Name</th>
-                                    <th>Admission Fee</th>
-                                
+                                    <th>Student</th>
+                                    <th>Fee Type</th>
+                                    <th>Total amount (৳)</th>
+                                    <th>Total Paid (৳)</th>
+                                    <th>Net Due (৳)</th>
+                              
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for row in data %}
+                                {% for fee_type, data in dues.items %}
+                                    {% if data.net_due > 0 %}
                                     <tr>
-                                        <td>{{ row.student.name }}</td>
-            
-                                        <td>
-                                            {% if row.admission_status == 'paid' %}
-                                                <span class="badge bg-success">Paid</span>
-                                            {% elif row.admission_status == 'partial-paid' %}
-                                                <span class="badge bg-info text-dark">Partial</span>
-                                            {% elif row.admission_status == 'due' %}
-                                                <span class="badge bg-warning text-dark">Due</span>
-                                            {% elif row.admission_status == 'not-applicable' %}
-                                                <span class="badge bg-secondary">N/A</span>
+                                        <td>{{ data.student.name }}</td>
+                                        <td class="text-capitalize">
+                                            {% if fee_type == 'admission' %}
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-sm btn-outline-secondary admission-fee-btn"
+                                                    data-student-id="{{ selected_student.id }}">
+                                                    Admission Fees
+                                                </button>
                                             {% else %}
-                                                <span class="badge bg-light text-dark">Unknown</span>
+                                                {{ fee_type }}
                                             {% endif %}
                                         </td>
-                                        
-                                        
-                                        
-                                    
+
+                                        <td class="text-end">{{ data.expected }}</td>
+                                        <td class="text-end text-success">{{ data.paid }}</td>
+                                        <td class="text-end fw-bold text-danger">{{ data.net_due }}</td>
+
+                                      
                                     </tr>
+                                    {% endif %}
                                 {% endfor %}
                             </tbody>
                         </table>
-            
-                    </div>                  
+
+
+                        <!-- Pagination Controls -->
+                        <nav>
+                        <ul class="pagination">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                            </li>
+                            {% endif %}
+
+                            <li class="page-item active">
+                            <span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                            </li>
+
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                        </nav>
+                    
+	             </div>
+		
                   
-                    <div class="col-4">
-                        <h6 class="text-center"> Admission fee payment status</h6>
-                        <canvas id="attendanceBarChart" width="400" height="200"></canvas>
-                    </div>
-                    <div class="col-3">
-                        <h6 class="text-center"> Tuition status</h6>
-                        <canvas id="attendancePieChart" width="400" height="200"></canvas>
-                    </div>
+                                     
                 </div>
             </div>
-        </div>
-
-           
+        </div>           
        
         {% else %}
         <span> No data availabe</span>
        {% endif %}
-
-      <a href="{% url 'payments:choose_fee_and_generate_invoice' %}" class="btn btn-success mt-3">Make Online Payment</a>      
-	<a href="{% url 'payments:choose_fee_and_make_manual_payment' %}" class="btn btn-success mt-3">Make Manual Payment</a>    
-
+   
     </div>
 </div>
 

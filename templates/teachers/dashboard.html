@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<style>
+    .action-card {
+        border-radius: 18px;
+        transition: 0.25s ease;
+        background: #fff;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .action-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+    }
+    .action-icon {
+        font-size: 36px;
+        margin-bottom: 10px;
+    }
+    .gradient-blue { background: linear-gradient(135deg, #4f8cf7, #6ad0ff); color: white; }
+    .gradient-green { background: linear-gradient(135deg, #35d07f, #4bcf97); color: white; }
+    .gradient-purple { background: linear-gradient(135deg, #8a68ff, #b27afe); color: white; }
+    .gradient-orange { background: linear-gradient(135deg, #ff8c42, #ffa75d); color: white; }
+</style>
+<div class="container mt-4">
+
+    <!-- School Header -->
+    <div class="text-center mb-4 border-bottom pb-2">
+        {% if teacher.school.logo %}
+            <img src="{{ teacher.school.logo.url }}" alt="School Logo" class="mb-2" style="width:60px; height:60px;">
+        {% endif %}
+        <h3 class="mb-0">{{ teacher.school.name }}</h3>
+        <p class="mb-0">{{ teacher.school.address }}</p>
+        {% if teacher.school.website %}
+            <p class="mb-0">{{ teacher.school.website }}</p>
+        {% endif %}
+    </div>
+
+    <!-- Profile + Quick Actions -->
+    <div class="row mb-4">
+          <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">Dashboard</h2>
+            <p class="text-muted mb-0">Welcome, {{ user.get_full_name|default:user.username }}</p>
+        </div>
+    </div>
+
+        <!-- Profile -->
+        <div class="col-md-4">
+            <div class="card text-center shadow gradient-blue">
+                {% if teacher.profile_picture %}
+                    <img src="{{ teacher.profile_picture.url }}" class="card-img-top rounded-circle mt-3 mx-2" style="width:120px;height:120px;object-fit:cover;">
+                {% else %}
+                    <img src="https://via.placeholder.com/120" class="card-img-top rounded-circle mt-3">
+                {% endif %}
+                <div class="card-body">
+                    <h5>{{ teacher.name }}</h5>
+                    <p>ID: {{ teacher.teacher_id }}<br>
+                       Email: {{ teacher.email }}<br>
+                       Phone: {{ teacher.phone }}<br>
+                     
+                    </p>
+                </div>
+            </div>
+        </div>
+
+       <!-- Quick Actions -->
+<div class="col-md-8 my-4">
+    <div class="row g-2">
+
+        <!-- Class Schedule -->
+        <div class="col-xl-3 col-md-4 col-6">
+            <a href="{% url 'students:student_school_class_routine_view' %}" class="text-decoration-none">
+                <div class="p-3 action-card gradient-orange text-white">
+                    <div class="action-icon"><i class="fas fa-calendar-alt"></i></div>
+                    <h6 class="fw-semibold mb-0">Class Schedule</h6>
+                </div>
+            </a>
+        </div>
+
+        <!-- Enter Result -->
+         <div class="col-xl-3 col-md-4 col-6">
+            <a href="" class="text-decoration-none">
+                <div class="p-3 action-card gradient-blue text-white">
+                    <div class="action-icon"><i class="fas fa-pencil-alt"></i></div>
+                    <h6 class="fw-semibold mb-0">Enter Result</h6>
+                </div>
+            </a>
+        </div>
+
+        <!-- My Students -->
+       <div class="col-xl-3 col-md-4 col-6">
+            <a href="" class="text-decoration-none">
+                <div class="p-3 action-card gradient-purple text-white">
+                    <div class="action-icon"><i class="fas fa-users"></i></div>
+                    <h6 class="fw-semibold mb-0">My Students</h6>
+                </div>
+            </a>
+        </div>
+
+        <!-- Pending Exam -->
+         <div class="col-xl-3 col-md-4 col-6">
+            <a href="" class="text-decoration-none">
+                <div class="p-3 action-card gradient-orange text-white">
+                    <div class="action-icon"><i class="fas fa-tasks"></i></div>
+                    <h6 class="fw-semibold mb-0">Pending Exam</h6>
+                </div>
+            </a>
+        </div>
+
+        <!-- Attendance -->
+        <div class="col-xl-3 col-md-4 col-6">
+            <a href="" class="text-decoration-none">
+                <div class="p-3 action-card gradient-green text-white">
+                    <div class="action-icon"><i class="fas fa-check-square"></i></div>
+                    <h6 class="fw-semibold mb-0">Attendance</h6>
+                </div>
+            </a>
+        </div>
+
+        <!-- Notifications -->
+        <div class="col-xl-3 col-md-4 col-6">
+            <a href="" class="text-decoration-none">
+                <div class="p-3 action-card gradient-blue text-white">
+                    <div class="action-icon"><i class="fas fa-bell"></i></div>
+                    <h6 class="fw-semibold mb-0">Notifications</h6>
+                </div>
+            </a>
+        </div>
+
+    </div>
+</div>
+
+    </div>
+
+    <!-- Today's Schedule -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h4>Today's Schedule ({{ schedule_today|length }} Classes)</h4>
+            <div class="table-responsive">            
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Time</th>
+                        <th>Class</th>
+                        <th>Section</th>
+                        <th>Subject</th>
+                        <th>Room</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sched in schedule_today %}
+                    <tr>
+                        <td>{{ sched.start_time|time:"H:i" }} - {{ sched.end_time|time:"H:i" }}</td>
+                        <td>{{ sched.academic_class.name }}</td>
+                        <td>{{ sched.section.name }}</td>
+                        <td>{{ sched.subject.name }}</td>
+                        <td>{{ sched.class_room.name }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center">No classes today!</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Exams -->
+    <div class="row">
+        <div class="col-12">
+            <h4>Pending Exams</h4>
+            <ul class="list-group">
+                {% for et in pending_exams %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ et.exam.name }} - {{ et.academic_class.name }} ({{ et.subject.name }})
+                    <a href="" class="btn btn-sm btn-primary">Enter Marks</a>
+                </li>
+                {% empty %}
+                <li class="list-group-item">No pending exams!</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

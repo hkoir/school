@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ID Card</title>
+<style>
+    @page { size: A4; margin: 10mm; }
+    @media print {
+        body { margin: 0; }
+        .no-print { display: none; }
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        background: #f0f0f0;
+    }
+
+    .card-wrapper {
+        display: flex;
+        gap: 20px;
+        margin: 20px;
+    }
+
+    .id-card {
+        width: 350px;
+        height: 220px;
+        border-radius: 8px;
+        border: 2px solid #004080;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+        position: relative;
+        overflow: hidden;
+        background: white;
+        page-break-inside: avoid;
+    }
+
+    /* FRONT */
+    .header {
+        background: #004080;
+        color: white;
+        padding: 6px;
+        text-align: center;
+        font-weight: bold;
+        text-transform: uppercase;        
+    }
+
+    .logo {
+        position: absolute;
+        top: 30px;
+        right: 6px;
+        width: 60px;
+        height: 60px;
+        object-fit: contain;
+    }
+
+    .student-photo {
+        width: 80px;
+        height: 100px;
+        border: 2px solid #004080;
+        margin: 10px;
+        float: left;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+
+    .info {
+        margin-left: 100px;
+        padding: 10px;
+        font-size: 0.85rem;
+    }
+
+    .info div { margin-bottom: 4px; }
+
+    .footer {
+        position: absolute;
+        bottom: 8px;
+        left: 10px;
+        right: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .signature { width: 90px; height: 30px; object-fit: contain; }
+    .qr-code { width: 60px; height: 60px; object-fit: contain; }
+
+    /* BACK */
+    .back-content {
+        padding: 12px;
+        font-size: 0.80rem;
+    }
+
+    .back-content div { margin-bottom: 6px; }
+
+    .label { font-weight: bold; }
+
+    .rules {
+        margin-top: 8px;
+        font-size: 0.75rem;
+        border-top: 1px solid #ccc;
+        padding-top: 6px;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="card-wrapper">
+
+    <!-- FRONT SIDE -->
+    <div class="id-card">
+        <div class="header">{{ student.school.name }}</div>
+
+        {% if school_logo_url %}
+            <img src="{{ school_logo_url }}" class="logo">
+        {% endif %}
+
+        <img src="{{ student.profile_picture.url }}" class="student-photo">
+
+        <div class="info">
+            <div><strong>Name:</strong> {{ student.name }}</div>
+            <div><strong>ID:</strong> {{ student.student_id }}</div>
+            {% if student.enrolled_students.exists %}
+                <div><strong>Class:</strong> {{ student.enrolled_students.first.academic_class.name }}-
+			{{ student.enrolled_students.first.section.name }}</div>
+                {% endif %}
+
+                {% if student.varsity_student_enrollments.exists %}
+                <div><strong>Program:</strong> {{ student.varsity_student_enrollments.first.program.name}}-
+			{{ student.varsity_student_enrollments.first.language.name }}</div>
+                {% endif %}    
+	
+            <div><strong>DOB:</strong> {{ student.date_of_birth|date:"d M Y" }}</div>
+            <div><strong>Gender:</strong> {{ student.gender }}</div>
+	    <div><strong>Year/Session:</strong> {{ student.enrolled_students.first.academic_year }}-
+            {{ student_varsity_student_enrollments.first.academic_session }}</div>
+        </div>
+
+        <div class="footer">
+            {% if student.digital_signature %}
+                <img src="{{ student.digital_signature.url }}" class="signature">
+            {% endif %}
+            <img src="https://api.qrserver.com/v1/create-qr-code/?data={{ student.student_id }}" class="qr-code">
+        </div>
+    </div>
+
+    <!-- BACK SIDE -->
+    <div class="id-card">
+        <div class="header">Student Info (Back)</div>
+        <div class="back-content">
+           <div>
+            <span class="label">Blood Group:</span> {{ student.blood_group }}-
+            <span class="label">Guardian:</span> {{ student.guardian_name }}<br>
+            <span class="label">Emergency Phone:</span> {{ student.emergency_contact }}<br>
+            <span class="label">Address:</span> {{ student.address }}<br>
+            <span class="label">Issue Date:</span> {{ student.date_enrolled|date:"d M Y" }}-
+            <span class="label">Expiry Date:</span> {{ student.date_enrolled|date:"d M Y" }}
+            </div>
+            <div class="rules">
+                <strong>Instructions:</strong><br>
+                If found, please return to the school.<br>
+                Contact: {{ school.phone }}-
+                Website: {{ school.website }}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+         <div class="no-print" style="margin-top:20px;text-align:center;">
+            <button onclick="window.print()">🖨️ Print</button>
+
+             <button><a href="{% url 'students:download_student_id_card' student.id %}"
+            style="text-decoration: none;"> Download</a></button>
+
+             <button>
+	  <a href="{% url 'student_portal:student_landing_page' %}"
+            style="text-decoration: none;"> Home</a>
+              {% elif request.user.student_type == 'university' %}
+                <a href="{% url 'varsity_portal:student_landing_page' %}"
+                style="text-decoration: none;"> Home</a>
+            {% else %}
+             <a href="{% url 'students:view_student_vcard' %}"
+            style="text-decoration: none;"> Home</a>
+            {% endif %}
+
+
+        </button>
+        </div>
+
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

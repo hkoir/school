@@ -139,12 +139,23 @@ class InventoryTransactionForm(forms.ModelForm):
 
 
 
+
 class ProductSearchForm(forms.Form):   
-    product = forms.CharField(required=False)
-    warehouse = forms.CharField(required=False)
-    location = forms.CharField(required=False)
-    batch = forms.CharField(required=False)
-  
+    product = forms.ModelChoiceField(
+        queryset=Product.objects.all(),
+        required=False,
+        widget=forms.Select(attrs={'id': 'id_product_name'}),
+    )
+    warehouse = forms.ModelChoiceField(
+        queryset=Warehouse.objects.all(),
+        required=False,
+        widget=forms.Select(attrs={'id': 'id_warehouse_name'}),
+    )
+    location = forms.ModelChoiceField(
+        queryset=Location.objects.all(),
+        required=False,
+        widget=forms.Select(attrs={'id': 'id_location_name'}),
+    )
 
 
 class CommonFilterForm(forms.Form):
@@ -207,17 +218,6 @@ class AddCategoryForm(forms.ModelForm):
 
 
 class AddProductForm(forms.ModelForm):  
-    description = forms.CharField(required=False,
-        widget=forms.Textarea(
-            attrs={
-                'class': 'form-control custom-textarea',
-                'rows': 3, 
-                'style': 'height: 20px;', 
-            }
-        )
-    )    
-    manufacture_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
-    expiry_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'type': 'date'}))
     class Meta:
         model = Product
         exclude=['user','product_id']

@@ -1,0 +1,102 @@
+{% extends "student_portal_base.html" %}
+{% block content %}
+
+
+{% include 'varsity_portal/quick_access_link.html' %}
+
+<div class="container mt-4">
+
+   <form method="get" class="my-4" id="student-filter-form">
+    <select id="student-select" name="q" class="form-control">
+        <option value="">Select a student...</option>
+        {% for student in students %}
+            <option value="{{ student.student_id }}"
+                {% if request.GET.q == student.student_id %}selected{% endif %}>
+                {{ student.name }} ({{ student.student_id }})
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary mt-2">Search</button>
+</form>
+
+
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Student Enrollments</h5>
+            <a href="{% url 'varsity_portal:student_enrollment' %}" class="btn btn-primary btn-sm">
+                + New Enrollment
+            </a>
+        </div>
+
+        <div class="card-body table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Transcript</th>
+                        <th>Roll No</th>
+                        <th>Student</th>
+                        <th>Program</th>
+                        <th>Session</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for enrollment in enrollments %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'varsity_portal:student_transcript'%}"
+                                class="btn btn-sm btn-outline-success">Transcript</a>
+                            </td>
+                            <td>{{ enrollment.roll_number }}</td>
+                            <td>{{ enrollment.student }}</td>
+                            <td>{{ enrollment.program }}</td>
+                            <td>{{ enrollment.academic_session }}</td>
+                            <td>
+                                {% if enrollment.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'varsity_portal:create_term_registration' %}"
+                                class="btn btn-sm btn-primary">Create Term registration</a>
+                                 <a href="{% url 'varsity_portal:term_registration_detail' %}"
+                                class="btn btn-sm btn-primary">Term registration details</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">
+                                No enrollments found
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+$(document).ready(function () {
+
+    $('#student-select').select2({
+        placeholder: "Select a student",
+        allowClear: true,
+        width: '100%'
+    });
+ 
+    $('#student-select').on('select2:select', function () {
+        $('#student-filter-form').submit();
+    });
+
+});
+</script>
+
+
+
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "student_portal_base.html" %}
+{% load static %}
+
+{% block title %}Term Registrations{% endblock %}
+
+{% block content %}
+
+{% include 'varsity_portal/quick_access_link.html' %}
+
+<div class="container mt-4">
+    <h2>📚 Term Registrations</h2>
+
+    <div class="mb-3">
+        <a href="{% url 'varsity_portal:student_enrollment_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Enrollments
+        </a>
+        <a href="{% url 'varsity_portal:term_registration_create' enrollment_id=0 %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Term Registration
+        </a>
+    </div>
+
+    {% if term_registrations %}
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Student</th>
+                    <th>Program</th>
+                    <th>Level</th>
+                    <th>Term</th>
+                    <th>Registered At</th>
+                    <th>Fee Cleared</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tr in term_registrations %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ tr.enrollment.student.get_full_name }}</td>
+                    <td>{{ tr.program.name }}</td>
+                    <td>{{ tr.level.title }}</td>
+                    <td>{{ tr.term.name }}</td>
+                    <td>{{ tr.registered_at|date:"Y-m-d H:i" }}</td>
+                    <td>{{ tr.is_fee_cleared|yesno:"Yes,No" }}</td>
+                    <td>
+                        <a href="{% url 'varsity_portal:term_registration_detail' tr.id %}" class="btn btn-sm btn-info">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                       
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-center mt-4">No term registrations found.</p>
+    {% endif %}
+</div>
+{% endblock %}

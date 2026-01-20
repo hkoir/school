@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+{% block title %}Term Registration{% endblock %}
+
+{% block content %}
+
+{% include 'university_management/quick_access_link.html' %}
+
+<div class="container" id="term-registration-form" data-enrollment-id="{{ enrollment.id }}">
+
+    <h2 class="my-4">📘 Term Registration</h2>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        <!-- Term Info -->
+        <div class="mb-4">
+          <select name="level" id="level-select" class="form-control my-2">
+            <option value="">Select Level</option>
+            {% for level in levels %}
+                <option value="{{ level.id }}">{{ level }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="term" id="term-select" class="form-control">
+            <option value="">Select Term</option>
+        </select>
+
+        </div>
+
+        {{ formset.management_form }}
+
+        <!-- Subject Enrollment -->
+        <table class="table table-bordered" id="subject-table">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in formset %}
+                <tr>
+                    <td>
+                        {{ f.subject_offering|add_class:"form-control subject-offering-select" }}
+                    </td>
+                    <td class="text-center">
+                        {{ f.DELETE }}
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-row">Remove</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <button type="button" class="btn btn-outline-secondary my-2" id="add-row">Add Subject</button>
+        <button type="submit" class="btn btn-primary my-2">Register Term</button>
+    </form>
+</div>
+
+<!-- Empty form template -->
+<table style="display:none">
+    <tbody id="empty-form">
+        <tr>
+            <td>
+                {{ formset.empty_form.subject_offering|add_class:"form-control subject-offering-select" }}
+            </td>
+            <td class="text-center">
+                {{ formset.empty_form.DELETE }}
+                <button type="button" class="btn btn-outline-danger btn-sm remove-row">Remove</button>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const enrollmentId = "{{ enrollment.id }}";
+    const totalForms = document.getElementById("id_{{ formset.prefix }}-TOTAL_FORMS");
+    const tableBody = document.querySelector("#subject-table tbody");
+    const emptyRowTemplate = document.querySelector("#empty-form").innerHTML;
+
+    let currentTermId = null; 
+
+    document.getElementById("level-select").addEventListener("change", function () {
+        const levelId = this.value;
+        const termSelect = document.getElementById("term-select");
+        termSelect.innerHTML = '<option value="">Select Term</option>';
+        currentTermId = null;
+
+        fetch(`/university_management/get_terms_for_level/?level_id=${levelId}&enrollment_id=${enrollmentId}`)
+            .then(res => res.json())
+            .then(data => {
+                data.terms.forEach(term => {
+                    const option = document.createElement('option');
+                    option.value = term.id;
+                    option.text = term.name;
+                    termSelect.appendChild(option);
+                });
+            });
+    });
+
+ 
+    const populateSubjects = (termId) => {
+        currentTermId = termId;
+        if (!termId) return;
+        fetch(`/university_management/get_subjects_for_term/?term_id=${termId}&enrollment_id=${enrollmentId}`)
+            .then(res => res.json())
+            .then(data => {
+                document.querySelectorAll('.subject-offering-select').forEach(select => {
+                    select.innerHTML = '';
+                    data.subjects.forEach(sub => {
+                        const option = document.createElement('option');
+                        option.value = sub.id;
+                        option.text = `${sub.subject__name} (${sub.subject__code})`;
+                        select.appendChild(option);
+                    });
+                });
+            });
+    };
+
+    document.getElementById("term-select").addEventListener("change", function () {
+        const termId = this.value;
+        populateSubjects(termId);
+    });
+
+  
+    document.getElementById("add-row").addEventListener("click", function () {
+        const index = parseInt(totalForms.value, 10);
+        const newRowHtml = emptyRowTemplate.replace(/__prefix__/g, index);
+        tableBody.insertAdjacentHTML("beforeend", newRowHtml);
+        totalForms.value = index + 1;
+
+        // populate subjects for new row if term is already selected
+        if (currentTermId) {
+            fetch(`/university_management/get_subjects_for_term/?term_id=${currentTermId}&enrollment_id=${enrollmentId}`)
+                .then(res => res.json())
+                .then(data => {
+                    const newSelect = tableBody.querySelector(`tr:nth-child(${index + 1}) select.subject-offering-select`);
+                    if (newSelect) {
+                        newSelect.innerHTML = '';
+                        data.subjects.forEach(sub => {
+                            const option = document.createElement('option');
+                            option.value = sub.id;
+                            option.text = `${sub.subject__name} (${sub.subject__code})`;
+                            newSelect.appendChild(option);
+                        });
+                    }
+                });
+        }
+    });
+
+    tableBody.addEventListener("click", function (e) {
+        if (e.target.closest(".remove-row")) {
+            const tr = e.target.closest("tr");
+            const delInput = tr.querySelector("input[name$='-DELETE']");
+            if (delInput) {
+                delInput.checked = true;
+                tr.style.display = "none";
+            } else {
+                tr.remove();
+                totalForms.value = parseInt(totalForms.value, 10) - 1;
+            }
+        }
+    });
+});
+
+
+</script>
+
+{% endblock %}

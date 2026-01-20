@@ -1,0 +1,142 @@
+
+<style>
+    .info-box {
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        background: #ffffff;
+        padding: 15px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        font-size: 14px;
+        min-height: 260px;
+    }
+
+    .info-title {
+        font-weight: 600;
+        color: #007bff;
+        margin-bottom: 8px;
+        font-size: 15px;
+        text-transform: uppercase;
+    }
+
+    .encircle-card {
+        border: 3px solid #007bff;
+        border-radius: 20px;
+        padding: 15px;
+        background-color: #f8f9fa;
+        box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+    }
+</style>
+
+<div class="center-container">
+
+    <div class="text-center mb-4 border-bottom pb-2">
+        {% if student.school.logo %}
+            <img src="{{ student.school.logo.url }}" style="height:70px; width:auto;" class="mb-2">
+        {% endif %}
+        <h3 class="mb-0 fw-bold">{{ student.school.name }}</h3>
+        <p class="mb-0">{{ student.school.address }}</p>
+        {% if student.school.website %}
+            <p class="mb-0">{{ student.school.website }}</p>
+        {% endif %}
+    </div>
+
+    <div class="row justify-content-center mt-4">
+
+        <!-- LEFT PANEL -->
+        <div class="col-12 col-md-3 mb-4">
+            <div class="info-box">
+                <div class="info-title">Guardian Info</div>
+                Father: {{ student.guardian.name }}<br>
+                Contact: {{ student.guardian.phone_number }}<br><br>
+
+                <div class="info-title">Program Details</div>
+                Language: {{ student.varsity_student_enrollments.first.language.name}}<br>
+                Roll: {{ student.varsity_student_enrollments.first.roll_number }}<br>
+                Student Session: {{ student.varsity_student_enrollments.first.academic_session }}<br>
+                Program: {{ student.varsity_student_enrollments.first.program.name }}
+            </div>
+        </div>
+
+        <!-- PROFILE CENTER -->
+        <div class="col-12 col-md-4 mb-4">
+            <div class="encircle-card">
+                <div class="card shadow-lg border-0">
+
+                    <div class="d-flex justify-content-center mt-3">
+                        {% if student.profile_picture %}
+                            <img src="{{ student.profile_picture.url }}" 
+                                 class="rounded-circle border"
+                                 style="width:70px; height:70px; object-fit:cover; border:2px solid #007bff;">
+                        {% endif %}
+                    </div>
+
+                    <div class="card-body text-center">
+                        <h5 class="fw-bold mb-1">{{ student.name }}</h5>
+                        <p class="text-muted mb-2">
+                            ID: {{ student.student_id }}<br>
+                            {{ student.enrolled_students.first.academic_class.name }} /
+                            {{ student.enrolled_students.first.shift.name }} /
+                            {{ student.enrolled_students.first.section.name }}
+                        </p>
+
+                        <div class="d-grid gap-2">
+                          
+                                <a href="{% url 'varsity_portal:exam_list' %}" class="btn btn-sm btn-outline-success">Exam & admit card</a>
+                                <a href="{% url 'students:student_id_card_view' student.id %}" class="btn btn-sm btn-outline-success">ID Card</a>
+                                <a href="{% url 'varsity_portal:term_registration_detail' %}" class="btn btn-sm btn-outline-success">Subjects</a>
+                                <a href="{% url 'varsity_portal:term_list' %}" class="btn btn-sm btn-outline-success">Class Routine</a>
+                                 <a href="{% url 'varsity_portal:student_transcript' %}" class="btn btn-sm btn-outline-primary">Transcript</a>
+                                 <a href="{% url 'varsity_portal:student_invoices_list' %}" class="btn btn-sm btn-outline-primary">Dues</a>
+                                 
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="col-12 col-md-3 mb-4">
+            <div class="info-box">
+                <div class="info-title">Performance</div>
+               {% for result in student_term_gpa %}
+               
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ result.level }}-{{ result.term.name }}-GPA:{{ result.gpa }}</h5>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                     <div class="card mb-2" style="border:1px solid green">
+                        <div class="card-body">                          
+                           <p class="text-center"> CGPA:<strong>{{ student_cgpa.cgpa }}</strong><br>
+                           
+                            </p>
+                        </div>
+                    </div>
+
+
+              
+                Attendance (Current month): 94%<br><br>
+
+                <div class="info-title">Upcoming Exams</div>
+               <p>{% for exam in upcoming_exams %}
+               {{ exam.level.title }}-{{ exam.term.name }}-exam date:{{exam.start_date}}-{{exam.end_date}}
+               {% endfor %}
+               </p>
+
+                <div class="info-title mt-2">Fees Status</div>
+                {% if has_due %}
+                 Status: <span class="text-warning">
+                    <a href="{% url 'varsity_portal:student_invoices_list' %}"> Due exist</a>                   
+                </span>
+                 {% else %}
+                Status: <span class=" badge bg-success">Up to Date</span>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+

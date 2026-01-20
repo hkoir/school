@@ -104,7 +104,7 @@ class TenantUserRegistrationForm(UserCreationForm):
         
     class Meta:
         model = CustomUser
-        fields = ['role','username', 'email', 'phone_number','password1', 'password2', 'photo_id']  
+        fields = ['role','student_type','username', 'email', 'phone_number','password1', 'password2', 'photo_id']  
 
     def __init__(self, *args, **kwargs):
         self.tenant = kwargs.pop('tenant', None)  # Store tenant in the form instance
@@ -136,7 +136,7 @@ class TenantUserRegistrationForm(UserCreationForm):
 class StudentRegistrationForm(UserCreationForm):
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'password1', 'password2', 'photo_id', 'tenant']
+        fields = ['student_type','username', 'email', 'password1', 'password2', 'photo_id', 'tenant']
 
     def __init__(self, *args, **kwargs):
         self.tenant = kwargs.pop('tenant', None)  

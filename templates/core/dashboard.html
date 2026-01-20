@@ -106,9 +106,6 @@
     transition: opacity 1s ease-in-out;
 }
 
-
-
-
 .image-containers {
     display: flex;
     gap: 10px;
@@ -142,6 +139,10 @@
 }
 
 
+
+
+
+
 .messages-container {
     margin-top: 50px;
     text-align: center;
@@ -167,6 +168,259 @@
 }
 
 
+/* Hero Section Container */
+.hero-slider-slide {
+  position: relative;
+  width: 100%;
+  overflow-x: hidden;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  font-family: inherit;
+  color: #fff;
+}
+
+.hero-slider-slide .row {
+  flex-direction: column;
+}
+
+/* Slider Viewport */
+.hero-slider-viewport {
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Slider Track */
+.hero-slider-track {
+  display: flex;
+  flex-direction: row;
+  transition: transform 0.8s ease;
+  will-change: transform;
+}
+
+/* Individual Slide */
+.hero-slide {
+  position: relative;
+  flex: 0 0 100%;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+/* Slide Image */
+.hero-slide img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+}
+.hero-slide video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;  /* Ensures the video fills its box */
+  display: block;
+}
+/* Dark overlay for contrast */
+.hero-slide::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1;
+}
+
+/* Slide Caption */
+.hero-slide-caption {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  width: min(90%, 700px);
+  transform: translate(-50%, -50%);
+  text-align: center;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.hero-slide-caption h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.hero-slide-caption p {
+  font-size: 1.25rem;
+  margin-bottom: 1.5rem;
+  color: #e0e0e0;
+}
+
+/* Call-to-action Button */
+.hero-slide-caption .btn-primary {
+  display: inline-block;
+  padding: 0.9rem 1.75rem;
+  background: #28a745;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 999px;
+  transition: background 0.25s;
+}
+
+.hero-slide-caption .btn-primary:hover {
+  background: #218838;
+}
+
+/* Controls */
+.hero-slider-control {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 46px;
+  cursor: pointer;
+  z-index: 3;
+  transition: background 0.25s;
+}
+
+.hero-slider-control:hover {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+.hero-slider-control.prev {
+  left: 1rem;
+}
+
+.hero-slider-control.next {
+  right: 1rem;
+}
+.hero-slider-dots {
+  position: relative; /* or absolute if you want it overlaid */
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+.hero-slider-dots button {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(206, 24, 24, 0.3); /* lighter, semi-transparent */
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.3s ease;
+  margin: 0 4px;
+}
+
+.hero-slider-dots button.active {
+  background: #28a745;  /* your accent green */
+  transform: scale(1.3);
+}
+
+
+.hero-slider-dots button.active {
+  background: #28a745;  /* or your accent color */
+  transform: scale(1.3);
+}
+
+/* Styling Wrapper */
+
+.styling {
+
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  padding: 1.5rem;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%; /* Important */
+}
+
+.ratio {
+  width: 100%;
+  min-height: 300px;
+  aspect-ratio: 16 / 9;
+}
+
+.ratio iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+
+/* Responsive Fixes */
+@media (max-width: 992px) {
+  .hero-slide-caption h1 {
+    font-size: 2rem;
+  }
+  .hero-slide-caption p {
+    font-size: 1.1rem;
+  }
+}
+
+@media (min-width: 992px) {
+  .styling {
+    max-height: 480px;
+  }
+}
+
+@media (max-width: 768px) {
+  .styling {
+    padding: 1rem;
+  }
+  .hero-slide-caption h1 {
+    font-size: 1.7rem;
+  }
+  .hero-slide-caption p {
+    font-size: 1rem;
+  }
+  .hero-slider-control {
+    display: none;
+  }
+  .hero-slider-slide .row {
+    flex-direction: row;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .hero-slider-slide .col-12 + .col-12 {
+    margin-top: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-slide-caption h1 {
+    font-size: 1.4rem;
+  }
+  .hero-slide-caption p {
+    font-size: 0.9rem;
+  }
+}
+
+
+@media (max-width: 767.98px) {
+  .ratio.ratio-16x9 {
+    aspect-ratio: 16 / 9;
+    height: auto;
+  }
+
+  .styling {
+    padding: 1rem;
+  }
+}
+.hero-slider-control {
+  display: none !important;
+}
 
 
 </style>
@@ -177,11 +431,11 @@
         <section class="hero-section text-center">
             <div class="hero-overlay"></div>
             <div class="hero-content">              
-                <img src="{{ school_logo_url }}"                
+                <img src="{{ school.logo.url }}"                
                 class="rounded-circle border"                                    
                 style="width: 150px; height: 150px; object-fit: cover; border: 2px solid #007bff;">
               
-                <h1>{{ school_name}}</h1>
+                <h1>{{ school.name}}</h1>
                 <p style="color:yellow;font-weight: bolder;">Your journey of knowledge begins here!</p>
         
                 <!-- Quotes Section -->
@@ -202,8 +456,7 @@
             </div>
         </section>
   
-        
-  <div class="col-12">
+        <div class="col-12">
             <div class="image-containers">
                 {% for i in "123"|make_list %}
                     <div class="image-container">
@@ -228,7 +481,7 @@
             <div class="container-fluid">
                 <div class="row">
                     {% for message in management_quotes %}
-                    <div class=" col-12 col-md-6">
+                    <div class="col-112 col-md-5">
                         <h2><img src="{{ message.photo.url }}" style="width:80px; height:80px; border-radius: 50%;"> </h2>
                         <div>
                             <h3>{{ message.name }}</h3>
@@ -240,12 +493,74 @@
                             
                         </div>
                     </div>
-                    
+                    <div class="col-1"></div>
                     {% endfor %}
                 </div>
             </div>
         </div>
-        
+    </div>
+
+ 
+  <div class="container-fluid mt-5 px-0">
+    <div class="row g-4 px-0">
+              
+          <!-- Slider Left -->
+    <div class="col-12 col-md-6 my-4">
+      <div class="styling" id="heroSlider">
+        <div class="hero-slider-viewport d-flex flex-column align-items-center justify-content-center">
+          <div class="hero-slider-track">
+            {% for slide in slides %}
+            <div class="hero-slide mb-3">
+              <img src="{{ slide.image.url }}" alt="{{ slide.title|default:'Slide' }}" class="img-fluid w-100">
+              {% if slide.title or slide.subtitle or slide.button_text %}
+              <div class="hero-slide-caption text-white text-center mt-2">
+                {% if slide.title %}<h1>{{ slide.title }}</h1>{% endif %}
+                {% if slide.subtitle %}<p>{{ slide.subtitle }}</p>{% endif %}
+                {% if slide.button_text %}
+                <a href="{{ slide.button_link|default:'#' }}" class="btn btn-primary">{{ slide.button_text }}</a>
+                {% endif %}
+              </div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="text-center mt-3">
+          <button class="hero-slider-control prev me-2" aria-label="Previous">&#10094;</button>
+          <button class="hero-slider-control next" aria-label="Next">&#10095;</button>
+        </div>
+
+        <!-- Indicators -->
+        <div class="hero-slider-dots text-center mt-2">
+          {% for slide in slides %}
+          <button data-slide="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %}" aria-label="Slide {{ forloop.counter }}"></button>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+
+
+          <!-- Video Right -->
+	<div class="col-12 col-md-6 my-4">
+  <div class="styling">
+    <div class="ratio ratio-16x9">
+
+	<iframe width="560" height="315" src="https://www.youtube.com/embed/HndV87XpkWg?si=dkWA1Tl9ew9MO35y" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    </div>
+  </div>
+</div>
+
+
+
+        </div>
+      </div>
+
+
+
+
 </div>
 
 
@@ -307,6 +622,71 @@ if (slides.length > 0) {
     showSlides();
 }
 
+</script>
+
+
+
+
+
+<script>
+(function() {
+  const slider = document.getElementById('heroSlider');
+  const track  = slider.querySelector('.hero-slider-track');
+  const slides = slider.querySelectorAll('.hero-slide');
+  const nextBtn = slider.querySelector('.hero-slider-control.next');
+  const prevBtn = slider.querySelector('.hero-slider-control.prev');
+  const dots = slider.querySelectorAll('.hero-slider-dots button');
+
+  let current = 0;
+  const total = slides.length;
+  const autoDelay = 5000; // ms
+  let autoTimer = null;
+
+  function goTo(i) {
+    current = (i + total) % total;
+    const offset = -current * 100;
+    track.style.transform = 'translateX(' + offset + '%)';
+    dots.forEach((d, idx) => d.classList.toggle('active', idx === current));
+  }
+
+  function next() { goTo(current + 1); }
+  function prev() { goTo(current - 1); }
+
+  function startAuto() {
+    stopAuto();
+    autoTimer = setInterval(next, autoDelay);
+  }
+  function stopAuto() {
+    if (autoTimer) clearInterval(autoTimer);
+  }
+
+  // controls
+  nextBtn.addEventListener('click', () => { next(); startAuto(); });
+  prevBtn.addEventListener('click', () => { prev(); startAuto(); });
+
+  // dots
+  dots.forEach((dot, i) => {
+    dot.addEventListener('click', () => { goTo(i); startAuto(); });
+  });
+
+  // pause on hover (desktop)
+  slider.addEventListener('mouseenter', stopAuto);
+  slider.addEventListener('mouseleave', startAuto);
+
+  // swipe (mobile)
+  let startX = 0;
+  slider.addEventListener('touchstart', e => { startX = e.touches[0].clientX; stopAuto(); }, {passive:true});
+  slider.addEventListener('touchend', e => {
+    const diff = e.changedTouches[0].clientX - startX;
+    if (diff > 50) prev();
+    else if (diff < -50) next();
+    startAuto();
+  }, {passive:true});
+
+  // init
+  goTo(0);
+  startAuto();
+})();
 </script>
 
 {% endblock %}

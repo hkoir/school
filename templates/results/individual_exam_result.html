@@ -1,6 +1,22 @@
 {% extends "base.html" %}
 
 {% block content %}
+
+
+ <!-- Printable Header -->
+    <div class="print-header text-center mb-4">
+        {% if school_logo_url %}
+            <img src="{{ school_logo_url }}" alt="School Logo" class="school-logo mb-2"
+            style="width:50px;height:50px">
+        {% endif %}
+        <h3 class="school-name mb-1">{{ school_name }}</h3>
+        <p class="school-address mb-0">{{ school_address }}</p>
+        {% if school_website %}
+            <p class="school-website mb-0">{{ school_website }}</p>
+        {% endif %}
+        <hr class="mt-3">
+    </div>
+
 <div class="container mt-4">
     <h2 class="text-center">Student Exam Results</h2>
 

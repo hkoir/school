@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+    <h4>Revenue Details:</h4>   
+    
+    <!-- Filter Buttons -->
+    <div class="d-flex flex-wrap align-items-center mb-3 gap-2">
+        <a href="?filter=today" class="btn btn-sm btn-outline-primary {% if filter_type == "today" %}active{% endif %}">Today</a>
+        <a href="?filter=this_month" class="btn btn-sm btn-outline-primary {% if filter_type == "this_month" %}active{% endif %}">This Month</a>
+         <a href="{% url 'finance:management_dashboard' %}" class="btn btn-sm btn-outline-primary text-center">Back to dashboard</a>
+
+        <!-- Date Range Filter -->
+        <form method="get" class="d-flex gap-2 ms-auto">
+            <input type="date" name="start_date" value="{{ start_date }}" class="form-control form-control-sm" required>
+            <input type="date" name="end_date" value="{{ end_date }}" class="form-control form-control-sm" required>
+            <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+        </form>
+    </div>
+
+    <p><strong>Total Revenue:</strong> ৳ {{ total_revenue|floatformat:2 }}</p>
+
+    <div class="table-responsive">
+        <table class="table table-hover table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Student</th>
+                    <th>Month</th>
+                    <th>Monthly Fee Paid</th>
+                    <th>Admission Fee Paid</th>
+                    <th>Total Paid</th>
+                    <th>Payment Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in payments %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ p.student.name }}</td>
+                    <td>{{ p.get_month_display }}</td>
+                    <td>৳ {{ p.monthly_tuition_fee_paid|default:0 }}</td>
+                    <td>৳ {{ p.admission_fee_paid|default:0 }}</td>
+                    <td>৳ {{ p.total_paid }}</td>
+                    <td>{{ p.payment_date }}</td>
+                    <td>{{ p.payment_status|capfirst }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center">No revenue found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

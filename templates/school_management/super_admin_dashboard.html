@@ -1,0 +1,111 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .action-card {
+        border-radius: 18px;
+        transition: 0.25s ease;
+        background: #fff;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .action-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+    }
+    .action-icon {
+        font-size: 36px;
+        margin-bottom: 10px;
+    }
+    .gradient-blue { background: linear-gradient(135deg, #4f8cf7, #6ad0ff); color: white; }
+    .gradient-green { background: linear-gradient(135deg, #35d07f, #4bcf97); color: white; }
+    .gradient-purple { background: linear-gradient(135deg, #8a68ff, #b27afe); color: white; }
+    .gradient-orange { background: linear-gradient(135deg, #ff8c42, #ffa75d); color: white; }
+</style>
+
+<div class="container-fluid px-4 mt-3">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">Super Admin Dashboard</h2>
+            <p class="text-muted mb-0">Welcome, {{ user.get_full_name|default:user.username }}</p>
+        </div>
+    </div>
+
+<div class="row row-cols-2 row-cols-md-4 g-3 mb-4">
+    {% include 'school_management/partials/stat_card.html' with title="Total Students" value=total_students %}
+    {% include 'school_management/partials/stat_card.html' with title="Total Teachers" value=total_teachers %}
+    {% include 'school_management/partials/stat_card.html' with title="Running Exams" value=running_exams %}
+    {% include 'school_management/partials/stat_card.html' with title="Fees Collected" value=monthly_fees_collected suffix="৳" %}
+</div>
+
+
+
+    <!-- Mobile Style Action Cards -->
+    <div class="row g-3 mb-4 text-center">
+
+        <div class="col-xl-3 col-md-4 col-6">          
+            <a href="{% url 'student_portal:student_landing_page' %}" class="text-decoration-none">
+                <div class="p-3 action-card gradient-blue text-white h-100">
+                    <div class="action-icon"><i class="fas fa-user-graduate"></i></div>
+                    <h6 class="fw-semibold mb-0">Student Dashboard</h6>
+                </div>
+            </a>
+            
+        </div>
+
+        <div class="col-xl-3 col-md-4 col-6">
+            <a href="{% url 'teachers:teacher_dashboard' %}" class="text-decoration-none">
+                <div class="p-3 action-card gradient-green text-white h-100">
+                    <div class="action-icon"><i class="fas fa-user"></i></div>
+                    <h6 class="fw-semibold mb-0">Teacher Dashboard</h6>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-xl-3 col-md-4 col-6">
+            <a href="{% url 'school_management:admin_dashboard' %}" class="text-decoration-none">
+                <div class="p-3 action-card gradient-purple text-white">
+                    <div class="action-icon"><i class="fas fa-user-tie"></i></div>
+                    <h6 class="fw-semibold mb-0">Staff Dashboard</h6>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-xl-3 col-md-4 col-6">
+            <a href="{% url 'finance:profit_loss_report' %}" class="text-decoration-none">
+                <div class="p-3 action-card gradient-orange text-white">
+                    <div class="action-icon"><i class="fas fa-chart-line"></i></div>
+                    <h6 class="fw-semibold mb-0">Management Dashboard</h6>
+                </div>
+            </a>
+        </div>
+
+         <div class="col-xl-3 col-md-4 col-6">
+            <a href="{% url 'finance:profit_loss_report' %}" class="text-decoration-none">
+                <div class="p-3 action-card gradient-purple text-white">
+                    <div class="action-icon"><i class="fas fa-list"></i></div>
+                    <h6 class="fw-semibold mb-0">Accounts &  Finance</h6>
+                </div>
+            </a>
+        </div>
+
+    </div>
+
+    <!-- Notifications -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white fw-semibold">
+            Latest Notifications
+        </div>
+        <div class="card-body">
+            <ul class="list-group">
+                <li class="list-group-item">No new notifications.</li>
+            </ul>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

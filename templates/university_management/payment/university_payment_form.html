@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+{% block title %}Student Payment{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+    
+{% include 'university_management/quick_access_link.html' %}
+    <h2 class="my-4">💵 Record Student Payment</h2>
+
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger">
+        {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+   <div class="d-flex justify-content-between my-3">
+        <div class="col p-2 bg-light border rounded">
+            <strong>Admission Fee due:</strong> {{ admission_due|add_commas }}
+        </div>
+        <div class="col p-2 bg-light border rounded">
+            <strong>Tuition Fee due:</strong> {{ tuition_due|add_commas }}
+        </div>
+    </div>
+
+
+    <form method="post" class="needs-validation" novalidate>
+        {% csrf_token %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">{{ form.invoice.label }}</label>
+                        {{ form.invoice }}
+                        <div class="text-danger small">{{ form.invoice.errors }}</div>
+                    </div>
+                    {% if admission_due > 0.0 %}
+                    <div class="col-md-6">
+                        <label class="form-label">{{ form.admission_paid.label }}</label>
+                        {{ form.admission_paid }}
+                        <div class="text-danger small">{{ form.admission_paid.errors }}</div>
+                    </div>
+                    {% endif %}
+                     {% if tuition_due > 0.0 %}
+                    <div class="col-md-6">
+                        <label class="form-label">{{ form.tuition_paid.label }}</label>
+                        {{ form.tuition_paid }}
+                        <div class="text-danger small">{{ form.tuition_paid.errors }}</div>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-6">
+                        <label class="form-label">{{ form.tax_policy.label }}</label>
+                        {{ form.tax_policy|add_class:'form-control'}}
+                        <div class="text-danger small">{{ form.tax_policy.errors }}</div>
+                    </div>
+               
+                    <div class="col-md-6">
+                        <label class="form-label">{{ form.payment_method.label }}</label>
+                        {{ form.payment_method }}
+                        <div class="text-danger small">{{ form.payment_method.errors }}</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">{{ form.transaction_id.label }}</label>
+                        {{ form.transaction_id }}
+                        <div class="text-danger small">{{ form.transaction_id.errors }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Submit Payment
+        </button>
+        <a href="{% url 'university_management:payment_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

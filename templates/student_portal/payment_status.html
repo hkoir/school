@@ -10,7 +10,7 @@
     <div class="row">
 
         <h1 class="text-center">Student Payment Dashboard </h1>
-        <div class="col-12 mb-3">
+        <div class="col-12 mb-3 table-responsive">
             <div class="card border-0 rounded-lg">              
                                
                 <div class="card-body">                   
@@ -54,7 +54,7 @@
 
         {% if data %}
 
-        <div class="col-12">
+        <div class="col-12 table-responsive">
             <h4>Monthly Tuition Fees</h4>
             <table class="table">
                 <thead class="table-info">
@@ -90,47 +90,55 @@
             </table>
             
         </div>
-        <div class="col-12">
+        
+
+	<div class="col-12 mt-4">
             <div class="container-fluid">
-                <div class="row">
-                    <div class="col-12 col-md-5 table-responsive">
-                        <h4>Admission Fees</h4>
-                        <table class="table table-striped">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Student Name</th>
-                                    <th>Admission Fee</th>
-                                
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for row in data %}
+                <div class="row">                   
+                         <div class="table-responsive">
+			    <h4>Overall due status</h4>
+			  <table class="table table-bordered align-middle">
+                                <thead class="table-light text-center">
                                     <tr>
-                                        <td>{{ row.student.name }}</td>
-            
-                                        <td>
-                                            {% if row.admission_status == 'paid' %}
-                                                <span class="badge bg-success">Paid</span>
-                                            {% elif row.admission_status == 'partial-paid' %}
-                                                <span class="badge bg-info text-dark">Partial</span>
-                                            {% elif row.admission_status == 'due' %}
-                                                <span class="badge bg-warning text-dark">Due</span>
-                                            {% elif row.admission_status == 'not-applicable' %}
-                                                <span class="badge bg-secondary">N/A</span>
-                                            {% else %}
-                                                <span class="badge bg-light text-dark">Unknown</span>
-                                            {% endif %}
-                                        </td>
+                                        <th>Fee Type</th>
+                                        <th>Total amount (৳)</th>
+                                        <th>Total Paid (৳)</th>
+                                        <th>Net Due (৳)</th>
                                         
-                                        
-                                        
-                                    
                                     </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {% for fee_type, data in dues.items %}
+                                        {% if data.net_due > 0 %}
+                                        <tr>
+                                            <td class="text-capitalize">
+                                                {% if fee_type == 'admission' %}
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-sm btn-outline-secondary admission-fee-btn"
+                                                        data-student-id="{{ student.id }}">
+                                                        Admission Fees
+                                                    </button>
+                                                {% else %}
+                                                    {{ fee_type }}
+                                                {% endif %}
+                                            </td>
+
+                                            <td class="text-center">{{ data.expected }}</td>
+                                            <td class="text-center text-success">{{ data.paid }}</td>
+                                            <td class="text-center fw-bold text-danger">{{ data.net_due }}</td>
+
+                                           
+                                        </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+		
+                        </div>
+
             
-                    </div>                  
+                               
                   
                    
                 </div>
@@ -145,13 +153,168 @@
       
     
     </div>
+	 <a href="{% url 'student_portal:review_and_pay_online' %}" 
+    class="btn btn-primary text-center"> Make online payment</a>
 
-    <a href="#" class="btn btn-primary text-center"> Pay Tuition Fee</a>
-    <a href="#" class="btn btn-primary text-center"> Pay Admission fee</a>
 </div>
 
 
 
+
+<!-- Admission Fee Modal -->
+<div class="modal fade" id="admissionFeeModal" tabindex="-1" aria-labelledby="admissionFeeModalLabel" aria-hidden="true" role="dialog">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="admissionFeeModalLabel">Admission Fee Details</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active text-primary" data-bs-toggle="tab" data-bs-target="#pendingTab" type="button" role="tab" aria-controls="pendingTab" aria-selected="true">
+                            Pending Fees
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link text-success" data-bs-toggle="tab" data-bs-target="#paidTab" type="button" role="tab" aria-controls="paidTab" aria-selected="false">
+                            Paid Fees
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <!-- Pending -->
+                    <div class="tab-pane fade show active" id="pendingTab" role="tabpanel" aria-labelledby="pendingTab">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Fee Item</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingFeeBody"></tbody>
+                            <tfoot>
+                                <tr class="fw-bold">
+                                    <td class="text-end">Total Pending</td>
+                                    <td class="text-end text-danger" id="totalPending"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Paid -->
+                    <div class="tab-pane fade" id="paidTab" role="tabpanel" aria-labelledby="paidTab">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Fee Item</th>
+                                    <th class="text-end">Paid Amount</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paidFeeBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <a id="payAdmissionBtn" class="btn btn-success d-none">Pay Pending Fees</a>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- JS -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    // Bind all buttons once
+    document.querySelectorAll('.admission-fee-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            loadAdmissionFees(this.dataset.studentId);
+        });
+    });
+
+});
+
+function loadAdmissionFees(studentId) {
+
+    const modalEl = document.getElementById('admissionFeeModal');
+    const modal = new bootstrap.Modal(modalEl);
+
+    fetch(`/payments/ajax_pending_admission_fees/${studentId}/`)
+        .then(res => res.json())
+        .then(data => {
+
+            const pendingBody = document.getElementById("pendingFeeBody");
+            const paidBody = document.getElementById("paidFeeBody");
+
+            pendingBody.innerHTML = "";
+            paidBody.innerHTML = "";
+
+            const pendingItems = data.pending_items || [];
+            const paidItems = data.paid_items || [];
+
+            // Pending
+            if (!pendingItems.length) {
+                pendingBody.innerHTML = `
+                    <tr>
+                        <td colspan="2" class="text-center text-success">
+                            No pending fees 🎉
+                        </td>
+                    </tr>`;
+                document.getElementById("payAdmissionBtn").classList.add("d-none");
+            } else {
+                pendingItems.forEach(item => {
+                    pendingBody.innerHTML += `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td class="text-end">৳ ${item.amount}</td>
+                        </tr>`;
+                });
+
+                document.getElementById("totalPending").innerText =
+                    "৳ " + data.total_pending;
+
+                const payBtn = document.getElementById("payAdmissionBtn");
+                payBtn.href = `/student_portal/review-and-payonline/`;
+                payBtn.classList.remove("d-none");
+            }
+
+            // Paid
+            if (!paidItems.length) {
+                paidBody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="text-center text-muted">
+                            No payments yet
+                        </td>
+                    </tr>`;
+            } else {
+                paidItems.forEach(item => {
+                    paidBody.innerHTML += `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td class="text-end">৳ ${item.amount}</td>
+                            <td>${item.date}</td>
+                        </tr>`;
+                });
+            }
+
+            // Show modal AFTER DOM is updated
+            modal.show();
+
+        })
+        .catch(err => console.error('Admission fee fetch error:', err));
+}
+</script>
 
 
 

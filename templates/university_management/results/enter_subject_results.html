@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Enter Results - {{ student.name }}{% endblock %}
+
+{% block content %}
+{% include 'university_management/quick_access_link.html' %}
+
+
+<div class="container mt-4">
+
+
+   <form method="get" class="my-4">
+    <select id="student-select" name="q" class="form-control">
+        <option value="">Select a student...</option>
+        {% for student in students %}
+            <option value="{{ student.student_id }}"
+                {% if request.GET.q == student.student_id %}selected{% endif %}>
+                {{ student.name }} ({{ student.student_id }})
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary mt-2">Search</button>
+</form>
+
+
+
+    <h2 class="my-4">Enter Subject Results for {{ student.name }}</h2>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {{ formset.management_form }}
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Subject</th>
+                        <th>Marks Obtained</th>                      
+                        <th>Absent</th>
+                        <th>Published</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for form in formset %}
+                        <tr>
+                            <td>{{ form.subject_offering }}</td>
+                            <td>{{ form.marks_obtained }}</td>                           
+                            <td>{{ form.is_absent }}</td>
+                            <td>{{ form.is_published }}</td>
+                            <td>
+                                {{ form.DELETE }}
+                                <button type="button" class="btn btn-outline-danger btn-sm remove-row">Remove</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <button type="button" id="add-row" class="btn btn-outline-secondary mb-3">
+            <i class="fas fa-plus"></i> Add Row
+        </button>
+
+        <button type="submit" class="btn btn-primary mb-3">
+            <i class="fas fa-save"></i> Save Results
+        </button>
+    </form>
+</div>
+<!-- Empty form template for JS -->
+<table style="display:none">
+    <tbody id="empty-form">
+        <tr>
+            <td>{{ formset.empty_form.subject_offering }}</td>
+            <td>{{ formset.empty_form.marks_obtained }}</td>
+            <td>{{ formset.empty_form.is_absent }}</td>
+            <td>{{ formset.empty_form.is_published }}</td>
+            <td>
+                {{ formset.empty_form.DELETE }}
+                <button type="button" class="remove-row btn btn-outline-danger btn-sm">Remove</button>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<script>
+$(document).ready(function() {
+    $('#student-select').select2({
+        placeholder: "Select a student",
+        allowClear: true
+    });
+});
+</script>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const prefix = "{{ formset.prefix }}";
+    const totalForms = document.getElementById("id_" + prefix + "-TOTAL_FORMS");
+    const tableBody = document.querySelector("table tbody");
+    const emptyRowTemplate = document.querySelector("#empty-form").innerHTML;
+
+    document.getElementById("add-row").addEventListener("click", function () {
+        const index = parseInt(totalForms.value, 10);
+        const newRowHtml = emptyRowTemplate.replace(/__prefix__/g, index);
+        tableBody.insertAdjacentHTML("beforeend", newRowHtml);
+        totalForms.value = index + 1;
+    });
+
+    tableBody.addEventListener("click", function (e) {
+        if (e.target.closest(".remove-row")) {
+            const tr = e.target.closest("tr");
+            const delInput = tr.querySelector("input[name$='-DELETE']");
+            if (delInput) {
+                delInput.checked = true;
+                tr.style.display = "none";
+            } else {
+                tr.remove();
+                totalForms.value = parseInt(totalForms.value, 10) - 1;
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

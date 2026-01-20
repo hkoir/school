@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from.models import  Notification
 from django.contrib import messages
 from students.models import Student
+from teachers.models import Teacher
 from.models import Message
 from django.shortcuts import get_object_or_404, redirect
 from django.http import JsonResponse
@@ -12,25 +13,41 @@ from messaging.models import ManagementMessage
 from.forms import ManagementMessageForm
 from django.core.paginator import Paginator
 
-# def create_notification(user,notification_type, message):   
-#     Notification.objects.create(user,message=message,notification_type=notification_type)
 
-
+from django.db.models import Q
 
 
 
 
 @login_required
-#@require_POST  # Only allow POST requests
+@require_POST
 def mark_notification_read_view(request, notification_id):
-    try:
-        notification = Notification.objects.get(id=notification_id, user=request.user)
-        notification.is_read = True
-        notification.save()
-        return JsonResponse({"success": True}) 
-    except Notification.DoesNotExist:
-        return JsonResponse({"success": False, "error": "Notification not found"}, status=404)
+    try:   
+        notification_qs = Notification.objects.filter(id=notification_id, is_read=False) 
+        if request.user.role == "student":
+            student = Student.objects.filter(user=request.user).first()
+            if student:
+                notification_qs = notification_qs.filter(Q(user=request.user) | Q(student=student))
+            else:
+                notification_qs = notification_qs.filter(user=request.user)
+        elif request.user.role == "teacher":
+            teacher = Teacher.objects.filter(user=request.user).first()
+            if teacher:
+                notification_qs = notification_qs.filter(Q(user=request.user) | Q(teacher=teacher))
+            else:
+                notification_qs = notification_qs.filter(user=request.user)
+        else:
+            notification_qs = notification_qs.filter(user=request.user)
 
+        notification = notification_qs.first()
+        if notification:
+            notification.is_read = True
+            notification.save()
+            return JsonResponse({"success": True})
+        else:
+            return JsonResponse({"success": False, "error": "Notification not found"}, status=404)
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
 @login_required

@@ -51,11 +51,15 @@ TENANT_APPS = [
     'payment_gatway',
     'leavemanagement',
     'finance',
-    'inventory'
-   
- 
-  
-    
+    'inventory',
+    'accounting',
+    'university_management',
+    'varsity_portal'
+
+
+
+
+
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
@@ -101,8 +105,13 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'clients.middleware.CustomTenantAuthMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "clients.middleware.BlockStudentByNamespaceMiddleware",
 ]
 
+STUDENT_DENY_NAMESPACES = ["inventory", "core",'finance','leavemanagement','results','school_management']
+# STUDENT_ALLOW_URL_NAMES = ["staff:public_notice"]  
+STUDENT_ALLOW_SUPERUSER = True
+STUDENT_REDIRECT_URL_NAME = "student_portal:student_landing_page"  # or None to 403
 
 
 
@@ -134,7 +143,7 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django_tenants.postgresql_backend',
-        'NAME': 'myproject',  # your PostgreSQL database name
+        'NAME': 'school',  # your PostgreSQL database name
         'USER': 'arafat',      # the user you created for PostgreSQL
         'PASSWORD': 'Arafat_123',  # the password for your PostgreSQL user
         'HOST': 'localhost',    # default for local database
@@ -261,7 +270,9 @@ EMAIL_HOST_PASSWORD = 'ArafaT_1234'     # Your email account password
 DEFAULT_FROM_EMAIL = 'humayun@e2esolutionsbd.com'
 
 
-
+SSLZCOMMERZ_STORE_ID = "mymep684ff9c9b6d95"
+SSLZCOMMERZ_STORE_PASS = "mymep684ff9c9b6d95@ssl"
+SSLZCOMMERZ_IS_SANDBOX = True 
 
 
 

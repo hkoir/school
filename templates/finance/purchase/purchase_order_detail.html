@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Purchase Order #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>📄 Purchase Order Details - #{{ order.id }}</h2>
+
+    <div class="card my-3">
+        <div class="card-body">
+            <p><strong>Vendor:</strong> {{ order.vendor.name }}</p>
+            <p><strong>Reference:</strong> {{ order.reference|default:"-" }}</p>
+            <p><strong>Date Approved:</strong> {{ order.date_approved|date:"d M Y" }}</p>
+            <p><strong>Approval Status:</strong> <span class="badge bg-info text-dark">{{ order.approval_status|capfirst }}</span></p>
+            <p><strong>VAT:</strong> {{ order.vat_amount }}</p>
+            <p><strong>AIT:</strong> {{ order.ait_amount }}</p>
+            <p><strong>Total Payable:</strong> {{ order.total_payable }}</p>
+        </div>
+    </div>
+
+    <h4 class="mt-4">Items</h4>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Product / Description</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Total</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.purchase_items.all %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.unit_price }}</td>
+                    <td>{{ item.total }}</td>
+                    <td>
+                        {% if item.is_asset %}
+                            Asset
+                        {% else %}
+                            Consumable / Expense
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">No items added yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'finance:manage_purchase_order' %}" class="btn btn-secondary">Edit Order</a>
+        <a href="{% url 'finance:purchase_order_payment' pk=order.id %}" class="btn btn-success">Record Payment</a>
+        <a href="{% url 'finance:update_inventory' pk=order.id %}" class="btn btn-primary">Update Inventory / Assets</a>
+        <a href="{% url 'finance:purchase_order_list' %}" class="btn btn-outline-dark">Back to List</a>
+    </div>
+</div>
+{% endblock %}

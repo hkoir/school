@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{% include 'students/quick_access_link.html' %}
+
+<div class="container my-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">{{ view.object|default:"Add New Exam" }}</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                <div class="mb-3">
+                    {{ form.name.label_tag }}
+                    {{ form.name }}
+                    {{ form.name.errors }}
+                </div>
+                <div class="mb-3">
+                    {{ form.academic_year.label_tag }}
+                    {{ form.academic_year }}
+                    {{ form.academic_year.errors }}
+                </div>
+                <button type="submit" class="btn btn-success">Save</button>
+                <a href="{% url 'exams:exam_list' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

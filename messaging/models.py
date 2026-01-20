@@ -36,6 +36,51 @@ class Notification(models.Model):
         self.save()
 
 
+
+
+
+class ManagementMessage(models.Model):
+    user=models.ForeignKey(CustomUser,on_delete=models.CASCADE,null=True,blank=True)
+    name = models.CharField(max_length=100, null=True, blank=True)
+    position = models.CharField(max_length=100,choices=POSITION_CHOICES, null=True, blank=True)
+    message = models.TextField(null=True, blank=True)
+    photo = models.ImageField(upload_to='tenant_photo/', null=True, blank=True)
+    signature = models.ImageField(upload_to='tenant_signature/', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Message of {self.name} -- {self.position}"
+
+    class Meta:       
+        pass
+
+
+class HeroSlider(models.Model):
+    title = models.CharField(max_length=200, blank=True)
+    subtitle = models.TextField(blank=True)
+    button_text = models.CharField(max_length=100, blank=True)
+    button_link = models.URLField(blank=True)
+    image = models.ImageField(upload_to='slider/')
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if self._state.adding and self.order == 0:
+            max_order = HeroSlider.objects.aggregate(models.Max('order'))['order__max'] or 0
+            self.order = max_order + 1
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title or f"Slide {self.id}"
+
+
+
+
+
+
+
+
+
 class Message(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     student = models.ForeignKey(Student, on_delete=models.CASCADE,null=True,blank=True,related_name='student_message')
@@ -85,32 +130,6 @@ class Message(models.Model):
 def send_sms_on_message_creation(sender, instance, created, **kwargs):
     if created and not instance.is_sent:
         instance.send_sms()
-
-
-
-
-class ManagementMessage(models.Model):
-    user=models.ForeignKey(CustomUser,on_delete=models.CASCADE,null=True,blank=True)
-    name = models.CharField(max_length=100, null=True, blank=True)
-    position = models.CharField(max_length=100,choices=POSITION_CHOICES, null=True, blank=True)
-    message = models.TextField(null=True, blank=True)
-    photo = models.ImageField(upload_to='tenant_photo/', null=True, blank=True)
-    signature = models.ImageField(upload_to='tenant_signature/', null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Message of {self.name} -- {self.position}"
-
-    class Meta:
-        # Meta options for your model (e.g., ordering or constraints)
-        pass
-
-
-
-
-
-
-
 
 
 

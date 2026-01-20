@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Select Term{% endblock %}
+
+{% block content %}
+{% include 'university_management/quick_access_link.html' %}
+<div class="container my-4">
+    <h4 class="mb-3">📘 Select Term to Create Class Schedule</h4>
+
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>Faculty</th>
+                <th>Department</th>
+                <th>Program</th>
+                <th>Level</th>
+                <th>Term</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for term in terms %}
+            <tr>
+                 <td>{{ term.level.program.department.faculty }}</td>
+                <td>{{ term.level.program.department }}</td>
+                <td>{{ term.level.program }}</td>
+                <td>{{ term.level }}</td>
+                <td>{{ term.name }}</td>
+                <td>
+                    {% if not request.user.role == 'teacher' %}
+                    <a href="{% url 'university_management:class_schedule_create' term.id %}"
+                       class="btn btn-sm btn-primary">
+                        Manage Schedule
+                    </a>
+                     <a href="{% url 'university_management:class_schedule_view' term.id %}"
+                       class="btn btn-sm btn-primary">
+                        view Schedule
+                    </a>
+                    {% else %}
+                     <a href="{% url 'university_management:teacher_class_schedule_view' term.id %}"
+                       class="btn btn-sm btn-primary">
+                        Teacher Schedule
+                    </a>
+                    {% endif %}
+                </td>
+                
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" class="text-center text-muted">
+                    No terms available
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

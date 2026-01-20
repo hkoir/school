@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+{% block title %}Exam Setup{% endblock %}
+
+{% block content %}
+{% include 'university_management/quick_access_link.html' %}
+
+<div class="container">
+
+    <h2 class="my-4">📝 Exam Setup</h2>
+
+    {% if exam_form.non_field_errors %}
+        <div class="alert alert-danger">
+            {{ exam_form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        <!-- Exam Header -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light fw-bold">
+                Exam Information
+            </div>
+
+            <div class="card-body">
+                <div class="row g-3">
+                     <div class="col-12">
+                        <label class="form-label">{{ exam_form.institution.label }}</label>
+                        {{ exam_form.institution|add_class:'form-control' }}
+                    </div>
+
+                    <div class="col-6">
+                        <label class="form-label">{{ exam_form.academic_session.label }}</label>
+                        {{ exam_form.academic_session|add_class:'form-control' }}
+                    </div>
+
+
+                    <div class="col-6">
+                        <label class="form-label">{{ exam_form.academic_year.label }}</label>
+                        {{ exam_form.academic_year|add_class:'form-control' }}
+                    </div>
+
+                    <div class="col-6">
+                        <label class="form-label">{{ exam_form.program.label }}</label>
+                        {{ exam_form.program|add_class:'form-control' }}
+                        <div class="text-danger small">{{ exam_form.program.errors }}</div>
+                    </div>
+
+                   <div class="col-6">
+                        <label class="form-label">{{ exam_form.level.label }}</label>
+                        {{ exam_form.level|add_class:'form-control' }}
+                        <div class="text-danger small">{{ exam_form.level.errors }}</div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-1">
+                    <div class="col-6">
+                        <label class="form-label">{{ exam_form.term.label }}</label>
+                        {{ exam_form.term|add_class:'form-control' }}
+                        <div class="text-danger small">{{ exam_form.term.errors }}</div>
+                    </div>
+
+                   <div class="col-6">
+                        <label class="form-label">{{ exam_form.exam_type.label }}</label>
+                        {{ exam_form.exam_type|add_class:'form-control' }}
+                        <div class="text-danger small">{{ exam_form.exam_type.errors }}</div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-1">
+                   <div class="col-6">
+                        <label class="form-label">{{ exam_form.start_date.label }}</label>
+                        {{ exam_form.start_date|add_class:'form-control' }}
+                        <div class="text-danger small">{{ exam_form.start_date.errors }}</div>
+                    </div>
+
+                  <div class="col-6">
+                        <label class="form-label">{{ exam_form.end_date.label }}</label>
+                        {{ exam_form.end_date|add_class:'form-control' }}
+                        <div class="text-danger small">{{ exam_form.end_date.errors }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{ schedule_formset.management_form }}
+
+        {% if schedule_formset.non_form_errors %}
+            <div class="alert alert-danger">
+                {{ schedule_formset.non_form_errors }}
+            </div>
+        {% endif %}
+
+        <!-- Exam Schedules -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light fw-bold">
+                Exam Schedule
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table id="schedule-table"
+                           class="table table-bordered table-sm mb-0 align-middle">
+                        <thead class="table-secondary">
+                            <tr>
+                                <th>Subject</th>                               
+                                <th>Date</th>
+                                <th>Start</th>
+                                <th>End</th>
+                                <th>Venue</th>
+                                <th>Marks</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for f in schedule_formset %}
+                                <tr class="form-row">
+                                    <td>
+                                        {{ f.subject_offering|add_class:'form-control' }}
+                                        <div class="text-danger small">{{ f.subject_offering.errors }}</div>
+                                    </td>                                   
+                                    <td>{{ f.exam_date|add_class:'form-control' }}</td>
+                                    <td>{{ f.start_time|add_class:'form-control' }}</td>
+                                    <td>{{ f.end_time|add_class:'form-control' }}</td>
+                                    <td>{{ f.venue|add_class:'form-control' }}</td>
+                                    <td>{{ f.max_marks|add_class:'form-control' }}</td>
+                                    <td class="text-center">
+                                        {{ f.DELETE }}
+                                        <button type="button"
+                                                class="remove-row btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex justify-content-between">
+            <button type="button" id="add-row" class="btn btn-outline-secondary">
+                <i class="fas fa-plus"></i> Add Schedule
+            </button>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Save Exam
+            </button>
+        </div>
+
+    </form>
+</div>
+
+<!-- Empty form template -->
+<table style="display:none">
+    <tbody id="empty-form">
+        <tr class="form-row">
+            <td>{{ schedule_formset.empty_form.subject_offering|add_class:'form-control' }}</td>
+           
+            <td>{{ schedule_formset.empty_form.exam_date|add_class:'form-control'}}</td>
+            <td>{{ schedule_formset.empty_form.start_time|add_class:'form-control' }}</td>
+            <td>{{ schedule_formset.empty_form.end_time|add_class:'form-control' }}</td>
+            <td>{{ schedule_formset.empty_form.venue|add_class:'form-control' }}</td>
+            <td>{{ schedule_formset.empty_form.max_marks|add_class:'form-control' }}</td>
+            <td class="text-center">
+                {{ schedule_formset.empty_form.DELETE }}
+                <button type="button"
+                        class="remove-row btn btn-outline-danger btn-sm">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const prefix = "{{ schedule_formset.prefix }}";
+    const totalForms = document.getElementById("id_" + prefix + "-TOTAL_FORMS");
+    const tableBody = document.querySelector("#schedule-table tbody");
+    const emptyRowTemplate = document.querySelector("#empty-form").innerHTML;
+
+    document.getElementById("add-row").addEventListener("click", function () {
+        const index = parseInt(totalForms.value, 10);
+        const newRowHtml = emptyRowTemplate.replace(/__prefix__/g, index);
+        tableBody.insertAdjacentHTML("beforeend", newRowHtml);
+        totalForms.value = index + 1;
+    });
+
+    tableBody.addEventListener("click", function (e) {
+        if (e.target.closest(".remove-row")) {
+            const tr = e.target.closest("tr");
+            const delInput = tr.querySelector("input[name$='-DELETE']");
+
+            if (delInput) {
+                delInput.checked = true;
+                tr.style.display = "none";
+            } else {
+                tr.remove();
+                totalForms.value = parseInt(totalForms.value, 10) - 1;
+            }
+        }
+    });
+});
+</script>
+
+{% endblock %}

@@ -1,22 +1,28 @@
+
 {% extends "base.html" %}
 {% load static %}
 
 
 {% block content %}
 
-
+{% include 'students/quick_access_link.html' %}
 
 <div class="container-fluid main-content">
     <h4 class="text-center">Teacher Database</h4>
     <div class="row">                   
-     
-        <form method="GET" action="{% url 'teachers:view_teacher_vcard' %}" class="mb-2">
-            Teacher ID: {{ form.teacher_id }}
-            <button type="submit" class="btn btn-primary">Find teacher</button> 
-        </form>  
+             
+        <!-- Selection Form -->
+        <div class="mb-3">
+            <form method="get">
+                <input type="text" name="q" placeholder="Search teacher by name or ID" value="{{ q }}">
+                <button type="submit" class="btn btn-primary btn-sm">Search</button>
+                <a href="{% url 'teachers:view_teacher_vcard' %}" class="btn btn-secondary btn-sm">Clear</a>
+            </form>
+        </div>
         <hr>
+        
         {% for teacher in page_obj %}
-        <div class="col-12 col-sm-6 col-md-3 col-lg-2 mb-4">
+        <div class="col-12 col-sm-6 col-md-3 mb-4">
             <div class="card shadow-lg border-0" style="background-color: #f8f9fa; border-radius: 15px;">
                 <!-- Employee Photo -->
                 <div class="d-flex justify-content-center mt-3">
@@ -42,9 +48,10 @@
 
                     <p class="text-muted mb-2" style="font-size: 12px;">
                         ID:{{ teacher.teacher_id }}<br>
-                        Phone:{{ teacher.phone_number }}<br>
+                        Phone:{{ teacher.phone }}<br>
                         {{teacher.email}}
                     </p>
+                     <span><a href="{% url 'students:student_school_class_routine_view' %}" class="btn btn-sm btn-outline-success w-100" >Class routine</a></span> 
                     
                    
                 </div>

@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block content %}
-
+{% include 'students/quick_access_link.html' %}
 
 <div class="container-fluid">
   <div class="row">
@@ -23,10 +23,10 @@
       <tbody>
         {% for exam in exam_types %}
         <tr>
-          <td>{{ exam.exam.name }}</td>
+          <td>{{ exam.name }}</td>
           <td>{{ exam.exam_date|date:"d M Y" }}</td>
           <td>
-            <a href="{% url 'students:preview_admit_card' student.id exam.id %}" target="_blank">
+            <a href="{% url 'students:preview_admit_card' exam.id %}" target="_blank">
               Download Admit Card
             </a>
           </td>

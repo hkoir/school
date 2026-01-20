@@ -1,0 +1,28 @@
+
+
+<div class="container my-3">
+
+    <h5 class="text-center mb-3 fw-bold">Quick Navigation</h5>
+
+    <div class="d-flex justify-content-center flex-wrap gap-2 mb-2">    
+
+        <a href="{% url 'school_management:create_image_gallery' %}" class="btn btn-sm btn-outline-primary">Create Image gallery</a>
+         <a href="{% url 'school_management:create_school' %}" class="btn btn-sm btn-outline-warning">Create School</a>
+        <a href="{% url 'school_management:create_faculty' %}" class="btn btn-sm btn-outline-secondary">Create faculty</a>
+        <a href="{% url 'school_management:create_class' %}" class="btn btn-sm btn-outline-warning">Create Academic Class</a>   
+        <a href="{% url 'school_management:create_class_assignment' %}" class="btn btn-sm btn-outline-primary">+ Creat class assignment</a>
+        <a href="{% url 'school_management:create_section' %}" class="btn btn-sm btn-outline-primary">create section</a>
+        <a href="{% url 'school_management:create_class_room' %}" class="btn btn-sm btn-outline-secondary">Create class room</a>
+        <a href="{% url 'school_management:create_subject' %}" class="btn btn-sm btn-outline-warning">Create subject</a>
+        <a href="{% url 'school_management:create_subject_assignment' %}" class="btn btn-sm btn-outline-info">+ Create subject assignment</a>          
+
+        <a href="{% url 'school_management:create_schedule' %}" class="btn btn-sm btn-outline-primary">+ Crate schedule</a>
+        <a href="{% url 'school_management:create_teaching_assignment' %}" class="btn btn-sm btn-outline-info">+ Create teaching assignment</a>
+
+        <a href="{% url 'students:create_student' %}" class="btn btn-sm btn-primary">Student Enrollment</a>
+
+            
+    </div>
+
+    
+</div>

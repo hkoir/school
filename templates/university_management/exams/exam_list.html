@@ -1,0 +1,79 @@
+
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+
+{% block content %}
+{% include 'university_management/quick_access_link.html' %}
+
+<h2>Exam List</h2>
+
+<a href="{% url 'university_management:exam_create' %}" class="btn btn-sm btn-primary my-2">➕ Create New Exam</a>
+
+<div class="table-responsive">
+    <table border="1" cellpadding="8" class="table">
+        <thead class="table-dark">
+            <tr>
+                <th>Actions</th>               
+                <th>Program</th>
+                <th>Session</th>
+                <th>Academic Year</th>
+                <th>Term</th>
+                <th>Exam Type</th>                
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for exam in exams %}
+            <tr>
+                 <td>
+                    {% if not exam.exam_registrations.exists %}
+                  <a href="{% url 'university_management:register_for_exam' exam.id %}"
+                    class="btn btn-sm btn-outline-primary">
+                    Register for exam
+                    </a>
+                    {% else %}
+
+                     <a href="{% url 'university_management:generate_admit_card' exam.id %}"
+                    class="btn btn-sm btn-outline-primary">
+                    Get admit card
+                    </a>
+                     {% endif %}
+                    {% if not exam.exam_subject_results.exists %}
+                    <a href="{% url 'university_management:enter_student_results' exam.id %}"
+                    class="btn btn-sm btn-outline-primary">+ Result input</a>
+                    {% endif %}
+
+                 </td>
+               
+                <td>{{ exam.program }}</td>
+                <td>{{ exam.academic_session }}</td>
+                <td>{{ exam.academic_year }}</td>
+                <td>{{ exam.term }}</td>
+                <td>{{ exam.get_exam_type_display }}</td>
+                
+                <td>
+                    {% if exam.is_published %}
+                        ✅ Published
+                    {% else %}
+                    <a href="{% url 'university_management:exam_publish_toggle' exam.id %}"
+                    class="btn btn-sm btn-outline-warning">⏳Click to Publish</a>
+                        
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'university_management:exam_detail' exam.id %}">View</a> |
+                    <a href="{% url 'university_management:exam_update' exam.id %}">Edit</a> |
+                    <a href="{% url 'university_management:exam_delete' exam.id %}">Delete</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">No exams found</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

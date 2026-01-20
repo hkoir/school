@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-4">
+    <h3>Register for Exam: {{ exam.name }}</h3>
+
+    <!-- Student search form -->
+    <form method="get" class="my-3">
+        <div class="row g-2 align-items-center">
+            <div class="col-auto">
+                <select name="q" class="form-control">
+                    <option value="">Select a student...</option>
+                    {% for s in students %}
+                        <option value="{{ s.student_id }}"
+                            {% if request.GET.q == s.student_id %}selected{% endif %}>
+                            {{ s.name }} ({{ s.student_id }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Register</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Show message -->
+    {% if message %}
+        <div class="alert alert-info mt-3">{{ message }}</div>
+    {% endif %}
+
+    <!-- Show registration info -->
+    {% if registration %}
+        <div class="mt-3">
+            <p>
+                Student <strong>{{ student.name }} ({{ student.student_id }})</strong>
+                is registered for this exam.
+            </p>
+        </div>
+    {% endif %}
+
+    <a href="{% url 'university_management:exam_list' %}" class="btn btn-secondary mt-2">Back to Exam List</a>
+</div>
+{% endblock %}

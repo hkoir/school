@@ -118,29 +118,56 @@ def public_tenant_login(request):
 
 
 
+
+
 def tenant_expire_check(request):
     tenant = get_object_or_404(Client, schema_name=request.tenant.schema_name)
     tenant = getattr(request, 'tenant', None)
     is_public_schema = tenant.schema_name == get_public_schema_name()
 
+    tenant = getattr(request, 'tenant', None)
+    # if tenant:
+    #     tenant_instance = tenant.tenant.first()
+    #     if tenant_instance and tenant_instance.subscription and tenant_instance.subscription.has_expired():
+    #         messages.warning(request, 'Your subscription has expired, please renew')
+    #         return redirect('clients:renew_subscription')
+        
+
     if not request.user.is_authenticated:
         return redirect('clients:dashboard')
 
+    # Confirm if it's public schema
+    if request.tenant.schema_name == get_public_schema_name():
+        return redirect('clients:dashboard')
+
+    # Now you're in a tenant context
+    if request.user.groups.filter(name='partner').exists():
+        return redirect('customerportal:partner_landing_page')
+    elif request.user.groups.filter(name='job_seeker').exists():
+        return redirect('customerportal:job_landing_page')
+    elif request.user.groups.filter(name='public').exists():
+        return redirect('customerportal:public_landing_page')
+
+    elif request.user.student_type == 'school':
+        return redirect('student_portal:student_landing_page')
+    elif request.user.student_type == 'university':
+        return redirect('varsity_portal:student_landing_page')
+
+    elif request.user.role == 'teacher':
+        return redirect('teachers:teacher_dashboard')
+    elif request.user.role in ['admin','staff']:
+        return redirect('school_management:admin_dashboard')
+    elif request.user.role == "superadmin":
+        return redirect('school_management:super_admin_dashboard')
+    elif request.user.role == 'management':
+        return redirect('finance:profit_loss_report')
+    elif request.user.role == 'accounts_finance':
+        return redirect('finance:profit_loss_report')
     else:
-        if request.user.groups.filter(name='partner').exists():
-             return redirect('customerportal:partner_landing_page')
-        elif request.user.groups.filter(name='job_seeker').exists():
-            return redirect('customerportal:job_landing_page')
-        elif request.user.groups.filter(name='public').exists():
-            return redirect('customerportal:public_landing_page')
-        elif request.user.role == 'student':
-            return redirect('student_portal:student_landing_page')
-        elif request.user.role == 'teacher':
-            return redirect('core:dashboard')
-        else:
-            print(f"[Redirect Check] User: {request.user}, Auth: {request.user.is_authenticated}, Schema: {request.tenant.schema_name}, Is Public: {request.tenant.schema_name == get_public_schema_name()}, Role: {getattr(request.user, 'role', None)}")
-            return redirect('core:dashboard')
-        
+        print(f"[Redirect Check] User: {request.user}, Auth: {request.user.is_authenticated}, Schema: {request.tenant.schema_name}, Is Public: {request.tenant.schema_name == get_public_schema_name()}, Role: {getattr(request.user, 'role', None)}")
+        return redirect('core:dashboard')
+    
+
 
 
 

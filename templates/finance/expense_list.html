@@ -1,14 +1,57 @@
 {% extends 'base.html' %}
 {% block content %}
+
+<div class="container mt-4">
+
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-12 col-sm-auto">
+            <label for="start_date" class="form-label  mb-1">Start Date</label>
+            <input type="date" id="start_date" name="start_date" value="{{ start_date }}"
+                class="form-control form-control-sm bg-white text-dark" >
+        </div>
+
+        <div class="col-12 col-sm-auto">
+            <label for="end_date" class="form-label mb-1">End Date</label>
+            <input type="date" id="end_date" name="end_date" value="{{ end_date }}"
+                class="form-control form-control-sm bg-white text-dark">
+        </div>
+
+        <div class="col-12 col-sm-auto">
+            <button type="submit" class="btn btn-sm btn-primary w-100 mt-3 mt-sm-0">Filter</button>
+        </div>
+    </form>
+</div>
+
+
 <div class="container py-4">
     <h3>
     Expenses from {{ start_date }} 
     to {{ end_date}}
 </h3>
 
-  <div class="col-12 table-responsive">
+<div class="row g-4 mb-5">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-light fw-semibold">Top Expenses (Bar Chart)</div>
+            <div class="card-body">
+                <canvas id="barChart" style="min-height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-light fw-semibold">Top Expenses (Pie Chart)</div>
+            <div class="card-body">
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="table-responsive">
     <table class="table table-bordered table-striped">
-        <thead class="table-light">
+        <thead class="table-dark">
             <tr>
                 <th>Date</th>
                 <th>Category</th>
@@ -17,7 +60,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for expense in expenses %}
+            {% for expense in page_obj %}
             <tr>
                 <td>{{ expense.date|date:"Y-m-d" }}</td>
                 <td>{{ expense.get_category_display }}</td>
@@ -31,10 +74,74 @@
             {% endfor %}
         </tbody>
     </table>
-  </div>
-<a href="{% url 'finance:profit_loss_report' %}?start_date={{ start_date|date:"Y-m-d" }}&end_date={{ end_date|date:"Y-m-d" }}" class="btn btn-secondary">
+    </div>
+      <!-- Pagination Controls -->
+     <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+
+<a href="{% url 'finance:profit_loss_report' %}?start_date={{ start_date|date:"Y-m-d" }}&end_date={{ end_date|date:"Y-m-d" }}" class="btn btn-secondary mt-4">
     ← Back to Profit & Loss
 </a>
 
 </div>
+
+
+
+
+
+
+<script>
+    const chartData = JSON.parse('{{ chart_data_json|escapejs }}');
+
+    // Bar Chart
+    const barCtx = document.getElementById('barChart').getContext('2d');
+    new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: chartData.bar.labels,
+            datasets: [{
+                label: 'Amount (৳)',
+                data: chartData.bar.data,
+                backgroundColor: chartData.bar.colors,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // Pie Chart
+    const pieCtx = document.getElementById('pieChart').getContext('2d');
+    new Chart(pieCtx, {
+        type: 'pie',
+        data: {
+            labels: chartData.pie.labels,
+            datasets: [{
+                data: chartData.pie.data,
+                backgroundColor: chartData.pie.colors
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+</script>
+
 {% endblock %}

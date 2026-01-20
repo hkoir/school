@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filters %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2 class="my-3">Purchase Order</h2>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+       <div class="row g-3">
+                            {% for field in form %}
+                               <div class="col-12 col-md-4 col-lg-3">
+                                <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+                                    {{ field.label }}
+                                    {% if field.field.required %}
+                                        <span class="text-danger">*</span>
+                                    {% endif %}
+                                </label>
+
+                                {% if field.field.widget.input_type == "checkbox" %}
+                                <div class="form-check form-switch">
+                                    {{ field|add_class:'form-check-input' }}
+                                    <label class="form-check-label small text-muted">{{ field.help_text }}</label>
+                                </div>
+                                {% elif field.field.widget.input_type == "textarea" %}
+                                {{ field|add_class:'form-control' }}
+                                {% elif field.field.widget.input_type == "select" %}
+                                {{ field|add_class:'form-select' }}
+                                {% else %}
+                                {{ field|add_class:'form-control' }}
+                                {% endif %}
+
+                                {% if field.help_text and field.field.widget.input_type != "checkbox" %}
+                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                {% endif %}
+
+                                {% for error in field.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endfor %}
+                        </div>
+
+        <h4 class="mt-4">Items</h4>
+        {{ formset.management_form }}
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Product</th>
+                        <th>Description</th>
+                        <th>Qty</th>
+                        <th>Unit Price</th>
+                        <th>Purchase type</th>
+		        <th>Batch</th>
+                        <th>Manufacture Date</th>
+                        <th>Expire Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for form in formset %}
+                    <tr>
+                        <td>{{ form.product }}</td>
+                        <td>{{ form.description }}</td>
+                        <td>{{ form.quantity }}</td>
+                        <td>{{ form.unit_price }}</td>
+                        <td>{{ form.purchase_type }}</td>
+			 <td>{{ form.batch_no }}</td>
+                        <td>{{ form.manufacturing_date }}</td>
+                        <td>{{ form.expire_date }}</td>
+                        <td>
+                            {{ form.DELETE }}
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-row">Remove</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <button type="button" id="add-row" class="btn btn-outline-secondary mb-3">
+            Add Item
+        </button>
+
+        <button type="submit" class="btn btn-primary mb-3">Save</button>
+    </form>
+</div>
+
+<!-- Hidden empty form -->
+<table style="display:none">
+    <tbody id="empty-form">
+        <tr>
+            <td>{{ formset.empty_form.product }}</td>
+            <td>{{ formset.empty_form.description }}</td>
+            <td>{{ formset.empty_form.quantity }}</td>
+            <td>{{ formset.empty_form.unit_price }}</td>
+            <td>{{ formset.empty_form.purchase_type }}</td>
+	    <td>{{ formset.empty_form.batch_no}}</td>
+            <td>{{ formset.empty_form.manufacturing_date }}</td>
+            <td>{{ formset.empty_form.expire_date }}</td>
+            <td>
+                {{ formset.empty_form.DELETE }}
+                <button type="button" class="remove-row btn btn-outline-danger btn-sm">Remove</button>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const prefix = "{{ formset.prefix }}";
+    const totalForms = document.getElementById("id_" + prefix + "-TOTAL_FORMS");
+    const tableBody = document.querySelector("table tbody");
+    const emptyTemplate = document.querySelector("#empty-form").innerHTML;
+
+    // ADD ROW
+    document.getElementById("add-row").addEventListener("click", function () {
+        const index = parseInt(totalForms.value);
+        const newRow = emptyTemplate.replace(/__prefix__/g, index);
+        tableBody.insertAdjacentHTML("beforeend", newRow);
+        totalForms.value = index + 1;
+    });
+
+    // REMOVE ROW
+    tableBody.addEventListener("click", function (e) {
+        if (e.target.closest(".remove-row")) {
+            const tr = e.target.closest("tr");
+            const delInput = tr.querySelector("input[name$='-DELETE']");
+            if (delInput) {
+                delInput.checked = true;
+                tr.style.display = "none";
+            } else {
+                tr.remove();
+                totalForms.value = parseInt(totalForms.value) - 1;
+            }
+        }
+    });
+});
+</script>
+
+{% endblock %}

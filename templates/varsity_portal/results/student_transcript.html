@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Academic Transcript - {{ student.get_full_name }}</title>
+
+<style>
+
+    body {
+        font-family: "Segoe UI", Arial, sans-serif;
+        font-size: 13px;
+        color: #222;
+        margin: 0;
+        padding: 0;
+        background: #fff;
+    }
+
+    .container {
+        width: 210mm;
+        margin: auto;
+        padding: 15mm;
+    }
+
+   /* ================= HEADER ================= */
+
+    header {
+        display: flex;
+        justify-content: center;   /* horizontal center */
+        align-items: center;       /* vertical center */
+        border-bottom: 2px solid #000;
+        padding-bottom: 10px;
+        margin-bottom: 18px;
+    }
+
+    .header-center {
+        text-align: center;
+    }
+
+    header img {
+        height: 80px;
+        width: auto;
+        display: block;
+        margin: 0 auto 6px;  /* center logo */
+    }
+
+
+    .header-center h1 {
+        font-size: 22px;
+        margin: 0;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .header-center h2 {
+        font-size: 15px;
+        margin: 6px 0 0;
+        font-weight: normal;
+    }
+
+    .header-center p {
+        font-size: 13px;
+        margin: 4px 0;
+        line-height: 1.4;
+    }
+
+    .student-info {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+
+    .student-photo {
+        flex: 0 0 auto;
+    }
+
+    .student-photo img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 6px;
+    }
+
+
+    .student-basic,
+    .student-meta {
+        flex: 1;
+    }
+
+    .student-info p {
+        margin: 4px 0;
+    }
+
+
+    /* ---------- Section Titles ---------- */
+    .section-title {
+        font-size: 14px;
+        font-weight: 600;
+        margin: 25px 0 8px;
+        border-bottom: 1px solid #444;
+        padding-bottom: 3px;
+    }
+
+    /* ---------- Tables ---------- */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+    }
+
+    th, td {
+        border: 1px solid #000;
+        padding: 6px;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    th {
+        background: #f2f2f2;
+        font-weight: 600;
+        font-size: 12px;
+    }
+
+    td.subject {
+        text-align: left;
+    }
+
+    /* ---------- GPA Summary ---------- */
+    .gpa-summary {
+        margin-top: 8px;
+        text-align: right;
+        font-weight: 600;
+    }
+
+    .footer {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 50px;
+    }
+
+    .signature {
+        text-align: center;
+    }
+
+    .signature img {
+        height: 40px;          /* adjust as needed */
+        width: auto;
+        display: block;
+        margin: 0 auto 6px;    /* space between image & text */
+    }
+
+    .signature span {
+        display: inline-block;
+        border-top: 1px solid #000;
+        padding-top: 4px;
+        font-weight: 600;
+    }
+
+    /* ---------- Print ---------- */
+    @media print {
+        @page {
+            size: A4;
+            margin: 12mm;
+        }
+
+        body {
+            background: #fff;
+        }
+
+        .container {
+            padding: 0;
+            width: 100%;
+        }
+    }
+
+            
+    .invoice-paper {
+        width: 180mm;              /* A4 printable width */
+        margin: 0 auto;            /* center horizontally */
+        padding: 10mm;
+        border: 1px solid #000;    /* optional – bank friendly */
+    }
+
+    @media print {
+        .invoice-paper {
+            width: 180mm;
+            margin: 0 auto;
+            padding: 8mm;
+        }
+        .no-print{
+            display: None;
+        }
+    }
+
+      header img {
+        height: 80px;
+        width: auto;
+        display: block;
+        margin: 0 auto 6px;  /* center logo */
+    }
+
+
+    </style>
+</head>
+<body>
+
+
+<div class="container invoice-paper">
+
+    <header>
+         
+            <div class="header-center">
+            {% if student.varsity_student_enrollments.first.program.department.faculty.school.logo %}
+                <img src="{{ student.varsity_student_enrollments.first.program.department.faculty.school.logo.url }}" alt="School Logo">
+           
+            {% endif %}
+                <h1>{{ exam.program.department.faculty.school.name }}</h1>
+                <p>
+                    <strong>Reg. Code:</strong> {{ student.varsity_student_enrollments.first.program.department.faculty.school.code }}<br>
+                    {{ student.varsity_student_enrollments.first.program.department.faculty.school.address }}<br>
+                    {{ student.varsity_student_enrollments.first.program.department.faculty.school.website }}
+                </p>
+                <h2> Official Academic Transcript</h2>
+                
+            </div>
+           
+        </header>
+
+    <!-- Student Info -->
+   <div class="student-info">
+        <div class="student-photo">
+            {% if student.profile_picture %}
+                <img src="{{ student.profile_picture.url }}" alt="Student Photo">
+            {% elif request.user.photo_id %}
+                <img src="{{ request.user.photo_id.url }}" alt="Student Photo">
+            {% endif %}
+        </div>
+
+        <div class="student-basic">
+            <p><strong>Student Name:</strong> {{ student.name }}</p>
+            <p><strong>Student ID:</strong> {{ student.student_id }}</p>
+            <p><strong>Program:</strong> {{ student.varsity_student_enrollments.first.program.name }}</p>
+        </div>
+
+        <div class="student-meta">
+            <p><strong>Department:</strong> {{ student.varsity_student_enrollments.first.program.department }}</p>
+            <p><strong>Admission Session:</strong> {{ student.varsity_student_enrollments.first.academic_session.name }}</p>
+            <p><strong>Date Issued:</strong> {% now "d M Y" %}</p>
+        </div>
+    </div>
+
+    <!-- Transcript Data -->
+    {% for session_info in transcript_data %}
+      
+        {% for term_info in session_info.terms %}
+            <p><strong>Term:</strong> {{ term_info.term.name }} |
+                {{ term_info.term.level.title }}
+            </p>
+
+            <table>
+                <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Subject</th>
+                    <th>Marks</th>
+                    <th>Grade</th>
+                    <th>GP</th>
+                    <th>Credit</th>
+                    <th>Weighted Pts</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for result in term_info.subject_results %}
+                    <tr>
+                        <td>{{ result.subject_offering.subject.code }}</td>
+                        <td class="subject">{{ result.subject_offering.subject.name }}</td>
+                        <td>{{ result.marks_obtained }}</td>
+                        <td>{{ result.grade }}</td>
+                        <td>{{ result.grade_point }}</td>
+                        <td>{{ result.credit }}</td>
+                        <td>{{ result.weighted_points }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="gpa-summary">
+                Term GPA: {{ term_info.term_gpa }}
+            </div>
+        {% endfor %}
+
+        <div class="gpa-summary" style="margin-top:15px;">
+             CGPA (Session): {{ session_info.cgpa }}
+        </div>
+    {% endfor %}
+
+  
+    <!-- Footer -->
+    <div class="footer">
+        <div class="signature">
+            <img src="/static/images/signature-1.png" alt="Controller Signature">
+            <span>Controller of Examinations</span>
+        </div>
+
+        <div class="signature">
+            <img src="/static/images/signature-1.png" alt="Registrar Signature">
+            <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Registrar&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+        </div>
+    </div>
+
+    <div class="no-print" style="margin-top:20px;text-align:center;">
+        <button onclick="window.print()">🖨️ Print</button>
+        <button><a href="{% url 'varsity_portal:common_dashboard' %}"> Home</a></button>
+    </div>
+</div>
+</body>
+</html>

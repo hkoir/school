@@ -1,4 +1,5 @@
 
+
 from . import views
 from django.urls import path
 from django.contrib.auth import views as auth_views
@@ -36,7 +37,6 @@ urlpatterns = [
    path('update_subject_assignment/<int:id>/', views.manage_subject_assignment, name='update_subject_assignment'),    
    path('delete_subject_assignment/<int:id>/', views.delete_subject_assignment, name='delete_subject_assignment'),    
 
-
     path('create_section/', views.manage_section, name='create_section'),    
     path('update_section/<int:id>/', views.manage_section, name='update_section'),    
     path('delete_section/<int:id>/', views.delete_section, name='delete_section'),  
@@ -53,20 +53,8 @@ urlpatterns = [
     path('update_schedule/<int:id>/', views.manage_schedule, name='update_schedule'),
     path('delete_schedule/<int:id>/', views.delete_schedule, name='delete_schedule'),  
 
-    path('create_teaching_assignment/', views.manage_teaching_assignment, name='create_teaching_assignment'),    
-    path('update_teaching_assignment/<int:id>/', views.manage_teaching_assignment, name='update_teaching_assignment'),
-    path('delete_teaching_assignment/<int:id>/', views.delete_teaching_assignment, name='delete_teaching_assignment'),  
-  
-    path('create_image_gallery/', views.manage_image_gallery, name='create_image_gallery'),    
-    path('update_image_gallery/<int:id>/', views.manage_image_gallery, name='update_image_gallery'),
-    path('delete_image_gallery/<int:id>/', views.delete_image_gallery, name='delete_image_gallery'),  
-  
-  
-   
-  
-   
-  
-  
-  
+    path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),  
+    path('super_admin_dashboard/', views.super_admin_dashboard, name='super_admin_dashboard'),  
   
 ]
+

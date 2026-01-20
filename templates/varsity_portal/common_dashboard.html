@@ -1,0 +1,131 @@
+
+{% extends "student_portal_base.html" %}
+{% load static %}
+
+{% block content %}
+
+
+<style>
+     /* ---------- Header ---------- */
+    .header {
+        text-align: center;
+        border-bottom: 2px solid #000;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+
+    .header h1 {
+        font-size: 22px;
+        margin: 0;
+        letter-spacing: 0.5px;
+    }
+
+    .header h2 {
+        font-size: 14px;
+        font-weight: normal;
+        margin: 4px 0 0;
+    }
+
+</style>
+
+
+
+<!-- Header -->
+    <div class="header">
+          {% if school.logo %}
+                <img src="{{ school.logo.url }}"
+                 alt="School Logo" style="width:60px;height:60px">
+            {% else %}
+                <div style="width:80px;"></div>
+            {% endif %}
+              
+        <p>
+             <h1>{{ school.name }}</h1> 
+            <strong>Reg.code:{{ school.code }}</strong><br>
+            {{ school.address }}<br>
+            {{ school.website }}
+        </p>
+        <h4>Dashboard</h4>
+        
+    </div>
+
+
+{% include 'varsity_portal/quick_access_link.html' %}
+
+<div class="container-fluid my-4">
+
+    <!-- Welcome Banner -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body text-center">
+            <h3>Welcome, {{ request.user.get_full_name }}</h3>
+            <p class="text-muted">Role: {{ request.user.get_role_display }}</p>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="card shadow-sm border-primary text-center p-3">
+                <h6 class="text-success">Total Students</h6>
+                <h3>{{ total_students }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card shadow-sm border-danger text-center p-3">
+                <h6 class="text-danger">Total Programs</h6>
+                <h3>{{ total_programs }}</h3>
+            </div>
+        </div>
+         <div class="col-md-3 col-6">
+            <div class="card shadow-sm border-primary text-center p-3">
+                <h6 class="text-success">Active Sessions</h6>
+                <h3>{{ total_active_sessions }}</h3>
+            </div>
+        </div>
+         <div class="col-md-3 col-6">
+            <div class="card shadow-sm border-success text-center p-3">
+                <h6 class="text-primary">Total Terms</h6>
+                <h3>{{ total_terms }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Finance Overview (only for admin/finance) -->
+    {% if request.user.role in 'admin,finance' %}
+    <div class="row g-4 mb-4">
+         <div class="col-md-4 col-6">
+            <div class="card shadow-sm border-danger text-center p-3">
+                <h6 class="text-danger">Total Revenue</h6>
+                <h3>৳ {{ total_revenue|floatformat:2 }}</h3>
+            </div>
+        </div>
+          <div class="col-md-4 col-6">
+            <div class="card shadow-sm text-center p-3">
+                <h6>Total Due</h6>
+                <h3>৳ {{ total_due|floatformat:2 }}</h3>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Teacher Assigned Subjects -->
+    {% if teacher_subjects %}
+    <a href="{% url 'university_management:term_list' %}"
+    class="btn btn-sm btn-outline-primary">Class schedule</a>
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="fw-semibold mb-3">Your Assigned Subjects</h5>
+            <ul class="list-group list-group-flush">
+                {% for subject in teacher_subjects %}
+                <li class="list-group-item">
+                    {{ subject.subject_offering.program }} -- {{ subject.subject_offering.subject.name }} -- {{ subject.subject_offering.term }} 
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
+   
+</div>
+{% endblock %}

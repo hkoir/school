@@ -32,7 +32,7 @@
                 
                         <div class="row">
                             {% for field in form %}
-                                <div class="col-md-3 mb-3">  <!-- Adjust col-md-6 for 2 columns, col-md-4 for 3 columns -->
+                                <div class=" col-6 col-md-3 mb-3">  <!-- Adjust col-md-6 for 2 columns, col-md-4 for 3 columns -->
                                     <label class="form-label">{{ field.label }}</label>
                 
                                     {% if field.field.widget.input_type == "textarea" %}
@@ -123,7 +123,7 @@
         </table>
 
    </div>   
-   <div class="col-12">
+   <div class="col-12 table-responsive">
      <h3>Students with highest scorer</h3>
         <table class="table">
             <thead class="table-success">

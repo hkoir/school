@@ -23,7 +23,40 @@ from django.contrib.auth import get_user_model
 from accounts.models import UserProfile  
 User = get_user_model() 
 
+from django.core.exceptions import PermissionDenied
+from django.urls import reverse
 
+
+
+class BlockStudentByNamespaceMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+        self.deny_namespaces = set(getattr(settings, "STUDENT_DENY_NAMESPACES", []))
+        self.allow_url_names = set(getattr(settings, "STUDENT_ALLOW_URL_NAMES", []))
+        self.allow_superuser = getattr(settings, "STUDENT_ALLOW_SUPERUSER", True)
+        self.redirect_url_name = getattr(settings, "STUDENT_REDIRECT_URL_NAME", None)
+
+    def __call__(self, request):
+        return self.get_response(request)
+
+    def process_view(self, request, view_func, view_args, view_kwargs):  
+        user = getattr(request, "user", None)
+        if not user or not user.is_authenticated:
+            return None
+        is_student = getattr(user, "role", None) == "student"
+        if not is_student or (self.allow_superuser and user.is_superuser):
+            return None
+        rm = getattr(request, "resolver_match", None)
+        if not rm:
+            return None
+        if rm.view_name in self.allow_url_names:
+            return None
+        if rm.namespace and rm.namespace in self.deny_namespaces:
+            if self.redirect_url_name:
+                return redirect(reverse(self.redirect_url_name))
+            raise PermissionDenied("Students are not allowed here.")
+
+        return None
 
 
 class CustomTenantAuthMiddleware(MiddlewareMixin):

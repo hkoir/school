@@ -210,4 +210,73 @@ class StudentSelectForm(forms.Form):
 
 
 
+#################################### new addition ######################################
+from .models import HostelRoomPayment, TransportPayment, ExamFeePayment, OtherFeePayment,TuitionFeePayment,AdmissionFeePayment
 
+PAYMENT_TYPE_CHOICES = [
+
+    ('tuition', 'Tuition fee'),
+    ('admission', 'Admission fee'),
+    ('hostel', 'Hostel Room Payment'),
+    ('transport', 'Transport Payment'),
+    ('exam', 'Exam Fee Payment'),
+    ('other', 'Other Fee Payment'),
+]
+
+class PaymentTypeForm(forms.Form):
+    payment_type = forms.ChoiceField(choices=PAYMENT_TYPE_CHOICES, label="Select Payment Type")
+
+
+class TuitionFeePaymentForm(forms.ModelForm):
+    class Meta:
+        model = TuitionFeePayment
+        fields = ['student','academic_year','fee_structure', 'amount_paid', 'payment_date']
+        widgets = {
+            'payment_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        }
+
+
+
+class AdmissionFeePaymentForm(forms.ModelForm):
+    class Meta:
+        model = AdmissionFeePayment
+        fields = ['student','fee_structure', 'academic_year', 'amount_paid', 'payment_date']
+        widgets = {
+            'payment_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+             'student': forms.Select(attrs={'id': 'id_student', 'class': 'form-select'}),
+            'fee_structure': forms.Select(attrs={'id': 'id_fee_structure', 'class': 'form-select'}),
+            
+        }
+
+
+class HostelRoomPaymentForm(forms.ModelForm):
+    class Meta:
+        model = HostelRoomPayment
+        fields = ['student', 'hostel_room', 'academic_year', 'amount_paid', 'payment_date']
+        widgets = {
+            'payment_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        }
+
+class TransportPaymentForm(forms.ModelForm):  
+    class Meta:
+        model = TransportPayment
+        fields = ['student', 'transport_route', 'academic_year', 'amount_paid', 'payment_date']
+        widgets = {
+            'payment_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        }
+
+class ExamFeePaymentForm(forms.ModelForm):
+    class Meta:
+        model = ExamFeePayment
+        fields = ['student', 'exam_fee', 'amount_paid', 'payment_date']
+        widgets = {
+            'payment_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        }
+
+class OtherFeePaymentForm(forms.ModelForm):
+    class Meta:
+        model = OtherFeePayment
+        fields = ['student', 'other_fee_assignment', 'amount_paid', 'payment_date']
+        widgets = {
+            'payment_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        }

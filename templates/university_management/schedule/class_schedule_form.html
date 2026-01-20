@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Class Schedule{% endblock %}
+
+{% block content %}
+{% include 'university_management/quick_access_link.html' %}
+<div class="container">
+    <h3 class="mb-4">📅 Class Schedule – {{ term.name }}</h3>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {{ formset.management_form }}
+        <div class="table-responsive">   
+        <table class="table table-bordered align-middle" id="schedule-table">
+            <thead class="table-light">
+                <tr>
+                    <th>Subject</th>
+                    <th>Teacher</th>
+                    <th>Room</th>
+                    <th>Day</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for form in formset %}
+                <tr>
+                  
+                    <td>{{ form.subject_offering }}
+                          {{ form.id }}
+                    </td>
+                    <td>{{ form.teacher }}</td>
+                    <td>{{ form.classroom }}</td>
+                    <td>{{ form.day_of_week }}</td>
+                    <td>{{ form.start_time }}</td>
+                    <td>{{ form.end_time }}</td>
+                    <td class="text-center">
+                        {% if form.instance.pk %}
+                            {{ form.DELETE }}
+                        {% else %}
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-row">Remove</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+                
+        </div>
+
+        <button type="button" class="btn btn-outline-secondary" id="add-row">
+            ➕ Add Class
+        </button>
+
+        <button type="submit" class="btn btn-primary float-end">
+            💾 Save Schedule
+        </button>
+    </form>
+</div>
+
+<!-- Empty form template -->
+<table style="display:none">
+    <tbody id="empty-form">
+        <tr>
+           
+            <td>{{ formset.empty_form.subject_offering }}
+                  {{ formset.empty_form.id }}
+            </td>
+            <td>{{ formset.empty_form.teacher }}</td>
+            <td>{{ formset.empty_form.classroom }}</td>
+            <td>{{ formset.empty_form.day_of_week }}</td>
+            <td>{{ formset.empty_form.start_time }}</td>
+            <td>{{ formset.empty_form.end_time }}</td>
+            <td class="text-center">
+                {{ formset.empty_form.DELETE }}
+                <button type="button" class="btn btn-sm btn-outline-danger remove-row">
+                    Remove
+                </button>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const prefix = "{{ formset.prefix }}";
+    const totalForms = document.getElementById("id_" + prefix + "-TOTAL_FORMS");
+    const tableBody = document.querySelector("#schedule-table tbody");
+    const emptyRowTemplate = document.getElementById("empty-form").innerHTML;
+
+    // Add new row
+    document.getElementById("add-row").addEventListener("click", function () {
+        const index = parseInt(totalForms.value, 10);
+        const html = emptyRowTemplate.replace(/__prefix__/g, index);
+        tableBody.insertAdjacentHTML("beforeend", html);
+        totalForms.value = index + 1;
+    });
+
+    // Remove row
+    tableBody.addEventListener("click", function (e) {
+        if (e.target.classList.contains("remove-row")) {
+            const row = e.target.closest("tr");
+            const delInput = row.querySelector("input[name$='-DELETE']");
+            if (delInput) {
+                delInput.checked = true;
+                row.style.display = "none";
+            } else {
+                row.remove();
+                totalForms.value = parseInt(totalForms.value, 10) - 1;
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

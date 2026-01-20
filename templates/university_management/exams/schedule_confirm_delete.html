@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+
+{% block content %}
+{% include 'university_management/quick_access_link.html' %}
+<h2>Delete Exam Schedule</h2>
+
+<p>
+    Are you sure you want to delete this schedule?
+</p>
+
+<ul>
+    <li><strong>Subject:</strong> {{ object.subject_offering }}</li>
+    <li><strong>Date:</strong> {{ object.exam_date }}</li>
+</ul>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">🗑 Yes, Delete</button>
+    <a href="{% url 'university_management:exam_detail' object.exam.id %}">Cancel</a>
+</form>
+
+{% endblock %}

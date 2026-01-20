@@ -1,0 +1,313 @@
+
+
+
+ <aside class="sidebar">
+
+            <a href="{% url 'core:dashboard' %}">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+
+             <button class="submenu-toggle" onclick="toggleSubmenu(this)">
+                <span><i class="fas fa-users"></i> School setup</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </button>
+            <div class="submenu">
+               <!-- SCHOOL MANAGEMENT (SET 1) -->
+                <a href="{% url 'school_management:create_school' %}" class="dropdown-item">
+                    <i class="fas fa-school"></i>
+                    Create School
+                </a>
+                <a href="{% url 'school_management:create_faculty' %}" class="dropdown-item">
+                    <i class="fas fa-users"></i>
+                    Create Faculty
+                </a>
+                <a href="{% url 'school_management:create_class' %}" class="dropdown-item">
+                    <i class="fas fa-chalkboard"></i>
+                    Create Class
+                </a>
+                <a href="{% url 'school_management:create_class_assignment' %}" class="dropdown-item">
+                    <i class="fas fa-user-tag"></i>
+                    Class Assignment
+                </a>
+                <a href="{% url 'school_management:create_subject_assignment' %}" class="dropdown-item">
+                    <i class="fas fa-book-open"></i>
+                    Subject Assignment
+                </a>
+                <a href="{% url 'school_management:create_section' %}" class="dropdown-item">
+                    <i class="fas fa-layer-group"></i>
+                    Create Section
+                </a>
+
+                <!-- SCHOOL MANAGEMENT (SET 2) -->
+                <a href="{% url 'school_management:create_class_room' %}" class="dropdown-item">
+                    <i class="fas fa-door-open"></i>
+                    Classroom
+                </a>
+                <a href="{% url 'school_management:create_subject' %}" class="dropdown-item">
+                    <i class="fas fa-book"></i>
+                    Create Subject
+                </a>
+                <a href="{% url 'school_management:create_schedule' %}" class="dropdown-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    Create Schedule
+                </a>
+
+            </div>
+
+            <button class="submenu-toggle" onclick="toggleSubmenu(this)">
+                <span><i class="fas fa-truck"></i> Payment</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </button>
+            <div class="submenu">
+                <!-- PAYMENTS -->
+                <a href="{% url 'payments:manual_payment_multiple' %}" class="dropdown-item">
+                    <i class="fas fa-money-bill"></i> Manual Payment </a>
+                <a href="{% url 'payments:review_and_pay_online' %}" class="dropdown-item">
+                    <i class="fas fa-credit-card"></i> Online Review </a>
+                <a href="{% url 'payments:payment_status_view' %}" class="dropdown-item">
+                    <i class="fas fa-info-circle"></i> Payment Status</a>
+	        <a href="{% url 'payments:payment_invoice_list' %}" class="dropdown-item">
+                    <i class="fas fa-info-circle"></i> Invoice list</a>
+                <a href="{% url 'payments:create_feestructure' %}" class="dropdown-item">
+                    <i class="fas fa-sitemap"></i> Fee Structure </a>
+                <a href="{% url 'payments:create_admissionfee' %}" class="dropdown-item">
+                    <i class="fas fa-file-invoice"></i> Admission Fee </a>
+                <a href="{% url 'payments:create_admissionfee_policy' %}" class="dropdown-item">
+                    <i class="fas fa-file-contract"></i> Admission Policy</a>
+            </div>
+
+            
+             <button class="submenu-toggle" onclick="toggleSubmenu(this)">
+                <span><i class="fas fa-truck"></i> Result</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </button>
+            <div class="submenu">
+               <!-- RESULTS -->
+            <a href="{% url 'results:create_exam_with_fee' %}" class="dropdown-item">
+                <i class="fas fa-clipboard"></i> Create Exam </a>
+            <a href="{% url 'results:create_grade' %}" class="dropdown-item">
+                <i class="fas fa-graduation-cap"></i> Create Grade </a>
+            <a href="{% url 'results:create_exam_type' %}" class="dropdown-item">
+                <i class="fas fa-list-ul"></i>Exam Type </a>
+            <a href="{% url 'results:create_result' %}" class="dropdown-item">
+                <i class="fas fa-edit"></i> Enter Result</a>
+            <a href="{% url 'results:student_transcripts' %}" class="dropdown-item">
+                <i class="fas fa-file-alt"></i> Transcripts </a>
+            <a href="{% url 'results:individual_exam_result' %}" class="dropdown-item">
+                <i class="fas fa-user-graduate"></i> Individual Result</a>
+            <a href="{% url 'results:aggregated_final_result' %}" class="dropdown-item">
+                <i class="fas fa-chart-line"></i> Final Result Summary</a>
+
+            </div>
+
+           
+             <button class="submenu-toggle" onclick="toggleSubmenu(this)">
+                <span><i class="fas fa-truck"></i> Enrollment</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </button>
+            <div class="submenu">
+               <!-- STUDENTS (SET 1) -->
+                <a href="{% url 'students:create_guardian' %}" class="dropdown-item">
+                    <i class="fas fa-user-friends"></i>
+                    Create Guardian
+                </a>
+                <a href="{% url 'students:create_student' %}" class="dropdown-item">
+                    <i class="fas fa-user-plus"></i>
+                    Create Student
+                </a>
+                <a href="{% url 'students:create_student_enrollment' %}" class="dropdown-item">
+                    <i class="fas fa-id-card"></i>
+                    Enroll Student
+                </a>
+                <a href="{% url 'students:view_student_vcard' %}" class="dropdown-item">
+                    <i class="fas fa-address-card"></i>
+                    Student Vcard
+                </a>
+
+                <!-- STUDENTS (SET 2) -->
+                <a href="{% url 'students:transport_route_add' %}" class="dropdown-item">
+                    <i class="fas fa-route"></i>
+                    Add Transport Route
+                </a>
+                <a href="{% url 'students:transport_assignment_add' %}" class="dropdown-item">
+                    <i class="fas fa-bus"></i>
+                    Transport Assignment
+                </a>
+                <a href="{% url 'students:hostel_room_type_add' %}" class="dropdown-item">
+                    <i class="fas fa-door-closed"></i>
+                    Hostel Room Types
+                </a>
+                <a href="{% url 'students:hostel_add' %}" class="dropdown-item">
+                    <i class="fas fa-hotel"></i>
+                    Add Hostel
+                </a>
+                <a href="{% url 'students:hostel_room_add' %}" class="dropdown-item">
+                    <i class="fas fa-bed"></i>
+                    Add Hostel Room
+                </a>
+                <a href="{% url 'students:hostel_assignment_add' %}" class="dropdown-item">
+                    <i class="fas fa-user-check"></i>
+                    Hostel Assignment
+                </a>
+
+                <!-- STUDENT FEE ASSIGNMENTS -->
+                <a href="{% url 'students:assign_other_fee_by_class' %}" class="dropdown-item">
+                    <i class="fas fa-coins"></i>
+                    Other Fee Assign
+                </a>
+                <a href="{% url 'students:tuition_assignment_add' %}" class="dropdown-item">
+                    <i class="fas fa-money-check-alt"></i>
+                    Tuition Fee Assign
+                </a>
+                <a href="{% url 'students:admission_assignment_add' %}" class="dropdown-item">
+                    <i class="fas fa-file-invoice"></i>
+                    Admission Fee Assign
+                </a>
+            </div>
+
+            <button class="submenu-toggle" onclick="toggleSubmenu(this)">
+                <span><i class="fas fa-users"></i> Teachers</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </button>
+
+	  
+
+            <div class="submenu">
+                <!-- TEACHERS -->
+                <a href="{% url 'teachers:create_teacher' %}" class="dropdown-item">
+                    <i class="fas fa-user-md"></i>
+                    Create Teacher
+                </a>
+                <a href="{% url 'teachers:view_teacher_vcard' %}" class="dropdown-item">
+                    <i class="fas fa-id-card-alt"></i>
+                    Teacher Profile
+                </a>
+            </div>
+             <button class="submenu-toggle" onclick="toggleSubmenu(this)">
+                <span><i class="fas fa-truck"></i> HR</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </button>
+            <div class="submenu">           
+            <li><a class="dropdown-item" href="{% url 'core:manage_department' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Create Department</a></li>
+            <li><a class="dropdown-item" href="{% url 'core:create_position' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Create Position</a></li>
+            <li><a class="dropdown-item" href="{% url 'core:create_job_requirement' %}"><i class="fas fa-user-text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Create job requirement</a></li>
+            <li><a class="dropdown-item" href="{% url 'core:create_job_description' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Create job_description</a></li>
+            <li><a class="dropdown-item" href="{% url 'core:create_company' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Create Company</a></li>
+            <li><a class="dropdown-item" href="{% url 'core:manage_location' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Create Company Location</a></li>
+             <li><a class="dropdown-item" href="{% url 'core:create_company_policy' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Create Company Level Policy</a></li>
+            <li><a class="dropdown-item" href="{% url 'core:create_festival' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Create Festival bonus calendar</a></li>
+            <li><a class="dropdown-item" href="{% url 'core:create_performance_bonus' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Create Performance Bonus calendar</a></li>
+            <li><a class="dropdown-item" href="{% url 'core:create_salary_structure' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Create Salary structure</a></li>
+             <li><a class="dropdown-item" href="{% url 'core:manage_employee' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Employee enrollment</a></li>
+            <li><a class="dropdown-item" href="{% url 'core:employee_list' %}"><i class="fas fa-users text-info"></i><i class="fas fa-tasks text-info"></i>&nbsp;Employee List</a></li>
+            <li><a class="dropdown-item" href="{% url 'core:view_employee' %}"><i class="fas fa-user text-info"></i><i class="fas fa-credit-card text-info"></i>&nbsp;Employee VCard</a></li>
+
+            </div>
+
+            <button class="submenu-toggle" onclick="toggleSubmenu(this)">
+                <span><i class="fas fa-users"></i> Leave</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </button>
+            <div class="submenu">
+                <li><a class="dropdown-item" href="{% url 'leavemanagement:leave_dashboard' %}"><i class="fas fa-user"></i><i class="fas fa-plus-circle"></i>&nbsp;Leave dashboard</a></li>  
+                <li><a class="dropdown-item" href="{% url 'leavemanagement:create_attendance_policy' %}"><i class="fas fa-user"></i><i class="fas fa-plus-circle"></i>&nbsp;Create attendance policy</a></li>                                                                 
+                <li><a class="dropdown-item" href="{% url 'leavemanagement:create_leave_type' %}"><i class="fas fa-user"></i><i class="fas fa-plus-circle"></i>&nbsp;Create Leave</a></li>                               
+                <li><a class="dropdown-item" href="{% url 'leavemanagement:apply_leave' %}"><i class="fas fa-user"></i><i class="fas fa-plus-circle"></i>&nbsp;Apply_leave</a></li>
+                <li><a class="dropdown-item" href="{% url 'leavemanagement:leave_history' %}"><i class="fas fa-user"></i><i class="fas fa-plus-circle"></i>&nbsp;Leave history</a></li>
+                <li><a class="dropdown-item" href="{% url 'leavemanagement:pending_leave_list' %}"><i class="fas fa-user"></i><i class="fas fa-plus-circle"></i>&nbsp;Pending Leave</a></li>
+                <li><a class="dropdown-item" href="{% url 'leavemanagement:carry_forward_leave' %}"><i class="fas fa-user"></i><i class="fas fa-plus-circle"></i>&nbsp;Carry forward Leave</a></li>
+                <li><a class="dropdown-item" href="{% url 'leavemanagement:leave_summary' %}"><i class="fas fa-user"></i><i class="fas fa-plus-circle"></i>&nbsp;Leave Summary</a></li>
+                <li><a class="dropdown-item" href="{% url 'leavemanagement:check_and_deduct_late_leaves' %}"><i class="fas fa-user"></i><i class="fas fa-plus-circle"></i>&nbsp;Adjust late in</a></li>
+            
+            </div>
+            
+
+            <button class="submenu-toggle" onclick="toggleSubmenu(this)">
+                <span><i class="fas fa-users"></i> Payroll</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </button>
+            <div class="submenu">
+                <li><a class="dropdown-item" href="{% url 'finance:generate_monthly_salaries' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Generate Monthly Salary</a></li>       
+                <a class="dropdown-item" href="#"><i class="fas fa-id-badge text-info"></i>&nbsp;Employee List</a>
+            </div>
+             <button class="submenu-toggle" onclick="toggleSubmenu(this)">
+                <span><i class="fas fa-users"></i> Attendance</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </button>
+            <div class="submenu">
+                <li><a class="dropdown-item" href="{% url 'attendance:create_weekday' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Create weekdays</a></li>
+                <li><a class="dropdown-item" href="{% url 'attendance:create_attendance_policy' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i> &nbsp;Create Policy</a></li>
+                <li><a class="dropdown-item" href="{% url 'attendance:create_attendance' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Create attendance</a></li>
+                <li><a class="dropdown-item" href="{% url 'attendance:create_attendance_log' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i> &nbsp;Create attendance log</a></li>
+                <li><a class="dropdown-item" href="{% url 'attendance:attendance_report' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i> &nbsp;Attendance Report</a></li>
+                <li><a class="dropdown-item" href="{% url 'attendance:daily_attendance_summary' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i> &nbsp;Daily Attendance Summary</a></li>
+                
+            </div>
+
+            <button class="submenu-toggle" onclick="toggleSubmenu(this)">
+                <span><i class="fas fa-users"></i> Finance</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </button>
+            <div class="submenu">
+                <!-- FINANCE -->
+                <a href="{% url 'finance:management_dashboard' %}" class="dropdown-item">
+                    <i class="fas fa-chart-line"></i>Finance Dashboard</a>
+                <a href="{% url 'finance:add_expense' %}" class="dropdown-item">
+                    <i class="fas fa-file-invoice-dollar"></i>Add Expense</a>
+                <a href="{% url 'finance:create_asset' %}" class="dropdown-item">
+                    <i class="fas fa-boxes"></i>Create Asset</a>
+                <li><a class="dropdown-item" href="{% url 'finance:profit_loss_report' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Profit Loss</a></li>
+                <li><a class="dropdown-item" href="{% url 'finance:asset_list' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Asset list</a></li>
+                <li><a class="dropdown-item" href="{% url 'finance:revenue_details' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;revenue details</a></li>
+                <li><a class="dropdown-item" href="{% url 'finance:expenses_details' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Expense details</a></li>
+                <li><a class="dropdown-item" href="{% url 'finance:revenue_list' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Revenue list</a></li>
+                <li><a class="dropdown-item" href="{% url 'finance:expense_list' %}"><i class="fas fa-user text-info"></i><i class="fas fa-plus-circle text-info"></i>&nbsp;Expense list</a></li>
+            </div>
+
+             <button class="submenu-toggle" onclick="toggleSubmenu(this)">
+                <span><i class="fas fa-truck"></i> Inventory</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </button>
+            <div class="submenu">
+                <li><a class="dropdown-item" href="{% url 'inventory:create_warehouse' %}" style="text-decoration: none;"><i class="fas fa-users"></i>&nbsp;Create Warehouse</a></li> 
+                <li><a class="dropdown-item" href="{% url 'inventory:create_supplier' %}" style="text-decoration: none;"><i class="fas fa-users"></i>&nbsp;Create Supplier</a></li> 
+                <li><a class="dropdown-item" href="{% url 'inventory:product_list' %}" style="text-decoration: none;"><i class="fas fa-users"></i>&nbsp;Product List </a></li> 
+                <li><a class="dropdown-item" href="{% url 'inventory:create_category' %}" style="text-decoration: none;"><i class="fas fa-users"></i>&nbsp;Create Category </a></li> 
+                <li><a class="dropdown-item" href="{% url 'inventory:create_product' %}" style="text-decoration: none;"><i class="fas fa-users"></i>&nbsp;Create Product </a></li>                         
+                <li><a class="dropdown-item" href="{% url 'inventory:inventory_transaction_view' %}" style="text-decoration: none;"><i class="fas fa-users"></i>&nbsp;Add stock </a></li>                        
+                <li><a class="dropdown-item" href="{% url 'inventory:inventory_dashboard' %}" style="text-decoration: none;"><i class="fas fa-users"></i>&nbsp;View stock </a></li>   
+                <li><a class="dropdown-item" href="{% url 'finance:create_asset' %}" style="text-decoration: none;"><i class="fas fa-users"></i>&nbsp;Create Asset </a></li>       
+                <li><a class="dropdown-item" href="{% url 'finance:add_expense' %}" style="text-decoration: none;"><i class="fas fa-users"></i>&nbsp;Create Expense </a></li>                                                                                                                                                     
+                
+            </div>
+
+             <button class="submenu-toggle" onclick="toggleSubmenu(this)">
+                <span><i class="fas fa-users"></i> accounting</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </button>
+            <div class="submenu">
+                <li><a class="dropdown-item" href="{% url 'accounting:fiscalyear_create' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i> &nbsp;Create fiscal year</a></li>
+                <li><a class="dropdown-item" href="{% url 'accounting:account_list' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i> &nbsp;Account list</a></li>
+                <li><a class="dropdown-item" href="{% url 'accounting:account_create' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i> &nbsp;Create new account</a></li>
+                <li><a class="dropdown-item" href="{% url 'accounting:journalentry_list' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i> &nbsp;Journal entryies</a></li>
+                <li><a class="dropdown-item" href="{% url 'accounting:balance_sheet' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i> &nbsp;B/L sheet</a></li>
+                <li><a class="dropdown-item" href="{% url 'accounting:trial_balance' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i> &nbsp;Trial balance</a></li>
+                 <li><a class="dropdown-item" href="{% url 'accounting:profit_loss' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i> &nbsp;P&L</a></li>
+                <li><a class="dropdown-item" href="{% url 'accounting:balance_sheet_quarterly' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i> &nbsp;B/L quarterly</a></li>
+                <li><a class="dropdown-item" href="{% url 'accounting:profit_loss_quarterly' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i> &nbsp;P&L quaterly</a></li>
+               
+
+
+            </div>
+             <button class="submenu-toggle" onclick="toggleSubmenu(this)">
+                <span><i class="fas fa-truck"></i> Others</span>
+                <i class="fas fa-chevron-right arrow"></i>
+            </button>
+            <div class="submenu">
+                <a class="dropdown-item" href="#"><i class="fas fa-plus-square text-info"></i>&nbsp;Create Batch</a>
+                <a class="dropdown-item" href="#"><i class="fas fa-truck-loading text-info"></i>&nbsp;Supplier</a>
+            </div>
+
+            
+
+        </aside>

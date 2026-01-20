@@ -1,0 +1,339 @@
+{% load custom_filters %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ student.name }} - ID Card</title>
+
+
+    
+<style>
+/* ===== Print Styles ===== */
+@media print {
+    body * { visibility: hidden; }
+    .print-area, .print-area * { visibility: visible; }
+    .print-area { position: absolute; left:0; top:0; width:100%; }
+    .no-print { display:none !important; }
+}
+
+/* ===== Base Styles ===== */
+.print-area {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    margin: 10px auto;
+    max-width: 210mm; /* A4 width */
+}
+
+/* Header Card */
+.header-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f0f4f8;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    margin-bottom: 15px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-left img.school-logo {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+}
+
+.header-left .school-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-right img.profile-picture {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #ccc;
+}
+
+.header-right .person-info {
+    text-align: left;
+}
+
+.header-right .person-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 4px;
+}
+
+.header-right .person-details {
+    font-size: 13px;
+    color: #4a5568;
+    line-height: 1.4;
+}
+
+/* Table Styles */
+.calendar-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 13px;
+}
+
+.calendar-table th, .calendar-table td {
+    border: 1px solid #444;
+    padding: 4px;
+    text-align: center;
+    vertical-align: middle;
+    word-wrap: break-word;
+}
+
+.calendar-table th {
+    background-color: #2b6cb0;
+    color: #fff;
+    font-weight: 600;
+}
+
+.calendar-time {
+    width: 80px;
+    font-weight: 600;
+    background: #f0f4f8;
+    color: #1a202c;
+}
+
+.class-block {
+    padding: 4px 6px;
+    margin: 2px 0;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 12px;
+    line-height: 1.2;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.class-teacher, .class-room {
+    font-size: 11px;
+    font-style: italic;
+    margin-top: 2px;
+}
+
+/* Color palette for subjects */
+.class-subject-0 { background-color: #3182ce; }
+.class-subject-1 { background-color: #2f855a; }
+.class-subject-2 { background-color: #d69e2e; }
+.class-subject-3 { background-color: #d53f8c; }
+.class-subject-4 { background-color: #ed8936; }
+.class-subject-5 { background-color: #805ad5; }
+.class-subject-6 { background-color: #4a5568; }
+
+/* Print buttons */
+.no-print button {
+    padding: 6px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    border: 1px solid #2b6cb0;
+    background: #fff;
+    color: #2b6cb0;
+    border-radius: 4px;
+    margin-right: 8px;
+}
+.no-print button:hover {
+    background-color: #2b6cb0;
+    color: #fff;
+}
+
+/* Selection Form */
+.form {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.form form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.form label { font-weight: 600; margin-right: 4px; }
+.form select { padding: 5px 8px; border: 1px solid #ccc; border-radius: 4px; }
+.form button { padding: 5px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; }
+.form button[type="submit"] { background-color: #007bff; color: #fff; }
+.form button[type="button"] { background-color: #6c757d; color: #fff; }
+
+@media (max-width: 600px) {
+    .form form { flex-direction: column; align-items: stretch; }
+    .form button { width: 100%; }
+}
+
+</style>
+</head>
+<body>
+
+
+
+<!-- Selection Form -->
+<div class="form">
+<form method="get">  
+    <label>Select Student:</label>
+    <select name="student_id">
+        <option value="">-- None --</option>
+        {% for stu in students %}
+            <option value="{{ stu.id }}" {% if stu.id|stringformat:"s" == request.GET.student_id %}selected{% endif %}>
+                {{ stu.name }}
+            </option>
+        {% endfor %}
+    </select>
+    
+ 
+    <label> or Select Teacher:</label>
+    <select name="teacher_id">
+        <option value="">-- None --</option>
+        {% for teacher in teachers %}
+            <option value="{{ teacher.id }}" {% if teacher.id|stringformat:"s" == request.GET.teacher_id %}selected{% endif %}>
+                {{ teacher.name }}
+            </option>
+        {% endfor %}
+    </select>
+   
+
+    <button type="submit">View</button>
+    <button type="button" onclick="this.form.reset()">Clear</button>
+</form>
+</div>
+
+<!-- Print Area -->
+<div class="print-area">
+
+    <!-- Header Card -->
+    <div class="header-card">
+        <div class="header-left">
+            {% if student and student.school.logo %}
+                <img src="{{ student.school.logo.url }}" alt="School Logo" class="school-logo">
+            {% elif teacher and teacher.school.logo %}
+                <img src="{{ teacher.school.logo.url }}" alt="School Logo" class="school-logo">
+            {% endif %}
+            <div class="school-name">
+                {% if student %} {{ student.school.name }} {% elif teacher %} {{ teacher.school.name }} {% endif %}
+            </div>
+        </div>
+
+        <div class="header-right">
+            {% if student and student.profile_picture %}
+                <img src="{{ student.profile_picture.url }}" alt="{{ student.name }}" class="profile-picture">
+            {% elif teacher and teacher.profile_picture %}
+                <img src="{{ teacher.profile_picture.url }}" alt="{{ teacher.name }}" class="profile-picture">
+            {% else %}
+                <img src="{% static 'default_student.png' %}" alt="Default Photo" class="profile-picture">
+            {% endif %}
+
+            <div class="person-info">
+                <div class="person-name">
+                    {% if student %} {{ student.name }} {% elif teacher %} {{ teacher.name }} {% endif %}
+                </div>
+                <div class="person-details">
+                    {% if student %}
+                        <strong>Class:</strong> {{ student.enrolled_students.first.academic_class.name }}
+                        {% if student.enrolled_students.first.section.name %} | <strong>Section:</strong> {{ student.enrolled_students.first.section.name }}{% endif %}
+                        {% if student.enrolled_students.first.shift.name %} | <strong>Shift:</strong> {{ student.enrolled_students.first.shift.name }}{% endif %}
+                        {% if student.enrolled_students.first.language.name %} | <strong>Medium:</strong> {{ student.enrolled_students.first.language.name }}{% endif %}
+                        {% if student.enrolled_students.first.gender.name %} | <strong>Gender:</strong> {{ student.enrolled_students.first.gender.name }}{% endif %}
+                    {% elif teacher %}
+                        <strong>Department:</strong> {{ teacher.school.school_faculty.first.name }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Class Routine Table -->
+    <table class="calendar-table">
+        <thead>
+            <tr>
+                <th class="calendar-time">Time</th>
+                {% for day in days %}
+                    <th>{{ day }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for time in time_slots %}
+            <tr>
+                <td class="calendar-time">{{ time.start }} - {{ time.end }}</td>
+                {% for day in days %}
+                    <td>
+                        {% for s in schedule_map|get_item:day|get_item:time.id %}
+                            <div class="class-block {{ s.color_class }}">
+                                <div class="class-title">{{ s.subject.name }}</div>
+                                <div class="class-teacher">{{ s.subject_teacher.name }}</div>
+                                {% if s.class_room %}
+                                <div class="class-room">
+                                    Room: {{ s.class_room.name }}<br>
+                                    Number: {{ s.class_room.room_number }}<br>
+                                    {{ s.class_room.location }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        {% empty %}
+                            <em style="color:#999;">-</em>
+                        {% endfor %}
+                    </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Print Button -->
+    <div class="no-print" style="text-align:center; margin-top:20px;">
+        <button onclick="window.print()">🖨 Print</button>
+
+         <button>
+            {% if request.user.role == 'student' %}
+            <a href="{% url 'student_portal:student_landing_page' %}"
+            style="text-decoration: none;"> Home</a>
+            {% elif request.user.role == 'teacher' %}
+             <a href="{% url 'teachers:teacher_dashboard' %}"
+            style="text-decoration: none;"> Home</a>
+              {% elif request.user.role == 'admin' %}
+             <a href="{% url 'school_management:admin_dashboard' %}"
+            style="text-decoration: none;"> Home</a>
+              {% elif request.user.role == 'superadmin' %}
+             <a href="{% url 'school_management:super_admin_dashboard' %}"
+            style="text-decoration: none;"> Home</a>
+                {% elif request.user.role == 'management' %}
+             <a href="{% url 'finance:profit_loss_report' %}"
+            style="text-decoration: none;"> Home</a>
+
+              {% elif request.user.role == 'accounts_finance' %}
+             <a href="{% url 'finance:accounts_finance_dashboard' %}"
+            style="text-decoration: none;"> Home</a>
+            
+            {% endif %}
+        </button>
+    </div>
+
+</div>
+</body>
+</html>

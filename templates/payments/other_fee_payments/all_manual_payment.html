@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+{% block content %}
+
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6">
+            <div class="card shadow-sm rounded-4">
+                <div class="card-header bg-primary text-white fw-bold">
+                    Check Student Due
+                </div>
+                <div class="card-body">
+                    <form method="get" action="{% url 'payments:other_fee_manual_payment' %}">
+                        <div class="mb-3">
+                            <label for="student_id" class="form-label fw-semibold">Select Student</label>
+                            <select name="student_id" id="student_id" class="form-select" required onchange="this.form.submit()">
+                                <option value="">-- Select Student --</option>
+                                {% for student in students %}
+                                    <option value="{{ student.student_id }}"
+                                        {% if selected_student and selected_student.student_id == student.student_id %}selected{% endif %}>
+                                        {{ student.name }} ({{ student.student_id }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </form>
+
+                    {% if dues %}
+                        <div class="mt-4">
+                            <h6 class="fw-semibold">Due Amounts for <span class="text-primary">{{ selected_student.name }}</span>:</h6>
+                            <ul class="list-group list-group-flush mb-3">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Hostel
+                                    <span class="badge bg-warning text-dark">{{ dues.hostel|floatformat:2 }} BDT</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Transport
+                                    <span class="badge bg-info text-dark">{{ dues.transport|floatformat:2 }} BDT</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Exam
+                                    <span class="badge bg-success">{{ dues.exam|floatformat:2 }} BDT</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Other Fees
+                                    <span class="badge bg-secondary">{{ dues.other|floatformat:2 }} BDT</span>
+                                </li>
+                            </ul>
+                            <div class="text-end">
+                                <span class="fw-bold fs-5">Total Due: </span>
+                                <span class="fs-5 text-danger">{{ total_due|floatformat:2 }} BDT</span>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<div class="container mt-4">
+    <h2 class="mb-4">Make Manual Payments</h2>
+
+    <div class="row">
+        <div class="col-12 col-md-auto">
+            <!-- Step 1: Payment type selector -->
+            <form method="get" class="mb-4" id="paymentTypeForm">
+                {{ payment_type_form.payment_type.label_tag }}
+                {{ payment_type_form.payment_type }}
+                <button type="submit" class="btn btn-primary">Select</button>
+            </form>
+        </div>
+
+        <div class="col-12">
+            {% if form %}
+            <!-- Step 2: Payment form -->
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="row g-3">
+                    {% for field in form %}
+                    <div class="col-6 col-md-3">
+                        <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+                            {{ field.label }}
+                            {% if field.field.required %}
+                            <span class="text-danger">*</span>
+                            {% endif %}
+                        </label>
+
+                        {% if field.field.widget.input_type == "checkbox" %}
+                        <div class="form-check form-switch">
+                            {{ field|add_class:'form-check-input' }}
+                            <label class="form-check-label small text-muted">{{ field.help_text }}</label>
+                        </div>
+                        {% elif field.field.widget.input_type == "textarea" %}
+                        {{ field|add_class:'form-control' }}
+                        {% elif field.field.widget.input_type == "select" %}
+                        {{ field|add_class:'form-select' }}
+                        {% else %}
+                        {{ field|add_class:'form-control' }}
+                        {% endif %}
+
+                        {% if field.help_text and field.field.widget.input_type != "checkbox" %}
+                        <small class="form-text text-muted">{{ field.help_text }}</small>
+                        {% endif %}
+
+                        {% for error in field.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn btn-success px-4 rounded-pill shadow-sm">
+                        <i class="bi bi-save"></i>
+                        Submit Payment
+                    </button>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const selectField = document.querySelector('select[name="payment_type"]');
+    const form = document.getElementById("paymentTypeForm");
+
+    if (selectField) {
+        selectField.addEventListener("change", function() {
+            if (this.value === 'tuition') {
+                // Redirect to tuition page
+                window.location.href = "{% url 'payments:choose_fee_and_make_manual_payment' %}";
+            } else {
+                form.submit();  // submit for other payment types
+            }
+        });
+    }
+});
+</script>
+
+
+{% endblock %}

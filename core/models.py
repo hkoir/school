@@ -12,6 +12,58 @@ from accounts.models import CustomUser
 
 
 
+
+from payments.models import FEE_TYPE_CHOICES
+
+class TaxPolicy(models.Model):
+    Policy_type_choices = [
+        ('Tuition_fee', 'Tuition Fee'),
+        ('Purchase', 'Purchase'),
+        ('Sales', 'Sales'),
+        ('Others', 'Others'),
+    ]
+    policy_type=models.CharField(max_length=50,choices=Policy_type_choices,null=True,blank=True)
+    vat_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)   # e.g. 15
+    vat_type = models.CharField(max_length=15, choices=[
+        ("inclusive", "Inclusive"),
+        ("exclusive", "Exclusive")
+    ], default="exclusive")
+
+    ait_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)   # e.g. 5
+    ait_type = models.CharField(max_length=15, choices=[
+        ("inclusive", "Inclusive"),
+        ("exclusive", "Exclusive")
+    ], default="exclusive")
+
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.policy_type} Tax Policy: (VAT {self.vat_rate}%-{self.vat_type}, AIT {self.ait_rate}%-{self.ait_type})"
+
+
+class ServiceTaxPolicy(models.Model):
+    name = models.CharField(max_length=100,choices=FEE_TYPE_CHOICES)  
+    vat_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    vat_type = models.CharField(max_length=20, choices=[
+        ("inclusive", "Inclusive"),
+        ("exclusive", "Exclusive"),
+        ("exempt", "Exempt"),
+    ], default="exempt")
+
+    ait_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    ait_type = models.CharField(max_length=20, choices=[
+        ("inclusive", "Inclusive"),
+        ("exclusive", "Exclusive"),
+        ("exempt", "Exempt"),
+    ], default="exempt")
+
+    is_default = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.name} Tax Policy"
+
+
+
 class Notice(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=255,null=True,blank=True)

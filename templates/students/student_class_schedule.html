@@ -42,9 +42,11 @@
             </select>
             <button type="submit" class="btn btn-primary">Filter</button>
         </form>
-        <div class="col-12 table-responsive">
+     
+        <div class="col-12 table-responsive">         
+        
             <table class="table table-bordered table-striped table-double-bordered">
-                <thead class="table-info">
+                <thead>
                     <tr>
                         <th>Day</th>
                         <th>Time</th>
@@ -58,21 +60,21 @@
                 <tbody>
                     {% for day, schedules in schedule_by_day.items %}
                         {% for schedule in schedules %}
-                       
-                            <tr>
-                                {% if forloop.first %}
-                                    <td rowspan="{{ schedules|length }}"><strong>{{ day }}</strong></td>
-                                {% endif %}
-                                <td>{{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}</td>
-                                <td>{{ schedule.subject_assignment.subject.name }}</td>
-                                <td>{{ schedule.subject_assignment.subject_teacher.name }}</td>
-                                <td>{{ schedule.class_room.name }}</td>
-                                <td>{{ schedule.class_room.room_number }}</td>
-                                <td>{{ schedule.class_room.location }}</td>
-                            </tr>
+                        <tr>
+                            {% if forloop.first %}
+                                <td rowspan="{{ schedules|length }}"><strong>{{ day }}</strong></td>
+                            {% endif %}
+                            <td>{{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}</td>
+                            <td>{{ schedule.subject.name }}</td>
+                            <td>{{ schedule.subject_teacher.name }}</td>
+                            <td>{{ schedule.class_room.name }}</td>
+                            <td>{{ schedule.class_room.room_number }}</td>
+                            <td>{{ schedule.class_room.location }}</td>
+                        </tr>
                         {% endfor %}
                     {% endfor %}
                 </tbody>
+                
             </table>
             
         </div>

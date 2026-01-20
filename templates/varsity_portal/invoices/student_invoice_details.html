@@ -1,0 +1,153 @@
+{% extends "print_base.html" %}
+{% block title %}University Term Invoice{% endblock %}
+
+{% block content %}
+
+<style>
+    .invoice-paper {
+    width: 180mm;              /* A4 printable width */
+    margin: 0 auto;            /* center horizontally */
+    padding: 10mm;
+    border: 1px solid #000;    /* optional – bank friendly */
+}
+
+@media print {
+    .invoice-paper {
+        width: 180mm;
+        margin: 0 auto;
+        padding: 8mm;
+    }
+}
+
+
+  /* ---------- Header ---------- */
+    .header {
+        text-align: center;
+        border-bottom: 2px solid #000;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+
+    .header h1 {
+        font-size: 22px;
+        margin: 0;
+        letter-spacing: 0.5px;
+    }
+
+    .header h2 {
+        font-size: 14px;
+        font-weight: normal;
+        margin: 4px 0 0;
+    }
+
+ 
+    .footer {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 50px;
+    }
+
+    .signature {
+        text-align: center;
+    }
+
+    .signature img {
+        height: 40px;          /* adjust as needed */
+        width: auto;
+        display: block;
+        margin: 0 auto 6px;    /* space between image & text */
+    }
+
+    .signature span {
+        display: inline-block;
+        border-top: 1px solid #000;
+        padding-top: 4px;
+        font-weight: 600;
+    }
+
+</style>
+
+
+<div class="container invoice-paper">
+
+     <div class="header">
+          {% if invoice.student.varsity_student_enrollments.first.program.department.faculty.school.logo %}
+                <img src="{{ invoice.student.varsity_student_enrollments.first.program.department.faculty.school.logo.url }}"
+                 alt="School Logo" style="width:60px;height:60px">
+            {% else %}
+                <div style="width:80px;"></div>
+            {% endif %}
+         <p>
+             <h1>{{ invoice.student.varsity_student_enrollments.first.program.department.faculty.school.name }}</h1> 
+            <strong>Reg.code:{{ invoice.student.varsity_student_enrollments.first.program.department.faculty.school.code }}</strong><br>
+            {{ invoice.student.varsity_student_enrollments.first.program.department.faculty.school.address }}<br>
+            {{ invoice.student.varsity_student_enrollments.first.program.department.faculty.school.website }}
+        </p>
+        <h2>University Term Fee Invoice</h2>
+    </div>
+       
+        <hr>
+    
+
+    <table style="margin-bottom:20px;">
+        <tr>
+            <td><strong>Name:</strong> {{ invoice.student.name }}</td>
+            <td><strong>ID:</strong> {{ invoice.student.student_id }}</td>
+        </tr>
+        <tr>
+            <td><strong>Program:</strong> {{ invoice.program.name }}</td>
+            <td><strong>Level:</strong> {{ invoice.level.title }}</td>
+        </tr>
+        <tr>
+            <td><strong>Session:</strong> {{ invoice.academic_session.name }}</td>
+            <td><strong>Term:</strong> {{ invoice.term.name }}</td>
+        </tr>
+    </table>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th style="text-align:right;">Amount (BDT)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Tuition Fee</td>
+                <td style="text-align:right;">{{ invoice.tuition_fee }}</td>
+            </tr>
+            <tr>
+                <td>Admission Fee</td>
+                <td style="text-align:right;">{{ invoice.admission_fee }}</td>
+            </tr>
+            <tr>
+                <th>Total Payable</th>
+                <th style="text-align:right;">{{ invoice.total_payable }}</th>
+            </tr>
+        </tbody>
+    </table>
+
+    <br><br>
+
+      <!-- Footer -->
+    <div class="footer">
+        <div class="signature">
+            <img src="/static/images/signature-1.png" alt="Controller Signature">
+            <span>Finance officer</span>
+        </div>
+
+        <div class="signature">
+            <img src="/static/images/signature-1.png" alt="Registrar Signature">
+            <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Student&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+        </div>
+    </div>
+   
+
+    <div class="no-print" style="margin-top:20px;text-align:center;">
+        <button onclick="window.print()">🖨️ Print</button>
+        <button><a href="{% url 'varsity_portal:common_dashboard' %}"
+            style="text-decoration: none;"> Home</a></button>
+    </div>
+
+</div>
+{% endblock %}

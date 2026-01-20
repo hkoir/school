@@ -1,0 +1,46 @@
+{% extends "student_portal_base.html" %}
+{% block title %}Select Term{% endblock %}
+
+{% block content %}
+{% include 'varsity_portal/quick_access_link.html' %}
+<div class="container my-4">
+    <h4 class="mb-3">📘 Select Term to Create Class Schedule</h4>
+
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>Faculty</th>
+                <th>Department</th>
+                <th>Program</th>
+                <th>Level</th>
+                <th>Term</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for term in terms %}
+            <tr>
+                 <td>{{ term.level.program.department.faculty }}</td>
+                <td>{{ term.level.program.department }}</td>
+                <td>{{ term.level.program }}</td>
+                <td>{{ term.level }}</td>
+                <td>{{ term.name }}</td>
+                <td>              
+                    <a href="{% url 'varsity_portal:student_class_schedule_calendar' term.id %}"
+                       class="btn btn-sm btn-primary">
+                        My routine calendar
+                    </a>
+                </td>
+                
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" class="text-center text-muted">
+                    No terms available
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

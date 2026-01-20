@@ -1,44 +1,204 @@
 {% extends "student_portal_base.html" %}
-{% block content %}
 {% load static %}
+{% block title %}Admit Card — {{ student.name }}{% endblock %}
 
+{# Optional: small scoped styles to polish the look #}
+{% block extra_css %}
+<style>
+  .page-header {
+    display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap;
+  }
+  .student-chip {
+    display: inline-flex; align-items: center; gap: .5rem; padding: .5rem .75rem;
+    border: 1px solid rgba(0,0,0,.08); border-radius: .75rem; background: #fff;
+  }
+  .student-chip img {
+    width: 40px; height: 40px; object-fit: cover; border-radius: 50%;
+    border: 1px solid rgba(0,0,0,.05);
+  }
+  .muted { color: rgba(0,0,0,.6); }
+  @media (prefers-color-scheme: dark) {
+    .student-chip { background: #111; border-color: #222; }
+    .muted { color: rgba(255,255,255,.7); }
+  }
+</style>
+{% endblock %}
 
-<div class="container-fluid">
+{% block content %}
+<div class="container-fluid py-3">
+      <form method="get" class="mb-3 d-flex gap-2">
+      <input type="text"
+            name="q"
+            value="{{ q }}"
+            class="form-control"
+            placeholder="Filter by exam type..." />
+      <button type="submit" class="btn btn-primary">Filter</button>
+      {% if q %}
+        <a href="{% url 'student_portal:student_exam_schedule' %}" class="btn btn-outline-secondary">Clear</a>
+      {% endif %}
+    </form>
+
   <div class="row">
-    <div class="col-12 table-responsive">
+    <div class="col-12 col-xxl-10 mx-auto">
+
+      <!-- Page Header -->
+      <div class="page-header mb-3">
+        <div>
+          <h1 class="h4 mb-1">Admit Card</h1>
+          <div class="muted small">For {{ student.name }}</div>
+        </div>
+
+       <div class="d-inline-flex align-items-center gap-3 p-2 ps-3 border rounded-3 shadow-sm bg-white"
+          style="--chip-size:56px;">
+        {% if student.profile_picture %}
+          <img
+            src="{{ student.profile_picture.url }}"
+            alt="Photo of {{ student.name }}"
+            class="rounded-circle flex-shrink-0"
+            width="56" height="56"
+            style="object-fit:cover;"
+            loading="lazy">
+        {% else %}
+          <img
+            src="{% static 'img/avatar-student.png' %}"
+            alt="Avatar for {{ student.name }}"
+            class="rounded-circle flex-shrink-0"
+            width="56" height="56"
+            style="object-fit:cover;"
+            loading="lazy">
+        {% endif %}
+
+        <div class="min-w-0">
+          <div class="fw-semibold text-truncate">{{ student.name }}</div>
+          <div class="text-muted small">ID: {% firstof student.student_id student.id %}</div>
+        </div>
+
+        {# Optional status badge on the right #}
+        {% if student.is_active is not None %}
+          <span class="badge ms-2 {{ student.is_active|yesno:'bg-success, bg-secondary' }}">
+            {{ student.user.is_active|yesno:'Active,Inactive' }}
+          </span>
+        {% endif %}
+      </div>
 
 
-    <h2>Admit Card for {{ student.name }}</h2>
+        <div class="d-flex align-items-center gap-2 ms-auto">
+          <!-- <a class="btn btn-sm btn-outline-secondary" href="javascript:window.print()" title="Print this page">
+            Print
+          </a> -->        
+        </div>
+      </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Subject</th>
-          <th>Exam</th>
-          <th>Date</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for exam in exam_types %}
-        <tr>
-          <td>{{ exam.subject.name }}</td>
-          <td>{{ exam.name }}</td>
-          <td>{{ exam.exam_date|date:"d M Y" }}</td>
-          <td>
-            <a href="{% url 'student_portal:preview_admit_card' exam.id %}" target="_blank">
-              Download Admit Card
-            </a>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="3">No exams found for this student.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+      <!-- Student quick info (optional fields; show only if present) -->
+      <div class="row g-3 mb-3">
+        {% if student.class_name or student.section or student.shift %}
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body py-3">
+              <div class="muted text-uppercase small mb-1">Class</div>
+              <div class="fw-semibold">
+                {{ student.class_name|default:"—" }}
+                {% if student.section %}<span class="muted"> • </span>{{ student.section }}{% endif %}
+                {% if student.shift %}<span class="muted"> • </span>{{ student.shift }}{% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        {% if student.roll_no %}
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body py-3">
+              <div class="muted text-uppercase small mb-1">Roll</div>
+              <div class="fw-semibold">{{ student.roll_no }}</div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        {% if student.guardian.phone_number or student.phone_number %}
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body py-3">
+              <div class="muted text-uppercase small mb-1">Contact</div>
+              <div class="fw-semibold">
+                {{ student.phone_number|default:student.guardian.phone_number|default:"—" }}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Exams Table -->
+      <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <span class="fw-semibold">Exam Schedule</span>
+          <span class="badge bg-light text-dark">{{ exam_types|length }} item{{ exam_types|length|pluralize }}</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th scope="col">Subject</th>
+              <th scope="col">Exam</th>
+              <th scope="col" class="text-nowrap">Date</th>
+              <th scope="col" class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for exam in exam_types %}
+            <tr>
+              <td class="fw-semibold">{{ exam.subject.name }}</td>
+              <td>
+                {{ exam.exam.name }}
+                {% if exam.room %}
+                  <div class="small text-muted">Room: {{ exam.room }}</div>
+                {% endif %}
+              </td>
+              <td class="text-nowrap">
+                {{ exam.exam_date|date:"d M Y" }}
+                {% if exam.start_time and exam.end_time %}
+                  <div class="small text-muted">{{ exam.start_time|time:"g:i A" }} – {{ exam.end_time|time:"g:i A" }}</div>
+                {% elif exam.start_time %}
+                  <div class="small text-muted">Starts: {{ exam.start_time|time:"g:i A" }}</div>
+                {% else %}
+                  <div class="small text-muted">Time: TBA</div>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <a href="{% url 'student_portal:preview_admit_card' exam.id %}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener" title="Open a printable admit card for this exam">
+                  Download Admit Card
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="4" class="text-center py-5">
+                <div class="mb-2 fw-semibold">No exams found</div>
+                <div class="text-muted mb-3">There are currently no scheduled exams for this student.</div>
+               
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+          </div>
+        </div>
+
+        <div class="card-footer d-flex justify-content-end gap-2">
+          {# Optional: a bulk "download all" if you have such a URL/view #}
+          {# <a class="btn btn-sm btn-outline-primary" href="{% url 'student_portal:download_all_admit_cards' student.id %}" target="_blank" rel="noopener">Download All</a> #}
+          <!-- <a class="btn btn-sm btn-secondary" href="javascript:window.print()">Print</a> -->
+        </div>
+      </div>
+
+      <div class="text-center text-muted small mt-3">
+        If any information is incorrect, please contact the school office.
+      </div>
+
+    </div>
   </div>
-</div>
 </div>
 {% endblock %}

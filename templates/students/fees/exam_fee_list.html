@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+
+
+{% include 'students/quick_access_link.html' %}
+
+<div class="container mt-4">
+    <h3>Exam Fees</h3>
+    <a href="{% url 'students:exam_fee_add' %}" class="btn btn-primary mb-3">Add New</a>
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>Exam</th>
+                <th>Class</th>
+                <th>Year</th>
+                <th>Amount</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fee in fees %}
+            <tr>
+                <td>{{ fee.exam.name }}</td>
+                <td>{{ fee.student_class }}</td>
+                <td>{{ fee.academic_year }}</td>
+                <td>{{ fee.amount }}</td>
+                <td>
+                    <a href="{% url 'students:exam_fee_edit' fee.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{% url 'students:exam_fee_delete' fee.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center">No exam fees found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -2,11 +2,12 @@ from django.db import models
 from django.utils import timezone
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
-
+from core.models import Employee
 from accounts.models import CustomUser
 
-
-
+from inventory.models import Supplier,Product
+from core.models import TaxPolicy
+from django.db.models import Sum
 
 class Shareholders(models.Model):
     name = models.CharField(max_length=100)
@@ -27,7 +28,6 @@ class ShareholderInvestment(models.Model):
         return f"{self.investor_name} - ৳{self.amount}"
 
 
-
 class Asset(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     asset_code = models.CharField(max_length=30, unique=True, blank=True)
@@ -37,7 +37,7 @@ class Asset(models.Model):
     depreciation_rate = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)  # % per year
     current_value = models.DecimalField(max_digits=20, decimal_places=2, null=True, blank=True)
     last_depreciation_date = models.DateField(null=True, blank=True)
-    
+  
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -53,14 +53,10 @@ class Asset(models.Model):
                 self.current_value = self.value
         else:
             self.current_value = self.value
-
         super().save(*args, **kwargs)
 
-
-
     def apply_asset_depreciation(self):
-        today = timezone.now().date()
-        # Apply if last_depreciation_date is None (never depreciated)
+        today = timezone.now().date()       
         if self.last_depreciation_date is None or self.last_depreciation_date < today - relativedelta(months=1):
             if self.depreciation_rate:
                 rate = self.depreciation_rate / Decimal('100.0')
@@ -70,16 +66,6 @@ class Asset(models.Model):
                 self.current_value -= depreciation_amount
                 self.last_depreciation_date = today
 
-                # Create expense record
-                Expense.objects.create(
-                    user=self.user,
-                    category="DEPRECIATION",
-                    amount=depreciation_amount,
-                     date=today, 
-                     description="Automated asset depreciation"
-                )
-
-                # Save depreciation record
                 AssetDepreciationRecord.objects.create(
                     asset=self,
                     depreciation_amount=depreciation_amount,
@@ -115,8 +101,7 @@ class AssetDepreciationRecord(models.Model):
         return f"{self.asset.name} - {self.created_at} - Depreciation: {self.depreciation_amount}"
 
 
-from inventory.models import Inventory,InventoryTransaction
-from core.models import Employee
+
 
 class Expense(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
@@ -132,10 +117,123 @@ class Expense(models.Model):
     date = models.DateField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)  
     employee = models.ForeignKey(Employee, null=True, blank=True, on_delete=models.SET_NULL)     
-    inventory_purchase = models.ForeignKey(InventoryTransaction, null=True, blank=True, on_delete=models.SET_NULL)
+    inventory_purchase = models.ForeignKey('inventory.InventoryTransaction', null=True, blank=True, on_delete=models.SET_NULL)
 
     class Meta:
         ordering = ['-date']
+
+
+class PurchaseOrder(models.Model):
+    vendor = models.ForeignKey(Supplier, on_delete=models.SET_NULL, null=True)
+    reference = models.CharField(max_length=50, blank=True, null=True)  
+    vat_ait_policy = models.ForeignKey(TaxPolicy,on_delete=models.CASCADE,related_name='purchase_vat_policies', blank=True, null=True)    
+    vat_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    ait_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    subtotal = models.DecimalField(max_digits=15,decimal_places=2,default=0)
+    total_payable = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    approval_status = models.CharField(max_length=30, choices=[
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('received', 'Received'),
+        ('billed', 'Billed'),
+        ('closed', 'Closed'),
+    ], default='pending')
+
+    date_approved = models.DateField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    @property
+    def total_paid(self):
+        return sum(p.amount_paid for p in self.purchase_payments.all())
+
+    @property
+    def balance_due(self):
+        return self.total_payable - self.total_paid
+    
+    def save(self, *args, **kwargs):       
+        super().save(*args, **kwargs)      
+        policy = self.vat_ait_policy
+        base = sum((item.total for item in self.purchase_items.all()), Decimal('0.00'))
+        vat_amount = Decimal('0.00')
+        ait_amount = Decimal('0.00')
+
+        if policy:
+            vat_rate = policy.vat_rate / Decimal('100')
+            ait_rate = policy.ait_rate / Decimal('100')
+
+            vat_amount = base * vat_rate if policy.vat_type == "exclusive" else base * vat_rate / (1 + vat_rate)
+            ait_amount = base * ait_rate if policy.ait_type == "exclusive" else base * ait_rate / (1 + ait_rate)
+
+        self.subtotal = base
+        self.vat_amount = vat_amount
+        self.ait_amount = ait_amount
+        self.total_payable = base + vat_amount - ait_amount       
+        super().save(update_fields=["subtotal", "vat_amount", "ait_amount", "total_payable"])
+
+
+
+    def __str__(self):
+        return f"PO-{self.id} ({self.vendor})"
+
+
+class PurchaseItem(models.Model):
+    purchase = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name='purchase_items')
+    product = models.ForeignKey(Product, null=True, blank=True, on_delete=models.SET_NULL)
+    description = models.CharField(max_length=255, blank=True, null=True)
+    quantity = models.DecimalField(max_digits=12, decimal_places=2, default=1)
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2)
+    subtotal = models.DecimalField(max_digits=15,decimal_places=2,null=True,blank=True)
+    PURCHASE_TYPE = [
+        ('inventory', 'Inventory Item'),
+        ('asset', 'Fixed Asset'),
+        ('expense', 'Expense (Non-Inventory)'),
+    ]
+    purchase_type = models.CharField(max_length=20, choices=PURCHASE_TYPE, default='inventory', blank=True, null=True,)
+    batch_no = models.CharField(max_length=50, blank=True, null=True)
+    manufacturing_date = models.DateField(null=True,blank=True)
+    expire_date = models.DateField(null=True,blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def total(self):
+        return self.quantity * self.unit_price
+    
+    def save(self, *args, **kwargs):  
+        if not self.subtotal:
+            self.subtotal = self.unit_price * self.quantity            
+        super().save(*args, **kwargs)
+
+
+    def __str__(self):
+        return f"{self.product} x {self.quantity}"
+   
+
+
+class PurchasePayment(models.Model):
+    purchase = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name="purchase_payments")
+    payment_date = models.DateField()
+    amount_paid = models.DecimalField(max_digits=12, decimal_places=2)    
+    tax_policy = models.ForeignKey(TaxPolicy,on_delete=models.CASCADE,related_name='purchase_payment_tax_policies', blank=True, null=True)    
+    method = models.CharField(max_length=30, choices=[
+        ('CASH', 'Cash'),
+        ('BANK', 'Bank Transfer'),
+        ('CHEQUE', 'Cheque'),
+        ('MFS', 'Mobile Financial Service')
+    ])
+
+    PURCHASE_TYPE = [
+        ('inventory', 'Inventory Item'),
+        ('asset', 'Fixed Asset'),
+        ('expense', 'Expense (Non-Inventory)'),
+    ]
+    purchase_type = models.CharField(max_length=30, choices=PURCHASE_TYPE,blank=True, null=True)
+    reference = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Payment {self.id} for Purchase {self.purchase.id}"
+
 
 
 

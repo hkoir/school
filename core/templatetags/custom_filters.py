@@ -6,6 +6,61 @@ import os
 
 
 @register.filter
+def get_day_schedules(calendar, day_num):
+    schedules = []
+    for row in calendar:
+        day_classes = row['days'].get(day_num, [])
+        for cls in day_classes:
+            schedules.append({
+                'time': row['time'],
+                'subject_offering': cls.subject_offering,
+                'teacher': cls.teacher,
+                'classroom': cls.classroom
+            })
+    return schedules
+
+
+@register.filter
+def get_balance(balances, key):
+    """Safe get from balances dict"""
+    if not isinstance(balances, dict):
+        return 0
+    return balances.get(key, 0)
+
+
+@register.filter
+def multiply(value, arg):
+    try:
+        return float(value) * float(arg)
+    except (ValueError, TypeError):
+        return 0
+
+
+@register.filter
+def ait_per_item(item, sale=None):
+    """Calculate AIT as 10% of the line revenue (ignores proportional allocation)"""
+    total = item.quantity * item.unit_price
+    return (total * Decimal("0.10")).quantize(Decimal("0.01"))
+
+@register.filter
+def concat(a, b):
+    """Concatenate two values as strings"""
+    return f"{a}_{b}"
+
+
+@register.filter
+def profit(item):
+    return (item.unit_price - item.batch.purchase_price) * item.quantity
+
+@register.filter
+def dict_get(d, key):
+    if isinstance(d, dict):
+        return d.get(key, 0)
+    return 0
+
+
+
+@register.filter
 def get_item(dictionary, key):
     return dictionary.get(key) if dictionary else None
 

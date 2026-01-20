@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+
+<div class="container mt-4 d-flex justify-content-between">         
+    <a href="{% url 'finance:management_dashboard' %}" class="btn btn-sm btn-primary g-2">Executive Dashboard</a>
+ <a href="{% url 'finance:finance_dashboard' %}" class="btn btn-sm btn-warning g-2">Outstanding</a>
+    <a href="{% url 'finance:profit_loss_report' %}" class="btn btn-sm btn-success g-2">Executive Summary</a>
+</div>
+
+<div class="container mt-4">
+    <h2 class="fw-bold mb-3">📊 Finance Dashboard</h2>
+    <small class="text-muted">Reporting Period: {{ start_date }} → {{ end_date }}</small>
+
+   
+    <form method="get" id="filterForm">
+        <div class=" row filter-toolbar mb-4 text-center">
+
+        <!-- Today Toggle -->
+        <div class="col-6 col-md-3 mb-2">
+            <div class="toggle-box border border-success bg-light rounded-3 px-3 py-2 d-flex align-items-center justify-content-center">
+                <input type="checkbox" class="form-check-input me-2" id="todayCheck" name="today" value="1" {% if today %}checked{% endif %}>
+                <label class="form-check-label fw-semibold mb-0" for="todayCheck">Today</label>
+            </div>
+        </div>
+
+        <!-- This Month Toggle -->
+         <div class="col-6 col-md-3 mb-2">
+            <div class="toggle-box border border-warning bg-light rounded-3 px-3 py-2 d-flex align-items-center justify-content-center">
+                <input type="checkbox" class="form-check-input me-2" id="monthCheck" name="this_month" value="1" {% if this_month %}checked{% endif %}>
+                <label class="form-check-label fw-semibold mb-0" for="monthCheck">This Month</label>
+            </div>
+        </div>
+
+        <!-- Start Date -->
+         <div class="col-6 col-md-3 mb-2">
+            <label for="start_date" class="form-label fw-semibold d-block mb-1">Start Date</label>
+            <input type="date" id="start_date" name="start_date" value="{{ start_date }}"
+                class="form-control form-control-sm text-center w-100">
+        </div>
+
+        <!-- End Date -->
+       <div class="col-6 col-md-3 mb-2">
+            <label for="end_date" class="form-label fw-semibold d-block mb-1">End Date</label>
+            <input type="date" id="end_date" name="end_date" value="{{ end_date }}"
+                class="form-control form-control-sm text-center w-100">
+        </div>
+
+        <!-- Filter Button -->
+        <div class="col-6 col-md-3 mb-2">
+            <button type="submit" class="btn btn-primary btn-sm fw-semibold w-100">Filter</button>
+        </div>
+        </div>
+    </form>
+    <!-- KPI Cards -->
+      
+    <div class="row row-cols-1 row-cols-md-4 g-4 my-4">
+        
+      {% for key, data in finance_data.items %}
+            {% if key not in exclude_keys %}
+            {% if key in first_row_keys %}
+                <div class="col">
+                    <div class="card shadow-sm border-primary-subtle">
+                        <div class="card-body">
+                            <h6 class="text-uppercase fw-semibold">{{ key|title }}</h6>
+                            <p class="mb-1">Paid: ৳ {{ data.paid|floatformat:2 }}</p>
+                            <p class="mb-0">Outstanding: ৳ {{ data.outstanding|floatformat:2 }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+             {% endif %}
+        {% endfor %}
+    </div>
+
+    
+    <div class="row row-cols-1 row-cols-md-4 g-4 my-4">
+        
+      {% for key, data in finance_data.items %}
+            {% if key not in exclude_keys %}
+            {% if key in second_row_keys%}
+                <div class="col">
+                    <div class="card shadow-sm border-primary-subtle">
+                        <div class="card-body">
+                            <h6 class="text-uppercase fw-semibold">{{ key|title }}</h6>
+                            <p class="mb-1">Paid: ৳ {{ data.paid|floatformat:2 }}</p>
+                            <p class="mb-0">Outstanding: ৳ {{ data.outstanding|floatformat:2 }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+             {% endif %}
+        {% endfor %}
+    </div>
+
+
+    <!-- Totals -->
+     <div class="row row-cols-1 row-cols-md-3 g-4 my-4">
+         <div class="col">
+            <div class="card shadow-sm border-info-subtle">
+                <div class="card-body">
+                    <h6 class="fw-semibold">Overall Total Payable</h6>
+                    <h4>৳ {{ finance_data.total_payable|floatformat:2 }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card shadow-sm border-success-subtle">
+                <div class="card-body">
+                    <h6 class="fw-semibold">Overall Total Paid</h6>
+                    <h4>৳ {{ finance_data.total_paid|floatformat:2 }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card shadow-sm border-warning-subtle">
+                <div class="card-body">
+                    <h6 class="fw-semibold">Overall Total Outstanding</h6>
+                    <h4>৳ {{ finance_data.total_outstanding|floatformat:2 }}</h4>
+                </div>
+            </div>
+        </div>
+       
+    </div>
+
+    <!-- Charts -->
+    <div class="row g-4 my-4">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header">Revenue & Outstanding Comparison</div>
+                <div class="card-body">
+                    <canvas id="barChart" style="height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header">Outstanding Composition</div>
+                <div class="card-body">
+                    <canvas id="pieChart" style="height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('filterForm');
+    const todayCheck = document.getElementById('todayCheck');
+    const monthCheck = document.getElementById('monthCheck');
+
+    todayCheck.addEventListener('change', function() {
+        if (this.checked) monthCheck.checked = false; // optional: uncheck other
+        form.submit();
+    });
+
+    monthCheck.addEventListener('change', function() {
+        if (this.checked) todayCheck.checked = false; // optional: uncheck other
+        form.submit();
+    });
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle mutual exclusivity
+    const todayCheck = document.getElementById('todayCheck');
+    const monthCheck = document.getElementById('monthCheck');
+
+    todayCheck.addEventListener('change', function() {
+        if(this.checked) monthCheck.checked = false;
+    });
+    monthCheck.addEventListener('change', function() {
+        if(this.checked) todayCheck.checked = false;
+    });
+
+    // Chart Data
+    const chartData = JSON.parse('{{ chart_data_json|escapejs }}');
+
+    // Bar Chart
+    new Chart(document.getElementById('barChart'), {
+        type: 'bar',
+        data: {
+            labels: chartData.labels,
+            datasets: [
+                {
+                    label: 'Paid (৳)',
+                    data: chartData.paid,
+                    backgroundColor: chartData.colors,
+                },
+                {
+                    label: 'Outstanding (৳)',
+                    data: chartData.outstanding,
+                    backgroundColor: chartData.colors.map(c => c+'99') // lighter shade
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // Pie Chart
+    new Chart(document.getElementById('pieChart'), {
+        type: 'pie',
+        data: {
+            labels: chartData.labels,
+            datasets: [{
+                data: chartData.outstanding,
+                backgroundColor: chartData.colors
+            }]
+        },
+        options: { responsive: true }
+    });
+});
+</script>
+
+{% endblock %}

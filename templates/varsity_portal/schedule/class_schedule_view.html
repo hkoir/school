@@ -1,0 +1,54 @@
+{% extends "student_portal_base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+{% include 'varsity_portal/quick_access_link.html' %}
+<div class="container my-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>📅 {{ title }}</h3>
+        <button onclick="window.print()" class="btn btn-outline-secondary">🖨️ Print</button>
+    </div>
+
+    {% if schedules %}
+        {% for day, day_schedules in schedules.items %}
+        <div class="mb-4">
+            <h5 class="bg-primary text-white p-2 rounded">{{ day }}</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Time</th>
+                            <th>Subject</th>
+                            <th>Teacher</th>
+                            <th>Room</th>
+                            <th>Term</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in day_schedules %}
+                        <tr>
+                            <td>{{ s.start_time }} - {{ s.end_time }}</td>
+                            <td>{{ s.subject_offering.subject.name }} ({{ s.subject_offering.subject.code }})</td>
+                            <td>{{ s.teacher.name }}</td>
+                            <td>{{ s.classroom.name }}</td>
+                            <td>{{ s.term.name }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="text-center text-muted">No schedule found.</div>
+    {% endif %}
+</div>
+
+<style>
+@media print {
+    body { font-size: 12px; }
+    button { display: none; }
+}
+</style>
+{% endblock %}

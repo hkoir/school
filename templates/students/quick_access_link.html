@@ -1,0 +1,34 @@
+<div class="container my-3">
+
+    <h5 class="text-center mb-3 fw-bold">Quick Navigation</h5>
+
+    <!-- Finance Section -->
+    <div class="d-flex justify-content-center flex-wrap gap-2 mb-2">    
+        
+        <a href="{% url 'students:create_guardian' %}" class="btn btn-sm btn-outline-secondary">Create Guardian</a>
+        <a href="{% url 'students:create_student' %}" class="btn btn-sm btn-outline-warning">Create student</a>
+        <a href="{% url 'students:create_student_enrollment' %}" class="btn btn-sm btn-outline-primary">+ Create student enrollment</a>
+        <a href="{% url 'students:transport_route_add' %}" class="btn btn-sm btn-outline-info">+ Create transport route</a>
+        <a href="{% url 'students:transport_assignment_add' %}" class="btn btn-sm btn-outline-primary">Assign Transport</a>
+        <a href="{% url 'students:hostel_room_type_add' %}" class="btn btn-sm btn-outline-secondary">Create hostel room type</a>
+        <a href="{% url 'students:hostel_add' %}" class="btn btn-sm btn-outline-warning">crate Hostel</a>
+        <a href="{% url 'students:hostel_room_add' %}" class="btn btn-sm btn-outline-primary">+ Create Hostel room</a>
+        <a href="{% url 'students:hostel_assignment_add' %}" class="btn btn-sm btn-outline-info">+ Assign Hostel</a>
+
+        <a href="{% url 'students:assign_other_fee_by_class' %}" class="btn btn-sm btn-outline-primary">Create other fees</a>   
+        <a href="{% url 'results:create_exam_with_fee' %}" class="btn btn-sm btn-outline-primary">Create exam fee</a>
+        <a href="{% url 'results:exam_list' %}" class="btn btn-sm btn-outline-primary">Exam List</a>
+        <a href="{% url 'results:create_exam_type' %}" class="btn btn-sm btn-outline-warning">Defined Exam Subject</a>   
+        <a href="{% url 'results:create_grade' %}" class="btn btn-sm btn-outline-primary">+ Create Grade</a>
+        <a href="{% url 'results:create_result' %}" class="btn btn-sm btn-outline-info">+ Enter result</a>
+        <a href="{% url 'students:student_dues_overview' %}" class="btn btn-sm btn-outline-info">Student dues</a>
+
+        <a href="{% url 'students:view_student_vcard' %}" class="btn btn-sm btn-outline-info">Student list</a>
+        <a href="{% url 'teachers:view_teacher_vcard' %}" class="btn btn-sm btn-outline-info">Teacher list</a>
+        <a href="{% url 'school_management:create_school' %}" class="btn btn-sm btn-success">School setup</a>
+
+       
+    </div>
+
+    
+</div>

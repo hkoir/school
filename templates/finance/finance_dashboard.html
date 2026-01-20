@@ -1,0 +1,221 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container-fluid mt-3">
+     <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">Dashboard</h2>
+            <p class="text-muted mb-0">Welcome, {{ user.get_full_name|default:user.username }}</p>
+        </div>
+    </div>
+
+    <h3 class="fw-bold mb-2">Accounts & Finance</h3>
+    <p class="text-muted">Overview for {{ current_year }}</p>
+
+    <!-- Finance Stats -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-3 col-6">
+            <div class="card shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-wallet fa-2x text-success me-3"></i>
+                    <div>
+                        <h6 class="text-muted mb-0">School Total Fees (Year)</h6>
+                        <h4 class="fw-bold mb-0">{{ total_fees_collected }} ৳</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-6">
+            <div class="card shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-hand-holding-usd fa-2x text-primary me-3"></i>
+                    <div>
+                        <h6 class="text-muted mb-0">School Fees (This Month)</h6>
+                        <h4 class="fw-bold mb-0">{{ monthly_fees_collected }} ৳</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-6">
+            <div class="card shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-hand-holding-usd fa-2x text-primary me-3"></i>
+                    <div>
+                        <h6 class="text-muted mb-0">Varsity Tuition Fees (This Month)</h6>
+                        <h4 class="fw-bold mb-0">{{ varsity_tuition }} ৳</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+         <div class="col-md-3 col-6">
+            <div class="card shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-hand-holding-usd fa-2x text-primary me-3"></i>
+                    <div>
+                        <h6 class="text-muted mb-0">Varsity admission Fees (This Month)</h6>
+                        <h4 class="fw-bold mb-0">{{ varsity_admission }} ৳</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+         <div class="col-md-3 col-6">
+            <div class="card shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-hand-holding-usd fa-2x text-primary me-3"></i>
+                    <div>
+                        <h6 class="text-muted mb-0">Varsity Fees (This year)</h6>
+                        <h4 class="fw-bold mb-0">{{ total_varsity_fees_collected }} ৳</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-6">
+            <div class="card shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-hand-holding-usd fa-2x text-primary me-3"></i>
+                    <div>
+                        <h6 class="text-muted mb-0">Varsity+School (This month)</h6>
+                        <h4 class="fw-bold mb-0">{{ Varsity_school_this_month }} ৳</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+         <div class="col-md-3 col-6">
+            <div class="card shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-hand-holding-usd fa-2x text-primary me-3"></i>
+                    <div>
+                        <h6 class="text-muted mb-0">Varsity+School (This year)</h6>
+                        <h4 class="fw-bold mb-0">{{ Varsity_school_this_year }} ৳</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-6">
+            <div class="card shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-exclamation-circle fa-2x text-danger me-3"></i>
+                    <div>
+                        <h6 class="text-muted mb-0">Outstanding Due</h6>
+                        <h4 class="fw-bold mb-0">{{ outstanding_fees }} ৳</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col--6">
+            <div class="card shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-money-bill-wave-alt fa-2x text-warning me-3"></i>
+                    <div>
+                        <h6 class="text-muted mb-0">Total Expenses</h6>
+                        <h4 class="fw-bold mb-0">{{ total_expenses }} ৳</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-6">
+            <div class="card shadow-sm p-3">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-chart-line fa-2x text-info me-3"></i>
+                    <div>
+                        <h6 class="text-muted mb-0">Net Profit</h6>
+                        <h4 class="fw-bold mb-0">{{ net_profit }} ৳</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Quick Actions -->
+    <h5 class="fw-semibold mb-2">Quick Actions</h5>
+    <div class="row g-2 mb-4">
+
+        <div class="col-md-3 col-6">
+            <a href="" class="btn btn-success w-100 shadow-sm">
+                <i class="fas fa-money-check-alt me-2"></i> Collect Fees
+            </a>
+        </div>
+
+        <div class="col-md-3 col-6">
+            <a href="" class="btn btn-primary w-100 shadow-sm">
+                <i class="fas fa-file-invoice-dollar me-2"></i> Fee Reports
+            </a>
+        </div>
+
+        <div class="col-md-3 col-6">
+            <a href="" class="btn btn-warning w-100 shadow-sm">
+                <i class="fas fa-receipt me-2"></i> Manage Expenses
+            </a>
+        </div>
+
+        <div class="col-md-3 col--6">
+            <a href="" class="btn btn-info w-100 shadow-sm">
+                <i class="fas fa-clipboard-list me-2"></i> Profit & Loss
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Tables -->
+    <div class="row">
+        <div class="col-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white fw-semibold">Recent Fee Collections(School)</div>
+                <ul class="list-group list-group-flush">
+                    {% for p in recent_collections %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            {{ p.student.name }}-{{ p.student.enrolled_students.first.academic_class }} — {{ p.paid_amount }} ৳
+                            <small>{{ p.payment_date }}</small>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item">No records found.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white fw-semibold">Recent Fee Collections(Varsity)</div>
+                <ul class="list-group list-group-flush">
+                    {% for p in varsity_recent_collections %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            {{ p.student.name }}-{{ p.student.varsity_student_enrollments.first.program }} — admission:{{ p.admission_paid }}--Tuition:{{ p.tuition_paid }} ৳
+                            <small>{{ p.payment_date }}</small>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item">No records found.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="col-12 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white fw-semibold">Recent Expenses</div>
+                <ul class="list-group list-group-flush">
+                    {% for e in recent_expenses %}
+                        <li class="list-group-item d-flex justify-content-between">
+                            {{ e.category }} — {{ e.amount }} ৳
+                            <small>{{ e.date }}</small>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item">No expenses recorded.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

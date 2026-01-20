@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% include 'students/quick_access_link.html' %}
+
+<div class="container py-5">
+    <h2 class="text-center mb-4 text-primary fw-bold">Student Dues Overview</h2>
+    
+    <div class="row justify-content-center">
+    <div class="col-md-8">
+      <!-- Search Form -->
+      <form method="get" class="card shadow-sm p-4 mb-4 border-0 rounded-4">
+        <h4 class="text-center text-primary fw-bold mb-4">Search Student Dues</h4>
+        <div class="row g-3 align-items-end">
+          <div class="col-md-5">
+            <label for="q" class="form-label fw-semibold">Search Student by Name</label>
+            <input type="text" name="q" id="q" class="form-control" value="{{ query }}" placeholder="Enter student name...">
+          </div>
+          <div class="col-md-4">
+            <label for="student_id" class="form-label fw-semibold">Select Student</label>
+            <select name="student_id" id="student_id" class="form-select">
+              <option value="">-- Choose Student --</option>
+              {% for student in students %}
+                <option value="{{ student.id }}" {% if selected_student and student.id == selected_student.id %}selected{% endif %}>
+                  {{ student.name }}
+                  ({% if student.enrolled_students.exists %}{{ student.enrolled_students.first.academic_class.name }}{% else %}N/A{% endif %})
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3 text-end">
+            <button type="submit" class="btn btn-primary w-100 fw-semibold">View Dues</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+ <div class="row justify-content-center">
+    {% if selected_student %}
+        <!-- Student Info -->
+      <div class="col-md-8">        
+        <div class="card shadow-sm mb-4 p-4">
+            <h5 class="fw-semibold mb-3">Student Information</h5>
+            <p><strong>Name:</strong> {{ selected_student.name }}</p>
+            <p><strong>Class:</strong> {% if selected_student.enrolled_students.exists %}{{ selected_student.enrolled_students.first.academic_class.name }}{% else %}N/A{% endif %}</p>
+            <p><strong>Language Version:</strong> {% if selected_student.enrolled_students.exists %}{{ selected_student.enrolled_students.first.student_class.language_version }}{% else %}N/A{% endif %}</p>
+            <p><strong>Total Due:</strong> <span class="text-danger fw-bold">৳ {{ total_due|floatformat:2 }}</span></p>
+        </div>
+     </div> 
+    </div>
+
+     <div class="row justify-content-center">
+        <div class="col-md-8">        
+        <!-- Dues Table -->
+        <div class="card shadow-sm p-4">
+            <h5 class="fw-semibold mb-3">Fee Breakdown</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle">
+                    <thead class="table-light text-center">
+                        <tr>
+                            <th>Fee Type</th>                           
+                            <th>Due (৳)</th>
+                        </tr>
+                    </thead>
+                   <tbody>
+                  {% for fee_type, data in dues.items %}
+                      <tr class="text-center">
+                          <td class="text-capitalize">{{ fee_type }}</td>
+                          <td class="text-end text-danger">৳ {{ data.net_due|floatformat:2 }}</td>
+                      </tr>
+                  {% endfor %}
+              </tbody>
+              <tfoot class="table-light fw-bold text-end">
+                  <tr>
+                      <td>Total</td>
+                      <td class="text-end text-danger">৳ {{ total_due|floatformat:2 }}</td>
+                  </tr>
+              </tfoot>
+
+                </table>
+                      <div class="d-flex justify-content-between">  
+                        <a href="{% url 'payments:review_and_pay_online' %}" class="btn btn-sm btn-outline-primary">Make online Payment</a>
+                        <a href="{% url 'payments:manual_payment_multiple' %}" class="btn btn-sm btn-outline-success">Make Manual Payment</a>
+                      </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  
+    {% endif %}
+   
+</div>
+ </div>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+
+
+{% block content %}
+
+
+{% include 'university_management/quick_access_link.html' %}
+<div class="container">
+    <div class="row">
+
+        <h2>Exam Details</h2>
+
+        <p>
+            <strong>Institution:</strong> {{ object.institution }} <br>
+            <strong>Academic Session:</strong> {{ object.academic_session }} <br>
+             <strong>Academic Year:</strong> {{ object.academic_year }} <br>
+            <strong>Program:</strong> {{ object.program }} <br>
+            <strong>Level:</strong> {{ object.level }} <br>
+            <strong>Term:</strong> {{ object.term }} <br>
+            <strong>Exam Type:</strong> {{ object.get_exam_type_display }} <br>
+            <strong>Duration:</strong> {{ object.start_date }} → {{ object.end_date }} <br>
+            <strong>Status:</strong>
+            {% if object.is_published %} Published {% else %} 
+             <a href="{% url 'university_management:exam_publish_toggle' object.id %}"
+             class="btn btn-sm btn-outline-warning">⏳Click to Publish</a>
+            {% endif %}
+        </p>
+
+        <hr>
+
+        <h3>Exam Schedules</h3>
+
+        <a href="{% url 'university_management:exam_schedule_add' object.id %}">➕ Add Schedule</a>
+        <div class="table-responsive">
+            <table border="1" cellpadding="8" class="table">
+                <thead class="table-info">
+                    <tr>
+                        <th>Subject</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Venue</th>
+                        <th>Max Marks</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for schedule in object.schedules.all %}
+                    <tr>
+                        <td>{{ schedule.subject_offering }}</td>
+                        <td>{{ schedule.exam_date }}</td>
+                        <td>{{ schedule.start_time }} - {{ schedule.end_time }}</td>
+                        <td>{{ schedule.venue|default:"—" }}</td>
+                        <td>{{ schedule.max_marks }}</td>
+                        <td>
+                            <a href="{% url 'university_management:exam_schedule_update' schedule.id %}">Edit</a> |
+                            <a href="{% url 'university_management:exam_schedule_delete' schedule.id %}">Delete</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">No schedules added yet</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+
+        <hr>
+        
+    </div>
+</div>
+
+<a href="{% url 'university_management:exam_list' %}">⬅ Back to Exam List</a>
+
+{% endblock %}

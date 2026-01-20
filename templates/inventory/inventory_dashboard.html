@@ -19,18 +19,8 @@
 </style>
 
 
-<div class="container">  
-    <h2 class="text-center my-4" >Inventory Dashboard</h2>
-    <p><strong>Filtered data by:</strong>{{ product }} | &nbsp;<strong>Warehouse:</strong>{{ warehouse }}&nbsp;| <strong>Location:</strong>{{ location}} | &nbsp;<strong>Batch:</strong>{{ batch }} </p>
-   
-    <div class="col inv_chart">  
-    <canvas id="inventoryChart" ></canvas>
-    </div>
-   
-    <!-- Table -->
-    <h2 class="text-center mt-4">Inventory Details</h2>
-    <div class="table-responsive">
-        <form method="get" class="my-2" novalidate, style="border:1px solid green">
+<div class="container mt-4">  
+     <form method="get" class="my-4" novalidate, style="border:1px solid green">
             {% csrf_token %}
             <div class="row">
                 {% for field in form %}
@@ -43,19 +33,28 @@
                             </div>
                         {% endif %}
                     </div>
-                {% endfor %}
-                
+                {% endfor %}                
             </div>
 
-            <div class="d-flex justify-content-between mt-4">                    
-                <button type="submit" class="btn btn-primary">Apply filter</button>
-                <a href="{% url 'inventory:inventory_transaction_view' %}" class="btn btn-success">
-                     Add stock
-                 </a>
-                 
-            </div>
+        <div class="d-flex justify-content-between mt-4">                    
+            <button type="submit" class="btn btn-primary">Apply filter</button>
+            <a href="{% url 'inventory:inventory_transaction_view' %}" class="btn btn-success">
+                    Add stock
+                </a>                
+        </div>
   </form>
 
+
+    <h2 class="text-center my-4" >Inventory Dashboard</h2>
+    <p><strong>Filtered data by:</strong>{{ product }} | &nbsp;<strong>Warehouse:</strong>{{ warehouse }}&nbsp;| <strong>Location:</strong>{{ location}} | &nbsp;<strong>Batch:</strong>{{ batch }} </p>
+   
+    <div class="col inv_chart">  
+    <canvas id="inventoryChart" ></canvas>
+    </div>
+   
+    <!-- Table -->
+    <h2 class="text-center mt-4">Inventory Details</h2>
+    <div class="table-responsive">      
 
   <div id="inventoryTable" class="mt-4">
     <p><strong>Filtered data by:</strong>{{ product }} | &nbsp;<strong>Warehouse:</strong>{{ warehouse }}&nbsp;| <strong>Location:</strong>{{ location}} | &nbsp;<strong>Batch:</strong>{{ batch }} </p>

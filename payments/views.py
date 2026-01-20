@@ -443,8 +443,8 @@ def get_total_admission_fee_paid(student):
         return Decimal('0.00')
     academic_year = enrollment.academic_year
     total_paid = AdmissionFeePayment.objects.filter(
-        payment__student=student,
-        payment__academic_year=academic_year
+        student=student,
+        admission_fee_assignment__admission_fee__admission_fee_policy__academic_year=academic_year
     ).aggregate(total=Sum('amount_paid'))['total'] or Decimal('0.00')
 
     return total_paid
@@ -453,6 +453,10 @@ def get_total_admission_fee_paid(student):
 
 
 def get_student_due_status(student):
+    today = date.today()
+    current_month = today.month
+    current_year = today.year
+
     admission_status ='None'
     enrollment = student.enrolled_students.first()
     academic_year = student.enrolled_students.first().academic_year
@@ -464,6 +468,8 @@ def get_student_due_status(student):
         return {
             'monthly_status': monthly_status,
             'admission_status': 'not-applicable',
+	    'admission_fee_total': Decimal('0.00'),
+            'admission_fee_paid': Decimal('0.00'),
         }
 
     feestructure = enrollment.feestructure
@@ -472,18 +478,23 @@ def get_student_due_status(student):
     # ========== Monthly Tuition Fee Status ========== #
     current_month = date.today().month
     for month in range(1, current_month + 1):
-        paid = Payment.objects.filter(
+        paid = TuitionFeePayment.objects.filter(
             student=student,
             academic_year=academic_year,
             month=month
-        ).aggregate(total=Sum('monthly_tuition_fee_paid'))['total'] or Decimal(0.00)
+        ).aggregate(total=Sum('amount_paid'))['total'] or Decimal(0.00)
+
+        due_date = date(current_year, month, 25)
 
         if paid >= expected_monthly_fee:
             monthly_status[month] = 'paid'
         elif paid > 0:
             monthly_status[month] = 'partial-paid'
         else:
-            monthly_status[month] = 'due'
+            if today > due_date:
+                monthly_status[month] = 'due'
+            else:
+                monthly_status[month] = 'not-due'
 
     # ========== Admission Fee Status ========== #
     total_fee = get_total_admission_fee(student)
@@ -502,12 +513,14 @@ def get_student_due_status(student):
     return {
         'monthly_status': monthly_status,
         'admission_status': admission_status,
+	'admission_fee_total': total_fee,
+        'admission_fee_paid': total_paid,
     }
 
 
 
 
-
+# for monthly tuition fee 
 def calculate_due_and_paid(student):
     total_due_amount = None
     total_paid_amount = None
@@ -519,8 +532,8 @@ def calculate_due_and_paid(student):
     if fee_structure:
     	monthly_fee = fee_structure.monthly_tuition_fee
     	total_due_amount = monthly_fee * current_month
-    total_paid_amount = student.student_payments.filter(academic_year=academic_year).aggregate(
-        total_paid=Sum('monthly_tuition_fee_paid')
+    total_paid_amount = student.student_tuition_payments.filter(academic_year=academic_year).aggregate(
+        total_paid=Sum('amount_paid')
     )['total_paid'] or 0
     return total_due_amount, total_paid_amount
 
@@ -538,14 +551,17 @@ def payment_status_view(request):
     version = None
     class_gender = None
     academic_year=None
+    page_obj = None
     total_due_amount = Decimal('0.00')
     total_paid_amount = Decimal('0.00')
+    net_due_amount = Decimal('0.00')
     data = []
     months = [date(1900, i, 1).strftime('%B') for i in range(1, 13)]
-    payment_status_data =[] 
-   
+    payment_status_data =[]
+    dues = {}
+
     if request.method == 'GET' and form.is_valid():     
-       
+
         class_name = form.cleaned_data.get("class_name")
         section = form.cleaned_data.get("section")    
         academic_year = form.cleaned_data.get("academic_year")   
@@ -560,7 +576,7 @@ def payment_status_view(request):
         if academic_year:
             students = students.filter(enrolled_students__academic_year=academic_year)       
         if class_name:
-            students = students.filter(enrolled_students__student_class=class_name)           
+            students = students.filter(enrolled_students__academic_class=class_name)           
         if section:
             students = students.filter(enrolled_students__section=section)          
         if shift and shift not in [None, '', 'not-applicable']:
@@ -573,7 +589,7 @@ def payment_status_view(request):
             students = students.filter(enrolled_students__subjects__in=[subject])           
         if student:
             students = students.filter(id=student.id)
-              
+
         total_student = students.count()
         total_due_amount = Decimal('0.00')
         total_paid_amount = Decimal('0.00')
@@ -581,16 +597,25 @@ def payment_status_view(request):
             fee_status = get_student_due_status(student)
             total_due, total_paid = calculate_due_and_paid(student)	    
             total_due = total_due or Decimal('0.00')
-            total_paid = total_paid or Decimal('0.00')           
+            total_paid = total_paid or Decimal('0.00')
+            dues = get_due_till_today(student)
+
             total_due_amount += total_due
             total_paid_amount += total_paid
+            net_due_amount = total_due_amount - total_paid_amount
 
             data.append({
-                'student': student,             
+                'student': student,
+                'dues':dues,
                 'status_by_month': fee_status['monthly_status'],
                 'admission_status': fee_status.get('admission_status', 'not-set'),
-              
+                'total_admission_fee': fee_status['admission_fee_total'],
+                'total_admission_fee_paid': fee_status['admission_fee_paid'],
+
             })
+        paginator = Paginator(data, 20)  # Show 20 students per page
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
 
         status_counts = Counter([row['admission_status'] for row in data])
         total_paid = status_counts.get('paid', 0)
@@ -607,17 +632,19 @@ def payment_status_view(request):
             'total_not_applicable': total_not_applicable,
 
             # Monthly tution fee
-            'total_due_amount': float(total_due_amount), 
+            'total_due_amount': float(net_due_amount), 
             'total_paid_amount': float(total_paid_amount),
             'total_student':total_student
         }
 
      
     context = {
-            'data': data,
+            'data':data,
+            'page_obj':page_obj,
             'months':months,
             'payment_status_data': json.dumps(payment_status_data), 
-            'form':form
+            'form':form,
+            'dues':dues,
         }
     return render(request, 'payments/payment_status.html', context)
 
@@ -870,7 +897,8 @@ def choose_fee_and_make_manual_payment(request):
     tuition_due_total = fee_structure.monthly_tuition_fee * len(due_months)
 
     all_adm_items = AdmissionFee.objects.filter(admission_fee_policy=fee_structure.admissionfee_policy)
-    paid_item_ids = AdmissionFeePayment.objects.filter(payment__student=student).values_list('admission_fee_item_id', flat=True)
+   # paid_item_ids = AdmissionFeePayment.objects.filter(payment__student=student).values_list('admission_fee_item_id', flat=True)
+    paid_item_ids = AdmissionFeePayment.objects.filter(admission_fee_assignment__student=student).values_list('fee_structure__admissionfee_policy__admission_fees__id', flat=True)
     unpaid_adm_items = all_adm_items.exclude(id__in=paid_item_ids)
 
     admission_due_items = unpaid_adm_items.filter(due_month__lte=due_cutoff_month)
@@ -1128,8 +1156,8 @@ def choose_fee_and_generate_invoice(request):
     due_months_choices = [(m, date(1900, m, 1).strftime('%B')) for m in unpaid_months if m <= current_month]
     all_unpaid_choices = [(m, date(1900, m, 1).strftime('%B')) for m in unpaid_months]
 
-    all_adm_items = AdmissionFee.objects.filter(admission_fee_policy=fee_structure.admissionfee_policy)
-    paid_item_ids = AdmissionFeePayment.objects.filter(payment__student=student).values_list('admission_fee_item_id', flat=True)
+    all_adm_items = AdmissionFee.objects.filter(admission_fee_policy=fee_structure.admissionfee_policy)   
+    paid_item_ids = AdmissionFeePayment.objects.filter(admission_fee_assignment__student=student).values_list('fee_structure__admissionfee_policy__admission_fees__id', flat=True)
     unpaid_adm_items = all_adm_items.exclude(id__in=paid_item_ids)
     due_admission_fee_items = unpaid_adm_items.filter(due_month__lte=current_month)
 
@@ -1414,6 +1442,750 @@ def payment_cancel(request):
     return HttpResponse("Payment cancelled by user.")
 
 
+
+
+
+
+###################################### New payment system ####################################
+
+import uuid
+from reportlab.lib.pagesizes import landscape, A4
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image,Table
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from io import BytesIO
+from django.db.models import Q,Sum
+
+from .models import HostelRoomPayment, TransportPayment, ExamFeePayment, OtherFeePayment,TuitionFeePayment,AdmissionFeePayment
+from .models import PaymentInvoice
+from .forms import (
+    PaymentTypeForm, HostelRoomPaymentForm, TransportPaymentForm,
+    ExamFeePaymentForm, OtherFeePaymentForm,TuitionFeePaymentForm,AdmissionFeePaymentForm
+)
+from decimal import Decimal
+from django.http import HttpResponse
+
+from .utils import get_due_till_today, apply_payment_to_oldest_months, create_payment_invoice,apply_one_time_payment
+
+
+def payment_invoice_detail(request, pk):
+    invoice = get_object_or_404(PaymentInvoice, pk=pk)
+    student = invoice.student
+    remaining_due = get_due_till_today(student)  
+
+    fee_breakdown = []
+
+    if hasattr(invoice, 'tuition_payments') and invoice.tuition_payments.exists():
+        entity_qs = invoice.tuition_payments.filter(student=invoice.student)
+        entity_paid_in_this_invoice = entity_qs.aggregate(total=Sum('amount_paid'))['total'] or 0
+       
+        all_entity_qs = invoice.student.student_tuition_payments.filter(month__lte=today.month)
+        total_due = all_entity_qs.aggregate(total=Sum('total_amount'))['total'] or 0
+        total_paid = all_entity_qs.aggregate(total=Sum('amount_paid'))['total'] or 0
+
+        fee_breakdown.append({
+            'label': 'Tuition Fee',
+            'total': total_due,
+            'paid': total_paid,
+            'due': max(total_due - total_paid, 0),
+            'status': 'paid' if total_paid >= total_due else 'partial',
+            'paid_today': entity_paid_in_this_invoice,
+            'date': invoice.created_at,
+            'method': invoice.payment_method or 'Cash',
+        })
+
+
+    if hasattr(invoice, 'admission_payments') and invoice.admission_payments.exists():
+        entity_qs = invoice.admission_payments.filter(student=invoice.student)
+        entity_paid_today = entity_qs.aggregate(total=Sum('amount_paid'))['total'] or 0       
+
+        all_entity_qs = invoice.student.student_admission_payments.filter(month__lte=today.month)
+        total_due = all_entity_qs.aggregate(total=Sum('total_amount'))['total'] or 0
+        total_paid = all_entity_qs.aggregate(total=Sum('amount_paid'))['total'] or 0
+
+        fee_breakdown.append({
+            'label': 'Admission Fee',
+            'total': total_due,
+            'paid': total_paid,
+            'due': max(total_due - total_paid, 0),
+            'status': 'paid' if total_paid >= total_due else 'partial',
+            'paid_today':entity_paid_today,
+            'date': invoice.created_at,
+            'method': invoice.payment_method or 'Cash',
+        })
+
+
+    if hasattr(invoice, 'transport_payments') and invoice.transport_payments.exists():
+        entity_qs = invoice.transport_payments.filter(student=invoice.student)
+        entity_paid_today = entity_qs.aggregate(total=Sum('amount_paid'))['total'] or 0
+       
+        all_entity_qs = invoice.student.student_transport_payments.filter(month__lte=today.month)
+        total_due = all_entity_qs.aggregate(total=Sum('total_amount'))['total'] or 0
+        total_paid = all_entity_qs.aggregate(total=Sum('amount_paid'))['total'] or 0
+
+        fee_breakdown.append({
+            'label': 'Admission Fee',
+            'total': total_due,
+            'paid': total_paid,
+            'due': max(total_due - total_paid, 0),
+            'status': 'paid' if total_paid >= total_due else 'partial',
+            'paid_today':entity_paid_today,
+            'date': invoice.created_at,
+            'method': invoice.payment_method or 'Cash',
+        })
+
+
+    if hasattr(invoice, 'hostel_payments') and invoice.hostel_payments.exists():
+        entity_qs = invoice.hostel_payments.filter(student=invoice.student)
+        entity_paid_today = entity_qs.aggregate(total=Sum('amount_paid'))['total'] or 0
+       
+        all_entity_qs = invoice.student.student_hostel_payments.filter(month__lte=today.month)
+        total_due = all_entity_qs.aggregate(total=Sum('total_amount'))['total'] or 0
+        total_paid = all_entity_qs.aggregate(total=Sum('amount_paid'))['total'] or 0
+
+        fee_breakdown.append({
+            'label': 'Admission Fee',
+            'total': total_due,
+            'paid': total_paid,
+            'due': max(total_due - total_paid, 0),
+            'status': 'paid' if total_paid >= total_due else 'partial',
+            'paid_today':entity_paid_today,
+            'date': invoice.created_at,
+            'method': invoice.payment_method or 'Cash',
+        })
+
+
+    if hasattr(invoice, 'exam_payments') and invoice.exam_payments.exists():
+        entity_qs = invoice.exam_payments.filter(student=invoice.student)
+        entity_paid_today = entity_qs.aggregate(total=Sum('amount_paid'))['total'] or 0
+      
+        all_entity_qs = invoice.student.student_exam_fee_payments.all()
+        total_due = all_entity_qs.aggregate(total=Sum('total_amount'))['total'] or 0
+        total_paid = all_entity_qs.aggregate(total=Sum('amount_paid'))['total'] or 0
+
+        fee_breakdown.append({
+            'label': 'Admission Fee',
+            'total': total_due,
+            'paid': total_paid,
+            'due': max(total_due - total_paid, 0),
+            'status': 'paid' if total_paid >= total_due else 'partial',
+            'paid_today':entity_paid_today,
+            'date': invoice.created_at,
+            'method': invoice.payment_method or 'Cash',
+        })
+
+    if hasattr(invoice, 'other_payments') and invoice.other_payments.exists():
+        entity_qs = invoice.other_payments.filter(student=invoice.student)
+        entity_paid_today = entity_qs.aggregate(total=Sum('amount_paid'))['total'] or 0
+        
+        all_entity_qs = invoice.student.other_fee_students.all()
+        total_due = all_entity_qs.aggregate(total=Sum('total_amount'))['total'] or 0
+        total_paid = all_entity_qs.aggregate(total=Sum('amount_paid'))['total'] or 0
+
+        fee_breakdown.append({
+            'label': 'Admission Fee',
+            'total': total_due,
+            'paid': total_paid,
+            'due': max(total_due - total_paid, 0),
+            'status': 'paid' if total_paid >= total_due else 'partial',
+            'paid_today':entity_paid_today,
+            'date': invoice.created_at,
+            'method': invoice.payment_method or 'Cash',
+        })
+
+    total_paid = sum(f['paid'] for f in fee_breakdown)
+    total_due = sum(f['due'] for f in fee_breakdown)
+    total_amount = sum(f['total'] for f in fee_breakdown)
+
+    context = {
+        'invoice': invoice,
+        'remaining_due': remaining_due,
+        'fee_breakdown': fee_breakdown,
+        'total_paid': total_paid,
+        'total_due': total_due,
+        'total_amount': total_amount,
+    }
+
+    return render(request, 'payments/other_fee_payments/payment_invoice_detail.html', context)
+
+
+def payment_invoice_list(request):
+    q = request.GET.get('q', '')
+    invoices = PaymentInvoice.objects.select_related('student').order_by('-created_at')
+    if q:
+        invoices = invoices.filter(
+            Q(student__name__icontains=q) | Q(student__student_id__icontains=q)
+        )
+    return render(request, 'payments/other_fee_payments/payment_invoice_list.html', {'invoices': invoices, 'q': q})
+
+
+
+
+
+from django.http import HttpResponse
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import mm
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+
+def payment_invoice_receipt(request, pk):
+    invoice = get_object_or_404(PaymentInvoice, pk=pk)
+    student = invoice.student
+    enrollment = getattr(invoice, 'student_enrollment', None)
+    class_name = getattr(enrollment, 'academic_class', 'N/A')
+
+    # --- Fee breakdown ---
+    fee_breakdown = []
+
+    def safe_get(payment_qs, label):
+        payment = payment_qs.first()
+        if payment and (payment.amount_paid or 0) > 0:
+            fee_breakdown.append({
+                "label": label,
+                "total": getattr(payment, 'total_amount', 0),
+                "paid": payment.amount_paid or Decimal('0.00'),
+                "due": getattr(payment, 'due_amount', 0),
+                "status": "Paid" if getattr(payment, 'payment_status', '').lower() == 'paid' else "Partial" if getattr(payment, 'due_amount', 0) > 0 else "Due"
+            })
+
+    safe_get(student.student_tuition_payments, "Tuition Fee")
+    safe_get(student.student_admission_payments, "Admission Fee")
+    safe_get(student.student_transport_payments, "Transport Fee")
+    safe_get(student.student_hostel_payments, "Hostel Fee")
+    safe_get(student.student_exam_fee_payments, "Exam Fee")
+    safe_get(student.other_fee_students, "Other Fee")
+
+    # Fallback if no breakdown
+    if not fee_breakdown:
+        fee_breakdown.append({
+            "label": invoice.description or "General Payment",
+            "total": invoice.amount or 0,
+            "paid": invoice.paid_amount or 0,
+            "due": invoice.due_amount or 0,
+            "status": "Paid" if getattr(invoice, 'is_paid', False) else "Partial" if (invoice.due_amount or 0) > 0 else "Due"
+        })
+
+    # --- Compact receipt page size ---
+    RECEIPT_WIDTH = 210 * mm   # ~8.3 inch width
+    RECEIPT_HEIGHT = 120 * mm  # ~4.7 inch height
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=(RECEIPT_WIDTH, RECEIPT_HEIGHT),
+        leftMargin=10,
+        rightMargin=10,
+        topMargin=10,
+        bottomMargin=10
+    )
+
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name="ReceiptTitle", fontSize=14, alignment=1, spaceAfter=6))
+    styles.add(ParagraphStyle(name="SmallLeft", fontSize=8, alignment=0))
+    elements = []
+
+    # --- Header with logo and school info ---
+    school = student.school
+    logo_img = None
+    if getattr(school, 'logo', None) and hasattr(school.logo, 'path'):
+        logo_img = Image(school.logo.path, width=40, height=40)
+
+    header_data = [
+        [
+            logo_img or '',
+            Paragraph(f"<b>{school.name}</b><br/>{school.address}<br/>Contact: {school.phone}", styles["SmallLeft"]),
+            Paragraph(f"Receipt No: {invoice.tran_id or 'N/A'}<br/>Date: {invoice.created_at.strftime('%d-%b-%Y')}<br/>Invoice Type: {invoice.get_invoice_type_display()}", styles["SmallLeft"])
+        ]
+    ]
+    header_table = Table(
+    header_data,
+    colWidths=[50, 0.55 * doc.width, 0.40 * doc.width])
+
+    header_table.setStyle(TableStyle([
+        ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
+        ("ALIGN", (0,0), (0,0), "LEFT"),
+        ("ALIGN", (2,0), (2,0), "RIGHT")
+    ]))
+    header_table.hAlign = 'LEFT'
+    elements.append(header_table)
+    elements.append(Spacer(1, 4))
+
+    # --- Title ---
+    elements.append(Paragraph("MONEY RECEIPT", styles["ReceiptTitle"]))
+    elements.append(Spacer(1, 2))
+
+    # --- Student Info ---
+    student_info_data = [
+        ["Student Name:", student.name],
+        ["Student ID:", student.student_id],
+        ["Class:", class_name],
+        ["Guardian:", getattr(student, 'guardian', 'N/A')]
+    ]
+    student_table = Table(student_info_data, colWidths=[60, doc.width - 60])
+    student_table.setStyle(TableStyle([
+        ("BOX", (0,0), (-1,-1), 0.25, colors.grey),
+        ("INNERGRID", (0,0), (-1,-1), 0.25, colors.grey),
+        ("BACKGROUND", (0,0), (0,-1), colors.whitesmoke),
+        ("FONTSIZE", (0,0), (-1,-1), 8),
+        ("ALIGN", (0,0), (-1,-1), "LEFT")
+    ]))
+    student_table.hAlign = 'LEFT'
+    elements.append(student_table)
+    elements.append(Spacer(1, 4))
+
+    # --- Fee Table ---
+    fee_data = [["Description", "Total", "Paid", "Due", "Status"]]
+    for f in fee_breakdown:
+        fee_data.append([
+            f["label"],
+            f"{f['total']:.2f}",
+            f"{f['paid']:.2f}",
+            f"{f['due']:.2f}",
+            f["status"]
+        ])
+
+    total_amount = sum(f["total"] for f in fee_breakdown)
+    total_paid = sum(f["paid"] for f in fee_breakdown)
+    total_due = sum(f["due"] for f in fee_breakdown)
+    fee_data.append(["Total", f"{total_amount:.2f}", f"{total_paid:.2f}", f"{total_due:.2f}", ""])
+
+    col_widths = [0.35*doc.width, 0.15*doc.width, 0.15*doc.width, 0.15*doc.width, 0.2*doc.width]
+    fee_table = Table(fee_data, colWidths=col_widths)
+    fee_table.setStyle(TableStyle([
+        ("GRID", (0,0), (-1,-1), 0.25, colors.black),
+        ("BACKGROUND", (0,0), (-1,0), colors.lightgrey),
+        ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
+        ("FONTSIZE", (0,0), (-1,-1), 8),
+        ("ALIGN", (1,1), (-1,-1), "CENTER"),
+        ("BACKGROUND", (0,-1), (-1,-1), colors.whitesmoke),
+    ]))
+    fee_table.hAlign = 'LEFT'
+    elements.append(fee_table)
+    elements.append(Spacer(1, 4))
+
+    # --- Footer / Signature ---
+    footer_data = [
+        ["Received By", "", "Signature of Student/Guardian"],
+        ["__________________", "", "__________________"]
+    ]
+    footer_table = Table(footer_data, colWidths=[0.3*doc.width, 0.3*doc.width, 0.3*doc.width])
+    footer_table.setStyle(TableStyle([
+        ("ALIGN", (0,0), (-1,-1), "CENTER"),
+        ("TOPPADDING", (0,0), (-1,-1), 6)
+    ]))
+    footer_table.hAlign = 'LEFT'
+    elements.append(footer_table)
+    elements.append(Spacer(1, 2))
+    elements.append(Paragraph("<i>Thank you for your payment!</i>", styles['Normal']))
+
+    # --- Build PDF ---
+    doc.build(elements)
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type='application/pdf')
+    filename = f"MoneyReceipt_{student.name}_{invoice.invoice_type}_{invoice.id}.pdf"
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+    return response
+
+
+
+############################# manual payment system #################################
+
+
+
+from django.db import transaction
+from payments.utils import create_school_fee_journal_entry
+from core.models import TaxPolicy
+
+@csrf_exempt
+def manual_payment_multiple(request):
+    students = Student.objects.all()
+    student_id = request.GET.get('student_id')
+    selected_student = None
+    total_due = None
+    dues = {}
+    tax_policies = TaxPolicy.objects.all()
+
+    if student_id:
+        selected_student = Student.objects.filter(id=student_id).first()
+        if selected_student:
+            dues = get_due_till_today(selected_student)
+            total_due = sum(
+                data.get('net_due', 0) for data in dues.values())           
+
+    if request.method == 'POST':
+        student_id_post = request.POST.get('student_id')
+        entered_amount = Decimal(request.POST.get('total_amount', '0') or '0')
+        student = Student.objects.filter(id=student_id_post).first()
+        tax_policy_id = request.POST.get('tax_policy')
+        tax_policy = TaxPolicy.objects.get(id=tax_policy_id)
+
+        if not student:
+            messages.error(request, "Student not found.")
+            return redirect('payments:manual_payment_multiple')
+
+        fee_types = request.POST.getlist('fee_types')
+        if not fee_types:
+            messages.error(request, "Please select at least one fee type.")
+            return redirect('payments:manual_payment_multiple')
+
+        selected_dues = {ft: dues[ft]['net_due'] for ft in fee_types if ft in dues and dues[ft].get('net_due', 0) > 0}
+        total_selected_due = sum(Decimal(v or 0) for v in selected_dues.values())
+        total_payment_amount = min(entered_amount, total_selected_due) if entered_amount > 0 else total_selected_due
+
+        if total_payment_amount <= 0:
+            messages.error(request, "Please enter a valid payment amount.")
+            return redirect('payments:manual_payment_multiple')
+
+        payment_method = request.POST.get('payment_method')
+        if not payment_method:
+            messages.error(request, "Please select a payment method.")
+            return redirect('payments:manual_payment_multiple')
+    
+        remaining_amount = total_payment_amount
+        applied_payments = []
+
+        for fee_type in fee_types:
+            if remaining_amount <= 0:
+                break
+            fee_due = selected_dues.get(fee_type, 0)
+            if fee_due <= 0:
+                continue
+            pay_for_this_fee = min(fee_due, remaining_amount)
+
+            if fee_type in ['tuition', 'hostel', 'transport', 'admission']:
+                _, updated_items = apply_payment_to_oldest_months(student, fee_type, pay_for_this_fee)
+            else:
+                _, updated_items = apply_one_time_payment(student, fee_type, pay_for_this_fee)
+
+            # Attach fee_type to each payment for journal calculation
+            for p in updated_items:
+                p._fee_type = fee_type  # temporary attribute
+
+            applied_payments.extend(updated_items)
+            remaining_amount -= pay_for_this_fee
+
+
+        if applied_payments:
+            try:
+                with transaction.atomic():                    
+                    invoice = create_payment_invoice(
+                        applied_payments,
+                        invoice_type=fee_types,
+                        payment_method=payment_method,
+                        entered_amount=total_payment_amount
+                    )
+                    invoice.academic_year = timezone.now().year
+                    invoice.save(update_fields=['academic_year'])
+
+                    fees_for_journal = {}
+                    for item in applied_payments:
+                        ft = getattr(item, "_fee_type", None)
+                        if ft:
+                            fees_for_journal[ft] = fees_for_journal.get(ft, Decimal("0.00")) + item.amount_paid
+
+      
+                    create_school_fee_journal_entry(
+                        payment_date=timezone.now(),
+                        reference=f"INV-{invoice.id}",
+                        student=student,
+                        tax_policy=tax_policy,
+                        fees=fees_for_journal,
+                        created_by=request.user)
+
+                    messages.success(request, f"Payment successful. Invoice #{invoice.id} and journal entry created.")
+                    return redirect('payments:payment_invoice_detail', pk=invoice.pk)
+
+            except Exception as e:
+                messages.error(request, f"Payment succeeded but journal entry failed: {e}")
+                return redirect('payments:manual_payment_multiple')
+
+        else:
+            messages.error(request, "No payments could be applied. Please check the dues and try again.")
+            return redirect('payments:manual_payment_multiple')
+
+    return render(request, 'payments/manual_payment/manual_payment_multiple.html', {
+        'students': students,
+        'selected_student': selected_student,
+        'total_due': total_due,
+        'dues': dues,
+        'admission_due': dues.get('admission', 0),
+        'payment_methods': PaymentInvoice._meta.get_field('payment_method').choices,
+        'tax_policies':tax_policies
+    })
+
+
+import logging
+logger = logging.getLogger(__name__)
+
+
+@login_required
+def ajax_pending_admission_fees(request, student_id):
+    try:
+        logger.info(f"AJAX request for pending admission fees: student_id={student_id}")
+
+        student = get_object_or_404(Student, id=student_id)
+        logger.info(f"Found student: {student.name} ({student.id})")
+
+        enrollment = student.enrolled_students.select_related(
+            'feestructure__admissionfee_policy'
+        ).first()
+        logger.info(f"Enrollment found: {enrollment}")
+
+        today = date.today()
+        due_month = today.month
+        if today.day < 25:
+            due_month -= 1
+        due_month = max(due_month, 1)
+        logger.info(f"Calculated due_month: {due_month}")
+
+        if not enrollment or not enrollment.feestructure:
+            logger.warning(f"No enrollment or feestructure found for student {student.id}")
+            return JsonResponse({
+                "pending_items": [],
+                "paid_items": [],
+                "total_pending": "0.00"
+            })
+
+        policy_items = enrollment.feestructure.admissionfee_policy.admission_fees.all()
+        logger.info(f"Policy items count: {policy_items.count()}")
+
+        payments = AdmissionFeePayment.objects.filter(
+            student=student,
+            admission_fee_assignment__admission_fee__in=policy_items
+        )
+        logger.info(f"Payments found: {payments.count()}")
+
+        payments_dict = {}
+        for p in payments:
+            fee_id = p.admission_fee_assignment.admission_fee_id
+            payments_dict.setdefault(fee_id, []).append(p)
+        logger.info(f"Payments dictionary prepared with {len(payments_dict)} keys")
+
+        pending_items = []
+        paid_items = []
+        total_pending = Decimal("0.00")
+
+        for item in policy_items:
+            if item.due_month > due_month:
+                logger.info(f"Skipping fee item {item.fee_type} (due_month={item.due_month})")
+                continue
+
+            item_payments = payments_dict.get(item.id, [])
+            total_paid = sum([p.amount_paid for p in item_payments]) or Decimal("0.00")
+            remaining = item.amount - total_paid
+            logger.info(f"Fee item: {item.fee_type}, total_paid={total_paid}, remaining={remaining}")
+
+            if total_paid > 0 and item_payments:
+                last_payment = max(item_payments, key=lambda x: x.payment_date)
+                paid_items.append({
+                    "name": item.fee_type,
+                    "amount": str(total_paid),
+                    "date": last_payment.payment_date.strftime("%d %b %Y")
+                })
+
+            if remaining > 0:
+                pending_items.append({
+                    "id": item.id,
+                    "name": item.fee_type,
+                    "amount": str(remaining)
+                })
+                total_pending += remaining
+
+        logger.info(f"Total pending: {total_pending}")
+        return JsonResponse({
+            "pending_items": pending_items,
+            "paid_items": paid_items,
+            "total_pending": str(total_pending)
+        })
+
+    except Exception as e:
+        logger.exception(f"Error fetching admission fees for student_id={student_id}: {e}")
+        return JsonResponse({
+            "error": "An unexpected error occurred. Please contact admin."
+        }, status=500)
+
+
+
+
+################################# Online Payment ######################################
+
+def review_and_payfees_online(request):
+    students = Student.objects.all()
+    student_id = request.GET.get('student_id')
+    student = None
+    dues = {}
+    total_due = Decimal('0')
+
+    if student_id:
+        student = Student.objects.filter(id=student_id).first()
+    else:
+        student = Student.objects.filter(user=request.user).first()
+
+    if not student:
+        messages.error(request, "Invalid student selected.")
+        return redirect('payments:review_and_pay_online')
+
+    dues = get_due_till_today(student)
+
+    total_due = sum(
+        Decimal(data.get('net_due', 0))
+        for data in dues.values())
+
+    if total_due <= 0:
+        messages.warning(request, "No dues found for this student.")
+        return redirect('payments:review_and_pay_online')
+
+    if request.method == "POST":
+        selected_types = request.POST.getlist('fee_types')
+        entered_amount = Decimal(
+            request.POST.get('custom_amount', '0') or '0')
+
+        if not selected_types:
+            messages.warning(request, "Please select at least one payment type.")
+            return redirect(f"{request.path}?student_id={student.id}")
+
+        selected_dues = {
+            ft: dues[ft]['net_due']
+            for ft in selected_types
+            if ft in dues and dues[ft].get('net_due', 0) > 0}
+
+        total_selected_due = sum(
+            Decimal(v) for v in selected_dues.values() )
+
+        if total_selected_due <= 0:
+            messages.warning(request, "No due to pay for selected categories.")
+            return redirect(f"{request.path}?student_id={student.id}")
+ 
+        total_payment_amount = (
+            min(entered_amount, total_selected_due)
+            if entered_amount > 0
+            else total_selected_due
+        )
+
+        if total_payment_amount <= 0:
+            messages.warning(request, "Please enter a valid payment amount.")
+            return redirect(f"{request.path}?student_id={student.id}")     
+        
+        transaction_id = f"TXN-{uuid.uuid4().hex[:10]}"
+        ssl_store_id = getattr(settings, 'SSLZCOMMERZ_STORE_ID', None)
+        ssl_store_passwd = getattr(settings, 'SSLZCOMMERZ_STORE_PASS', None)
+
+        ssl_api_url = (
+            "https://sandbox.sslcommerz.com/gwprocess/v4/api.php"
+            if settings.SSLZCOMMERZ_IS_SANDBOX
+            else "https://securepay.sslcommerz.com/gwprocess/v4/api.php"
+        )
+
+        if not (ssl_store_id and ssl_store_passwd):
+            messages.error(request, "SSLCommerz credentials not configured properly.")
+            return redirect(f"{request.path}?student_id={student.id}")
+
+        post_data = {
+            'store_id': ssl_store_id,
+            'store_passwd': ssl_store_passwd,
+            'total_amount': float(total_payment_amount),
+            'currency': "BDT",
+            'tran_id': transaction_id,
+            'success_url': request.build_absolute_uri('/payments/ssl-success/'),
+            'fail_url': request.build_absolute_uri('/payments/payment/fail/'),
+            'cancel_url': request.build_absolute_uri('/payments/payment/cancel/'),
+            'cus_name': student.name,
+            'cus_email': student.email or 'noemail@school.com',
+            'cus_phone': student.phone_number or 'N/A',
+            'cus_add1': "Dhaka",
+            'cus_city': "Dhaka",
+            'cus_country': "Bangladesh",
+            'shipping_method': "NO",
+            'value_a': str(student.id),
+            'value_b': ','.join(selected_dues.keys()),
+            'value_c': str(total_payment_amount),
+            'product_category': 'School Fees',
+            'product_name': 'Multi-Fee Payment',
+            'product_profile': "general",
+        }
+
+        try:
+            response = requests.post(ssl_api_url, data=post_data, timeout=15)
+            res_json = response.json()
+        except Exception as e:
+            messages.error(request, f"SSLCommerz connection error: {e}")
+            return redirect(f"{request.path}?student_id={student.id}")
+
+        if res_json.get('status') == 'SUCCESS' and res_json.get('GatewayPageURL'):
+            return redirect(res_json['GatewayPageURL'])
+        else:
+            messages.error(
+                request,
+                f"SSLCommerz Error: {res_json.get('failedreason', 'Unknown error')}"
+            )
+            return redirect(f"{request.path}?student_id={student.id}")
+
+    return render(
+        request,
+        'payments/online_payment/review_and_payonline.html',
+        {
+            'all_students': students,
+            'student': student,
+            'dues': dues,
+            'total_due': total_due,
+        }
+    )
+
+
+
+@csrf_exempt
+def ssl_success(request):
+    data = request.POST
+    student_id = data.get('value_a')
+    payment_types = data.get('value_b', '').split(',')
+
+    student = Student.objects.filter(id=student_id).first()
+    if not student:
+        messages.error(request, "Student not found.")
+        return redirect('payments:payment_invoice_list')
+    total_amount = Decimal(data.get('value_c') or data.get('amount', 0))
+    remaining_amount = total_amount
+    applied_payments = []
+  
+    dues = get_due_till_today(student)
+
+    for fee_type in payment_types:
+        if remaining_amount <= 0:
+            break
+        if fee_type not in dues:
+            continue
+        fee_due = dues[fee_type].get('net_due', 0)
+        if fee_due <= 0:
+            continue
+
+        pay_for_this_fee = min(fee_due, remaining_amount)
+
+        if fee_type in ['tuition', 'hostel', 'transport', 'admission']:
+            _, updated_items = apply_payment_to_oldest_months(
+                student, fee_type, pay_for_this_fee)
+        else:
+            _, updated_items = apply_one_time_payment(
+                student, fee_type, pay_for_this_fee)
+
+        applied_payments.extend(updated_items)
+        remaining_amount -= pay_for_this_fee  
+
+    if applied_payments:
+        invoice = create_payment_invoice(
+            applied_payments,
+            invoice_type=payment_types,
+            payment_method='SSLCOMMERZE',
+            entered_amount=total_amount
+        )
+        messages.success(
+            request,
+            f"Payment successful. Invoice #{invoice.id} created."
+        )      
+        return redirect('payments:payment_invoice_detail', pk=invoice.pk)
+
+    messages.warning(
+        request,
+        "Payment received but no dues were applicable.")
+    return redirect('payments:payment_invoice_list')
 
 
 

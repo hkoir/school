@@ -16,14 +16,15 @@ class CustomUser(AbstractUser):
     biometric_id = models.CharField(max_length=50, unique=True, null=True, blank=True)
     ROLE_CHOICES = [
         ('student', 'Student'),
-        ('teacher', 'Teacher'),
+        ('teacher', 'Teacher'),    
         ('admin', 'Admin'),
         ('parent', 'Parent'),
         ('staff', 'Staff'),
         ('superadmin', 'SuperAdmin'),
+        ('management', 'Management'),
+        ('accounts_finance', 'Accounts & Finance'),
     ]
-
-    role = models.CharField(max_length=15, choices=ROLE_CHOICES, default='student')
+    role = models.CharField(max_length=30, choices=ROLE_CHOICES, default='student')
     tenant = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='users', null=True, blank=True)
     email = models.EmailField(blank=True, null=True, unique=False)
     phone_number = models.CharField(max_length=15, unique=True, null=True, blank=True)
@@ -33,6 +34,8 @@ class CustomUser(AbstractUser):
     user_position = models.CharField(max_length=100, choices=POSITION_CHOICES, null=True, blank=True)
     photo_id = models.ImageField(upload_to='user_photo', null=True, blank=True)
     last_login_ip = models.GenericIPAddressField(null=True, blank=True)
+    student_type = models.CharField(max_length=100,choices={'school':'school','college':'college','university':'university'},null=True,blank=True)  
+    teacher_type = models.CharField(max_length=100,choices={'school':'school','college':'college','university':'university'},null=True,blank=True)  
 
     def __str__(self):
         return f"{self.username} - {self.role}"
@@ -70,25 +73,38 @@ class AllowedEmailDomain(models.Model):
 
 
 
+
 import random
 from django.utils import timezone
 from datetime import timedelta
 
+
+PURPOSE_CHOICES = [
+    ('registration', 'Registration'),
+    ('forgot_password', 'Forgot Password'),
+    ('change_password', 'Change Password'),
+]
+
 class PhoneOTP(models.Model):
-    phone_number = models.CharField(max_length=20, unique=True)
+    phone_number = models.CharField(max_length=20)
     otp = models.CharField(max_length=6)
     valid_until = models.DateTimeField() 
     created_at = models.DateTimeField(auto_now_add=True)
     is_verified = models.BooleanField(default=False)
+    purpose = models.CharField(max_length=20, choices=PURPOSE_CHOICES, default='registration')
 
     def save(self, *args, **kwargs):     
         if not self.valid_until:
             self.valid_until = timezone.now() + timedelta(minutes=5)
         super().save(*args, **kwargs)
 
- 
     def generate_otp(self):
         self.otp = str(random.randint(100000, 999999))
         self.valid_until = timezone.now() + timedelta(minutes=5)
         self.save()
 
+    def is_valid(self):
+        return timezone.now() <= self.valid_until and not self.is_verified
+
+ 
+  

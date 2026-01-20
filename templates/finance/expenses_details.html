@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+
+<div class="container py-4">
+    <h3 class="mb-4">Expense Details</h3>    
+    <!-- Filter Buttons -->
+    <div class="d-flex flex-wrap align-items-center mb-3 gap-2">
+        <a href="?filter=today" class="btn btn-sm btn-outline-primary {% if filter_type == "today" %}active{% endif %}">Today</a>
+        <a href="?filter=this_month" class="btn btn-sm btn-outline-primary {% if filter_type == "this_month" %}active{% endif %}">This Month</a>
+         <a href="{% url 'finance:management_dashboard' %}" class="btn btn-sm btn-outline-primary text-center">Back to dashboard</a>
+
+        <!-- Date Range Filter -->
+        <form method="get" class="d-flex gap-2 ms-auto">
+            <input type="date" name="start_date" value="{{ start_date }}" class="form-control form-control-sm" required>
+            <input type="date" name="end_date" value="{{ end_date }}" class="form-control form-control-sm" required>
+            <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+        </form>
+    </div>
+
+    <!-- Summary Card -->
+    <div class="row row-cols-1 row-cols-md-3 g-4 mb-4">
+        <div class="col">
+            <a href="{% url 'finance:revenue_details' %}?start_date={{ start_date }}&end_date={{ end_date }}" class="text-decoration-none">
+                <div class="card border-success shadow-sm h-100 text-center">
+                    <div class="card-body">
+                        <h6 class="text-success">Total Expenses</h6>
+                        <h4>৳ {{ total_expenses|floatformat:2|intcomma }}</h4>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Revenue Table -->
+    <div class="card shadow-sm">
+        <div class="card-body table-responsive">
+            <div class="table-responsive">
+           <table class="table table-bordered table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for expense in expenses %}
+                    <tr>
+                        <td>{{ expense.date|date:"Y-m-d" }}</td>
+                        <td>{{ expense.get_category_display }}</td>
+                        <td>৳ {{ expense.amount|floatformat:2 }}</td>
+                        <td>{{ expense.description|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">No expenses found in this range.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -8,6 +8,9 @@ from django.db.utils import ProgrammingError
 from django_tenants.utils import get_tenant_model
 from django_tenants.utils import get_tenant
 from clients.models import Tenant
+from messaging.models import CommunicationMessage
+from messaging.models import Conversation
+from school_management.models import School
 
 
 def user_info(request):
@@ -18,6 +21,11 @@ def user_info(request):
     school_logo_url = 'Unknown'
     school_name = 'None'
     tenant_photo_url = None
+    school_address=None
+    school_website=None
+
+    school = School.objects.first()
+
 
     if request.user.is_authenticated:
         try:
@@ -31,32 +39,13 @@ def user_info(request):
                     'school_name': school_name,
                 }
 
-            student = Student.objects.filter(user=request.user).first()
-            teacher = Teacher.objects.filter(user=request.user).first()
-            employee = Employee.objects.filter(user=request.user).first()
-            user_profile = UserProfile.objects.filter(user=request.user).first()
-
-            # Get associated Tenant model instance
             tenant_instance = Tenant.objects.filter(tenant=current_client).first()
             if tenant_instance and tenant_instance.logo:
-                tenant_photo_url = tenant_instance.logo.url
-                tenant_name = tenant_instance.name
+                school_logo_url = tenant_instance.logo.url
+                school_name = tenant_instance.name
+                school_address = tenant_instance.address
+                school_website = current_client
 
-            if user_profile and user_profile.profile_picture:
-                profile_picture_url = user_profile.profile_picture.url
-
-            if student and student.enrolled_students.exists():
-                school_logo_url = student.enrolled_students.first().academic_class.faculty.school.logo.url
-                school_name = student.enrolled_students.first().academic_class.faculty.school.name
-            elif teacher:
-                school_logo_url = teacher.school.logo.url
-                school_name = teacher.school.name
-            elif employee:
-                school_logo_url = employee.company.logo.url
-                school_name = employee.company.name
-            elif tenant_photo_url:
-                school_logo_url = tenant_photo_url
-                school_name = tenant_name
 
         except ProgrammingError:
             pass
@@ -70,6 +59,9 @@ def user_info(request):
         'profile_picture_url': profile_picture_url,
         'school_logo_url': school_logo_url,
         'school_name': school_name,
+        'school':school,
+        'school_address': school_address,
+        'school_website': f"http://www.{school_website}.bnova.pro",
     }
 
 
@@ -79,36 +71,53 @@ def tenant_schema(request):
     return {'schema_name': schema_name}
 
 
-from django.db.models import Q  
-
-
-
-
-from django.db.models import Q  
-
-
+from collections import defaultdict
+from django.db.models import Q
 
 def unread_notifications(request):
-    current_client = get_tenant(request)   
-    if current_client.schema_name == 'public':
-       return {'unread_notifications': []}
+    current_client = get_tenant(request)
+    if current_client.schema_name == 'public' or not request.user.is_authenticated:
+        return {
+            'unread_notifications': [],
+            'unread_chat_messages': [],
+            'unread_chat_messages_count': 0,
+            'unread_per_conversation': {}
+        }
 
-    if not request.user.is_authenticated:
-        return {'unread_notifications': []}
-
+    # Start with all unread notifications
     notifications = Notification.objects.filter(is_read=False)
 
+    # Filter notifications belonging to the logged-in user, either directly or via related student/teacher
     if request.user.role == "student":
-        student = Student.objects.filter(user=request.user).first()
-        if student:
-            notifications = notifications.filter(Q(student=student) | Q(user=request.user))
-    
+        notifications = notifications.filter(
+            Q(student__user=request.user) | Q(user=request.user)
+        )
     elif request.user.role == "teacher":
-        teacher = Teacher.objects.filter(user=request.user).first()
-        if teacher:
-            notifications = notifications.filter(Q(teacher=teacher) | Q(user=request.user))
-
+        notifications = notifications.filter(
+            Q(teacher__user=request.user) | Q(user=request.user)
+        )
     else:
-        notifications = notifications.filter(user=request.user)  
+        notifications = notifications.filter(user=request.user)
 
-    return {'unread_notifications': notifications}
+    # Group conversations for the current user
+    group_conversations = Conversation.objects.filter(participants=request.user, is_group=True)
+
+    # Count unread messages per conversation excluding messages sent by the user or already read by the user
+    comm_messages = CommunicationMessage.objects.filter(
+        conversation__in=group_conversations
+    ).exclude(
+        sender=request.user
+    ).exclude(
+        read_statuses__user=request.user
+    )
+
+    unread_map = defaultdict(int)
+    for msg in comm_messages:
+        unread_map[msg.conversation_id] += 1
+
+    return {
+        'unread_notifications': notifications,
+        'unread_chat_messages': group_conversations,
+        'unread_chat_messages_count': sum(unread_map.values()),
+        'unread_per_conversation': dict(unread_map),
+    }

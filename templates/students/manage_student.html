@@ -4,18 +4,16 @@
 
 {% block content %}
 
-
+{% include 'students/quick_access_link.html' %}
 <div class="container-fluid main-content">
     <div class="row">
-
-
-<div class="col-12">
+        <div class="col-12">
             <div class="card shadow-lg border-0 rounded-lg">
                 <!-- Card Header -->
                 <div class="card-header bg-primary text-white text-center">
-                    <h3 class="mb-0">Create Student Profile</h3>
+                    <h3 class="mb-0">{% if instance %} Update Student {% else %} Create Student {% endif %}</h3>
                 </div> 
-                <div class="card-body">                   
+                <div class="card-body">
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
                 
@@ -39,20 +37,19 @@
                                     {% endfor %}
                                 </div>
                             {% endfor %}
-                            <div class="col-md-auto align-self-end mb-3">
-                                <button type="submit" name="entity_submit" class="btn btn-success btn-sm">
-                                   Proceed
-                                </button>
-                            </div>
-                        </div>                
-                        
-                       
-                        
+                        </div>
+                
+                        <div class="d-grid">
+                            <button type="submit" name="entity_submit" class="btn btn-success btn-sm">
+                                {% if instance %} Update {% else %} Add {% endif %}
+                            </button>
+                        </div>   
                     </form>
                 </div>
+                
             </div>
         </div>
-                
+        
         
         <div class="col-12 table-responsive my-5">
             <table class="table table-hover">

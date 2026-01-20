@@ -55,7 +55,16 @@ urlpatterns = [
     path('payment/fail/', views.payment_fail, name='payment_fail'),
     path('payment/cancel/', views.payment_cancel, name='payment_cancel'), 
 
+     path('payment-invoice-detail/<int:pk>/', views.payment_invoice_detail, name='payment_invoice_detail'),
+    path('payment-invoice_list/', views.payment_invoice_list, name='payment_invoice_list'),
+    path('invoice/receipt/<int:pk>/', views.payment_invoice_receipt, name='payment_invoice_receipt'),
+  
+    path('manual_payment_multiple/', views.manual_payment_multiple, name='manual_payment_multiple'),
+    path('review-and-payonline/', views.review_and_payfees_online, name='review_and_pay_online'),
+    path('ssl-success/', views.ssl_success, name='ssl_success'),   
 
+
+   path('ajax_pending_admission_fees/<int:student_id>/', views.ajax_pending_admission_fees, name='ajax_pending_admission_fees'),
 
 
 ]

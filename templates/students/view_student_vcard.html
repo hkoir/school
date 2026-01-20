@@ -5,7 +5,7 @@
 {% block content %}
 
 
-
+{% include 'students/quick_access_link.html' %}
 
 <div class="container-fluid main-content">
     <h4 class="text-center">Student Database</h4>
@@ -17,7 +17,7 @@
         </form>  
         <hr>
         {% for student in page_obj %}
-        <div class="col-12 col-sm-6 col-md-3 col-lg-2 mb-4">
+        <div class="col-12 col-sm-6 col-md-3 mb-4">
             <div class="card shadow-lg border-0" style="background-color: #f8f9fa; border-radius: 15px;">
                 <!-- Employee Photo -->
                 <div class="d-flex justify-content-center mt-3">
@@ -41,12 +41,18 @@
                         </a>    
                     </h5>                 
 
-                    <p class="text-muted mb-2" style="font-size: 14px;">ID:{{ student.student_id }}</p>
-                    <p class="text-muted mb-2" style="font-size: 14px;">{{ student.enrolled_students.first.student_class }}||                  
-                       {{ student.enrolled_students.first.student_class.shift }}
+                    <p class="text-muted mb-2" style="font-size: 14px;">ID:{{ student.student_id }}<br>
+                        {{ student.enrolled_students.first.academic_class.name }}                 
+                       {{ student.enrolled_students.first.shift.name }}-  {{ student.enrolled_students.first.section.name }}<br>                       
+                       {{ student.enrolled_students.first.gender.name }}-{{ student.enrolled_students.first.language.name }}
                     </p>
-                     <span><a href="{% url 'students:student_exam_schedule' student.id %}">Exam Schedule</a></span>
-                     <span><a href="{% url 'students:student_weekly_schedule_with_id' student.id %}">Class Schedule</a></span>
+                     <span><a href="{% url 'students:exam_schedule_view' %}" class="btn btn-sm btn-outline-success w-100">Exam Schedule</a></span><br>
+                     <span><a href="{% url 'students:student_id_card_view' student.id %}" class="btn btn-sm btn-outline-success w-100" >ID Card</a></span> 
+                    <span><a href="{% url 'students:student_subject_enrollment_view' student.id %}" class="btn btn-sm btn-outline-success w-100" >Subject_view</a></span> 
+                      <span><a href="{% url 'students:student_school_class_routine_view' %}" class="btn btn-sm btn-outline-success w-100" >Class routine</a></span> 
+                     <span><a href="{% url 'students:student_dues_overview' %}" class="btn btn-sm btn-outline-primary w-100" >Dues</a>     
+                        
+                        
                    
                 </div>
             </div>

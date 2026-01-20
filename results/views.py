@@ -1,4 +1,6 @@
 
+
+
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -25,12 +27,75 @@ from .models import Result, StudentFinalResult,Grade
 from.forms import ClassTopperReportFilterForm,AggregateReportFilterForm,StudentTranscriptFilterForm
 from students.models import Student
 from school_management.models import Subject
-from.models import Grade,Result,StudentFinalResult,ExamType,Exam
+from.models import Grade,Result,StudentFinalResult,ExamType
 from.forms import ExamResultForm,GradeForm,ResultForm,ExamTypeForm
 from django.db.models import Max, Subquery, OuterRef
-from school_management.models import SubjectAssignment
+from school_management.models import Subject
 from django.db.models import Case, When, Value, FloatField, F, Sum
 from collections import Counter
+
+
+
+
+
+
+
+
+
+from students.models import StudentEnrollment,ExamFee,ExamFeeAssignment
+from.forms import ExamCreationForm
+from django.utils.timezone import now
+from django.views.generic import ListView
+from .models import Exam
+
+def create_exam_with_fee(request,id=None):
+    instance = get_object_or_404(Exam, id=id) if id else None
+    if request.method == "POST":
+        form = ExamCreationForm(request.POST)
+        if form.is_valid():
+            exam = form.save()
+            
+            exam_fee = ExamFee.objects.create(
+                academic_year=exam.academic_year,
+                student_class=form.cleaned_data['academic_class'],
+                language_version=form.cleaned_data['language_version'],
+                exam=exam,
+                amount=form.cleaned_data['exam_fee_amount'],
+                description=form.cleaned_data['description']
+            )
+
+            enrollments = StudentEnrollment.objects.filter(
+                academic_year=exam.academic_year,
+                academic_class=form.cleaned_data['academic_class'],
+                language = form.cleaned_data['language_version']
+                
+            )
+
+            count = 0
+            for enrollment in enrollments:
+                ExamFeeAssignment.objects.get_or_create(  # This will trigger Students.signals to create examfeepayment models
+                    student=enrollment.student,
+                    exam_fee=exam_fee,
+                    defaults={'start_date': now().date()}
+                )
+                count += 1
+
+            messages.success(
+                request,
+                f"Exam '{exam.name}' created successfully and assigned to {count} students!"
+            )
+            return redirect('results:exam_list')
+    else:
+        form = ExamCreationForm()
+    return render(request, 'exams/create_exam_with_fee.html', {'form': form,'instance':instance})
+
+
+
+
+class ExamListView(ListView):
+    model = Exam
+    template_name = 'exams/exam_list.html'
+    context_object_name = 'exams'
 
 
 @login_required
@@ -79,9 +144,6 @@ def delete_grade(request, id):
 
 
 
-
-
-
 def get_exam_types_for_exam(request):
     print("Entering into ajax...")
     exam_id = request.GET.get('exam_id')
@@ -119,99 +181,104 @@ def get_exam_marks(request):
         return JsonResponse({'error': 'Student not found'}, status=404)
 
 
-
-
+from django.http import JsonResponse
+from school_management.models import Schedule
 def get_student_details(request):
     student_id = request.GET.get('student_id')
-    print(f"Received student_id: {student_id}") 
 
     if not student_id:
         return JsonResponse({'error': 'student_id is required'}, status=400)
 
     if not student_id.isdigit():
         return JsonResponse({'error': 'Invalid student_id format'}, status=400)
+
     try:
         student = Student.objects.get(id=student_id)
-        first_enrollment = student.enrolled_students.first()     
-        if first_enrollment:
-            data = {
-                'academic_year': first_enrollment.academic_year,              
-                'subject_teacher':first_enrollment.student_class.student_subject_assignments.first().subject_teacher.id
-                   }
-            return JsonResponse(data)
-        else:
+        first_enrollment = student.enrolled_students.first()
+
+        if not first_enrollment:
             return JsonResponse({'error': 'No enrollment found for this student'}, status=404)
+
+        academic_year = first_enrollment.academic_year
+        
+        subject_teacher_qs = Schedule.objects.filter(
+            academic_class=first_enrollment.academic_class,
+            section=first_enrollment.section,
+            shift=first_enrollment.shift,
+            gender=first_enrollment.gender,
+            language=first_enrollment.language
+        )
+
+        subject_teacher = list(subject_teacher_qs.values_list('id', flat=True))
+
+        data = {
+            'academic_year': str(academic_year),
+            'subject_teacher': subject_teacher
+        }
+
+        return JsonResponse(data)
+
     except Student.DoesNotExist:
         return JsonResponse({'error': 'Student not found'}, status=404)
 
 
 
-
-from results.utils import calculate_and_create_final_result
+from results.utils import calculate_student_final_result
 
 @login_required
-def manage_result(request, id=None):   
+def manage_result(request, id=None):
     instance = get_object_or_404(Result, id=id) if id else None
-    message_text = "updated successfully!" if id else "added successfully!"  
     form = ResultForm(request.POST or None, instance=instance)
+    message_text = "updated successfully!" if id else "added successfully!"
 
-    if request.method == 'POST':
-        form = ResultForm(request.POST, instance=instance)
+    if request.method == "POST":
         if form.is_valid():
-            form_instance = form.save(commit=False) 
-            form_instance.user = request.user
-            form_instance.save()
-    
-            student = form_instance.student
-            subject = form_instance.exam_type.subject
-            academic_year = form_instance.academic_year
+            result_instance = form.save(commit=False)
+            result_instance.user = request.user
+            result_instance.exam_type=form.cleaned_data['exam_type']
+            result_instance.save()
 
-            enrollment = student.enrolled_students.first()
-            if enrollment:
-                academic_class = enrollment.academic_class if enrollment.academic_class else None
-                section = enrollment.section
-                faculty = (
-                    enrollment.academic_class.faculty
-                    if enrollment.academic_class and enrollment.academic_class.faculty
-                    else None
-                )
+            student = result_instance.student
+            academic_year = result_instance.academic_year
+            subject = result_instance.exam_type.subject
 
-            final_result = calculate_and_create_final_result(
-            student=student,
-            academic_year=academic_year,
-            academic_class=academic_class,
-            section=section,
-            subject=subject,
-            faculty=faculty
-        )
+            # Get enrollment details for class/faculty/section
+            enrollment = student.enrolled_students.filter(academic_year=academic_year).first()
+            academic_class = enrollment.academic_class if enrollment else None
+            faculty = academic_class.faculty if academic_class else None
+            section = enrollment.section if enrollment else None
 
-        if final_result:
-            form_instance.final_result = final_result
-            form_instance.save()
-            # form_instance.save(update_fields=['final_result'])
-        elif not final_result:
-                print("❌ Failed to calculate StudentFinalResult in view.")
+            # Calculate final result for this single subject
+            final_result = calculate_student_final_result(
+                student=student,
+                academic_year=academic_year,
+                academic_class=academic_class,
+                faculty=faculty,
+                section=section,
+                subject=subject
+            )
+
+            # Link this Result to its final_result
+            if final_result:
+                result_instance.final_result = final_result
+                result_instance.save(update_fields=['final_result'])
+
+            messages.success(request, message_text)
+            return redirect('results:create_result')
         else:
-            print("❌ No enrollment found.")
-
-        messages.success(request, message_text)
-        return redirect('results:create_result')  
-    else:
-        print(form.errors) 
+            print("❌ Form errors:", form.errors)
 
     datas = Result.objects.all().order_by('-created_at')
     paginator = Paginator(datas, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    return render(request, 'results/manage_result.html', {
+    return render(request, "results/manage_result.html", {
         'form': form,
         'instance': instance,
         'datas': datas,
         'page_obj': page_obj
     })
-
-
 
 
 
@@ -240,7 +307,7 @@ def manage_exam_type(request, id=None):
     if request.method == 'POST':
         form = ExamTypeForm(request.POST, instance=instance)
         if form.is_valid():
-            form_instance = form.save(commit=False) 
+            form_instance = form.save(commit=False)            
             form_instance.user = request.user
             form_instance.save()              
             
@@ -278,6 +345,21 @@ def delete_exam_type(request, id):
 
 
 
+@login_required
+def mark_exam_over(request, exam_id):
+    exam = get_object_or_404(Exam, id=exam_id)
+
+    if exam.is_exam_over:
+        messages.warning(request, f"{exam.name} is already marked as over.")
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+
+    exam.is_exam_over = True
+    exam.save()
+
+    messages.success(request, f"{exam.name} has been marked as completed.")
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
 ####################### Result sheet preparation ########################################
 
 
@@ -300,6 +382,7 @@ def individual_exam_result(request):
     if form.is_valid():
         student_id = form.cleaned_data['student_id']
         academic_year = form.cleaned_data['academic_year']
+       
         exam = form.cleaned_data['exam']
 
         student = get_object_or_404(Student, student_id=student_id)
@@ -313,7 +396,6 @@ def individual_exam_result(request):
 
         if exam:
             exam_results = exam_results.filter(exam_type__exam=exam)       
-
 
         if exam_results.exists():
             overall_exam_date = exam_results.first().exam_date
@@ -349,6 +431,14 @@ def aggregated_final_result(request):
         return render(request, 'results/aggregated_final_result.html', {
             'message': 'Student not found.'
         })
+    
+    if student.enrolled_students.first(): 
+        enrollment = student.enrolled_students.first()
+        if enrollment.academic_class and enrollment.academic_class.faculty and enrollment.academic_class.faculty.school.logo:
+            logo_url = enrollment.academic_class.faculty.school.logo.url
+            school_name = enrollment.academic_class.faculty.school.name
+            school_address = enrollment.academic_class.faculty.school.address
+            school_website = enrollment.academic_class.faculty.school.website   
 
     final_results = StudentFinalResult.objects.filter(
         student=student,
@@ -359,6 +449,7 @@ def aggregated_final_result(request):
     total_subjects = final_results.count()
     gpa = round(total_grade_points / total_subjects, 2) if total_subjects > 0 else 0
 
+    overall_exam_date = final_results.first().created_at.date()
    
     if not final_results.exists():
         return render(request, 'results/aggregated_final_result.html', {
@@ -370,7 +461,7 @@ def aggregated_final_result(request):
     overall_percentage = (total_obtained_marks / total_assigned_marks) * 100 if total_assigned_marks > 0 else 0
     final_grade = Grade.objects.filter(min_marks__lte=overall_percentage, max_marks__gte=overall_percentage).first()
     final_grade_point = final_grade.grade_point
-    
+
     return render(request, 'results/aggregated_final_result.html', {
         'student': student,
         'academic_year': academic_year,
@@ -378,7 +469,8 @@ def aggregated_final_result(request):
         'total_obtained_marks': total_obtained_marks,
         'total_assigned_marks': total_assigned_marks,
         'overall_percentage': overall_percentage,
-        'gpa':final_grade_point,
+        'overall_exam_date':overall_exam_date,
+        'gpa':final_grade_point
     })
 
 
@@ -501,15 +593,19 @@ def student_details_report(request):
 
 
 
+from django.db.models import Q, Sum, F, Case, When, Value, FloatField, Max, Subquery, OuterRef
+from collections import Counter
+from django.shortcuts import render
+import json
 
 def GPA_Final_result_analysis(request):
     form = ClassTopperReportFilterForm(request.GET or None)
 
     context = {
-        'form': form,
         'grade_summary_data': None,
         'top_classes_gpa5': None,
         'top_classes_golden_gpa': None,
+        'form': form,
         'class_name': None,
         'section': None,
         'shift': None,
@@ -518,11 +614,10 @@ def GPA_Final_result_analysis(request):
         'academic_year': None,
         'students_with_golden_gpa': None,
         'top_students': None,
-        'grade_point_labels': [],
-        'grade_point_counts': [],
     }
 
     if request.method == 'GET' and form.is_valid():
+        # Get filters
         class_name = form.cleaned_data.get("class_name")
         subject = form.cleaned_data.get("subject")
         section = form.cleaned_data.get("section")
@@ -549,21 +644,24 @@ def GPA_Final_result_analysis(request):
 
         results = StudentFinalResult.objects.filter(filters)
 
-        # GPA and percentage calculation per student
+        # Annotate GPA and percentage
         students_with_percentage = results.values('student') \
             .annotate(
                 total_obtained_marks_sum=Sum('total_obtained_marks'),
                 total_assigned_marks_sum=Sum('total_assigned_marks')
-            ).annotate(
+            ) \
+            .annotate(
                 calculated_percentage=F('total_obtained_marks_sum') / F('total_assigned_marks_sum') * 100
             )
 
         students_with_all_gpa = students_with_percentage.annotate(
             calculated_gpa=Case(
                 *[
-                    When(calculated_percentage__gte=grade.min_marks,
-                         calculated_percentage__lte=grade.max_marks,
-                         then=Value(grade.grade_point))
+                    When(
+                        calculated_percentage__gte=grade.min_marks,
+                        calculated_percentage__lte=grade.max_marks,
+                        then=Value(grade.grade_point)
+                    )
                     for grade in Grade.objects.all()
                 ],
                 default=Value(0.0),
@@ -571,41 +669,44 @@ def GPA_Final_result_analysis(request):
             )
         )
 
-        # Count GPA distribution
+        # Count GPA occurrences and golden GPA
         grade_points = students_with_all_gpa.values_list('calculated_gpa', flat=True)
         grade_point_counts = Counter(grade_points)
 
-        # --- Identify Golden GPA students (those who got 5.0 in all subjects)
+        # Identify golden GPA students (all subjects GPA 5.0)
         golden_student_ids = []
-        for student_data in students_with_all_gpa:
-            student_id = student_data['student']
-            gpas = list(results.filter(student=student_id).values_list('grade_point', flat=True))
-            if gpas and all(g == 5.0 for g in gpas):
-                golden_student_ids.append(student_id)
+        for student in students_with_all_gpa:
+            sid = student['student']
+            subject_gpas = results.filter(student_id=sid).values_list('grade_point', flat=True)
+            if all(gp == 5.0 for gp in subject_gpas):
+                golden_student_ids.append(sid)
 
         golden_gpa_count = len(golden_student_ids)
         grade_point_counts['Golden GPA'] = golden_gpa_count
 
+        # Prepare labels and data
         labels = list(grade_point_counts.keys())
         counts = list(grade_point_counts.values())
 
-        # --- Golden GPA Student Data
-        students_with_golden_gpa_data = Student.objects.filter(id__in=golden_student_ids).annotate(
-            calculated_percentage=Subquery(
-                students_with_all_gpa.filter(student=OuterRef('id')).values('calculated_percentage')[:1]
+        # Safely get golden GPA students' data
+        students_with_golden_gpa_data = Student.objects.filter(id__in=golden_student_ids) \
+            .annotate(
+                calculated_percentage=Subquery(
+                    students_with_all_gpa.filter(student=OuterRef('pk')).values('calculated_percentage')[:1]
+                )
+            ) \
+            .values(
+                'name',
+                'student_id',
+                'enrolled_students__student_class__academic_class__name',
+                'enrolled_students__section__name',
+                'enrolled_students__student_class__shift',
+                'enrolled_students__section__class_gender',
+                'enrolled_students__student_class__language_version',
+                'calculated_percentage'
             )
-        ).values(
-            'name',
-            'student_id',
-            'enrolled_students__student_class__academic_class__name',
-            'enrolled_students__section__name',
-            'enrolled_students__student_class__shift',
-            'enrolled_students__section__class_gender',
-            'enrolled_students__student_class__language_version',
-            'calculated_percentage'
-        )
 
-        # --- Top Scoring Students
+        # Top scorers
         highest_percentage = students_with_all_gpa.aggregate(Max('calculated_percentage'))['calculated_percentage__max']
         top_students = students_with_all_gpa.filter(calculated_percentage=highest_percentage).values(
             'student__name',
@@ -618,8 +719,9 @@ def GPA_Final_result_analysis(request):
             'calculated_percentage'
         )
 
-        # --- Update context
+        # Update context
         context.update({
+            'form': form,
             'class_name': class_name,
             'section': section,
             'shift': shift,
@@ -630,9 +732,11 @@ def GPA_Final_result_analysis(request):
             'grade_point_counts': json.dumps(counts),
             'students_with_golden_gpa': students_with_golden_gpa_data,
             'top_students': top_students,
+            
         })
 
     return render(request, 'results/top_students_report.html', context)
+
 
 
 
@@ -648,8 +752,12 @@ def student_transcripts(request):
     overall_percentage=0
     average_gpa=0
     student =None
+    logo_url=None
+    school_name =None
+    school_address =None
+    school_website =None      
+     
     form = StudentTranscriptFilterForm(request.GET or None)
-
     if request.method == 'GET' and form.is_valid():
         student_id = form.cleaned_data.get('student_id')
         student = Student.objects.filter(student_id = student_id).first()
@@ -662,6 +770,13 @@ def student_transcripts(request):
             student_results = Result.objects.filter(student__student_id=student_id).select_related('exam_type')
             final_result = StudentFinalResult.objects.filter(student__student_id=student_id).first()
 
+            if student.enrolled_students.first(): 
+                enrollment = student.enrolled_students.first()
+                if enrollment.academic_class and enrollment.academic_class.faculty and enrollment.academic_class.faculty.school.logo:
+                    logo_url = enrollment.academic_class.faculty.school.logo.url
+                    school_name = enrollment.academic_class.faculty.school.name
+                    school_address = enrollment.academic_class.faculty.school.address
+                    school_website = enrollment.academic_class.faculty.school.website   
 
             highest_marks_subquery = StudentFinalResult.objects.filter(
                 academic_year=OuterRef('academic_year'),
@@ -714,41 +829,49 @@ def student_transcripts(request):
         'average_gpa':average_gpa,
         'overall_percentage':overall_percentage,
         "total_obtained_marks":total_obtained_marks,
-        'total_assigned_marks': total_assigned_marks
+        'total_assigned_marks': total_assigned_marks,
+        'logo_url':logo_url,
+        'school_name' : school_name,
+        'school_address':school_address,
+        'school_website' :school_website
 
     }
 
     return render(request, 'results/student_transcripts.html', context)
 
 
+@login_required
+def generate_pdf(request, id=None):
+    student = None
 
-def generate_pdf(request,id=None):
-    if id:       
-        return generate_student_pdf(id)
-    
-    if request.method == "POST":
-        student_id = request.POST.get('student_id')  
-        if student_id:
-            return generate_student_pdf(student_id)  
+    if id:
+        student = get_object_or_404(Student, id=id)
+        return generate_student_pdf(student)
+    student_id = request.GET.get('student_id') or request.POST.get('student_id')
+    if student_id:
+        student = get_object_or_404(Student, id=student_id)
+        return generate_student_pdf(student)
+    student = Student.objects.filter(user=request.user).first()
+    if student:
+        return generate_student_pdf(student)
+    students = Student.objects.all()
+    return render(request, "results/student_id_form.html", {'students': students})
 
-    return render(request, "results/student_id_form.html")  
 
 
 
-
-
-def generate_student_pdf(student_id):
-    student_with_golden_gpa_5 = False
-    student = Student.objects.filter(student_id=student_id).first()
+def generate_student_pdf(student):   
+    student_with_golden_gpa_5 = False    
+   
     if not student:
-        return HttpResponse(f"Student with ID {student_id} not found.", status=404)
+        return HttpResponse(f"Student with ID {student} not found.", status=404)
 
-    student_results = Result.objects.filter(student__student_id=student_id).select_related('exam_type')
+    student_results = Result.objects.filter(student=student).select_related('exam_type')
     if not student_results.exists():
-        return HttpResponse(f"No results found for student with ID {student_id}.", status=404)
+        return HttpResponse(f"No results found for student with ID {student}.", status=404)
 
     final_results = StudentFinalResult.objects.filter(
-        student__student_id=student_id
+        student=student
     ).select_related('faculty', 'subject', 'academic_class', 'section', 'final_grade')
 
     all_5_0 = True
@@ -779,7 +902,7 @@ def generate_student_pdf(student_id):
         grouped_results[exam_type_name].append(result)
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="student_{student_id}_transcript.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="student_{student}_transcript.pdf"'
 
     doc = SimpleDocTemplate(
         response,
@@ -834,8 +957,8 @@ def generate_student_pdf(student_id):
         elements.append(Spacer(1, 12)) 
     elements.append(Paragraph(f"<b>Student ID:</b> {student.student_id} || <b>Student Name:</b> {student.name}", style))
     elements.append(Paragraph(f"<b>Class:</b> {student.enrolled_students.first().academic_class} || <b>Section:</b> {student.enrolled_students.first().section.name}", style))
-    elements.append(Paragraph(f"<b>Shift:</b> {student.enrolled_students.first().student_class.shift} || <b>Version:</b> {student.enrolled_students.first().student_class.language_version} || <b>Gender:</b> {student.enrolled_students.first().section.class_gender}", style))
-    elements.append(Paragraph(f"<b>Class teacher ID:</b>{student.enrolled_students.first().section.teacher_in_charge.teacher_id}||<b>Name:</b> {student.enrolled_students.first().section.teacher_in_charge}", style))
+    elements.append(Paragraph(f"<b>Shift:</b> {student.enrolled_students.first().shift.name} || <b>Version:</b> {student.enrolled_students.first().language.name} || <b>Gender:</b> {student.enrolled_students.first().gender.name}", style))
+    elements.append(Paragraph(f"<b>Class teacher ID:</b>{student.enrolled_students.first().academic_class.class_schedules.first().class_teacher.class_teacher.teacher_id}||<b>Name:</b> {student.enrolled_students.first().academic_class.class_schedules.first().class_teacher.class_teacher.name}", style))
     elements.append(Spacer(1, 12))
 
     elements.append(Spacer(1, 12)) 
@@ -933,7 +1056,7 @@ def generate_student_pdf(student_id):
 
 def school_toppers(request):
     academic_year=None
-
+    school = None
     if request.method == 'GET':
          academic_year = request.GET.get('academic_year')  
    
@@ -947,13 +1070,14 @@ def school_toppers(request):
         .annotate(
             total_obtained_marks=Sum('total_obtained_marks'),
             total_assigned_marks=Sum('total_assigned_marks')
-        ).order_by('-total_obtained_marks')  
+        ).order_by('-total_obtained_marks')            
     
     for result in student_results:
-        student = result['student']  
+        student = result['student']        
         student_object = Student.objects.get(id=student)  
+        school = student_object.school
         result['student_name'] = student_object.name 
-        result['student_class'] = student_object.enrolled_students.first().student_class
+        result['student_class'] = student_object.enrolled_students.first().academic_class
 
         total_obtained_marks = result['total_obtained_marks']
         total_assigned_marks = result['total_assigned_marks']
@@ -980,5 +1104,105 @@ def school_toppers(request):
         'top_students': top_students,
         'class_counts': class_counts, 
         'class_names': json.dumps(class_names),
-        'class_counts_values': json.dumps(class_counts_values)
+        'class_counts_values': json.dumps(class_counts_values),
+        'school':school
     })
+
+
+from django.shortcuts import render
+from django.db.models import Sum, Avg
+from .models import StudentFinalResult
+from school_management.models import AcademicClass, Section, Shift, Language, Gender,School
+
+def student_ranking_view(request):
+    year = request.GET.get('year')
+    selected_class = request.GET.get('class')
+    selected_section = request.GET.get('section')
+    selected_shift = request.GET.get('shift')
+    selected_gender = request.GET.get('gender')
+    selected_language = request.GET.get('language')
+    school = School.objects.first()
+    academic_classes = AcademicClass.objects.all()
+
+    sections = Section.objects.all()
+    shifts = Shift.objects.all()
+    genders = Gender.objects.all()
+    languages = Language.objects.all()
+
+    section=None
+    shift=None
+    gender=None
+    language=None
+    academic_class=None
+
+    results = []
+    ranked_results = []
+
+    if year and selected_class:
+        qs = StudentFinalResult.objects.filter(
+            academic_year=year,
+            academic_class_id=selected_class
+        )
+        academic_class = get_object_or_404(AcademicClass,id=selected_class)
+
+        if selected_section:
+            qs = qs.filter(student__enrolled_students__section_id=selected_section)
+            section = get_object_or_404(Section,id=selected_section)
+        if selected_shift:
+            qs = qs.filter(student__enrolled_students__shift_id=selected_shift)
+            shift = get_object_or_404(Shift,id=selected_shift)
+        if selected_gender:
+            qs = qs.filter(student__enrolled_students__gender_id=selected_gender)
+            gender = get_object_or_404(Gender,id=selected_gender)
+        if selected_language:
+            qs = qs.filter(student__enrolled_students__language_id=selected_language)
+            language = get_object_or_404(Language,id=selected_language)
+
+        results = qs.values(
+            'student',
+            'student__name',
+            'student__student_id',
+            'academic_class__name',
+            'student__enrolled_students__section__name',
+            'student__enrolled_students__gender__name',
+            'student__enrolled_students__shift__name',
+            'student__enrolled_students__language__name'
+        ).annotate(
+            total_obtained=Sum('total_obtained_marks'),
+            total_assigned=Sum('total_assigned_marks'),
+            gpa=Avg('grade_point'),
+        )
+
+        # compute percentage
+        for r in results:
+            if r['total_assigned'] > 0:
+                r['percentage'] = (r['total_obtained'] / r['total_assigned']) * 100
+            else:
+                r['percentage'] = 0
+
+        # order by percentage & gpa
+        results = sorted(results, key=lambda x: (-x['percentage'], -x['gpa']))
+
+        # add ranking
+        rank = 1
+        for r in results:
+            r['rank'] = rank
+            ranked_results.append(r)
+            rank += 1
+
+    context = {
+        'year': year,
+        'academic_classes': academic_classes,
+        'sections': sections,
+        'shifts': shifts,
+        'genders': genders,
+        'languages': languages,
+        'ranked_results': ranked_results,
+        'school':school,
+        'selected_section':section.name if section else None,
+        'selected_shift':shift.name if shift else None,
+        'selected_gender':gender.name if gender else None,
+        'selected_language':language.name if language else None,
+        'selected_class':academic_class.name if academic_class else None,
+    }
+    return render(request, 'results/student_ranking.html', context)

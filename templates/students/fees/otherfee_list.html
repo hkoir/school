@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{% include 'students/quick_access_link.html' %}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Other Fees</h3>
+        <a href="{% url 'students:other_fees_add' %}" class="btn btn-primary btn-sm">Add Fee</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Student Enrollment</th>                  
+                    <th>Fee Type</th>
+                    <th>Amount</th>
+                    <th>Academic Year</th>
+                    <th>Description</th>
+                    <th>Created At</th>
+                    <th>Updated At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for obj in page_obj %}
+                <tr>
+                    <td>{{ obj.student_enrollment }}</td>                  
+                    <td>{{ obj.get_fee_type_display }}</td>
+                    <td>{{ obj.amount }}</td>
+                    <td>{{ obj.academic_year }}</td>
+                    <td>{{ obj.description }}</td>
+                    <td>{{ obj.created_at|date:"Y-m-d" }}</td>
+                    <td>{{ obj.updated_at|date:"Y-m-d" }}</td>
+                    <td>
+                        <a href="{% url 'students:other_fees_edit' obj.id %}" class="btn btn-warning btn-sm">Edit</a>
+                        <a href="{% url 'students:other_fees_delete' obj.id %}" class="btn btn-danger btn-sm">Delete</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center">No other fees found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <nav class="d-flex justify-content-center mt-2">
+        <ul class="pagination pagination-sm">
+            {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+            {% endif %}
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            {% endfor %}
+            {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

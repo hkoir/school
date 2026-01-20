@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Purchase Orders{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>📦 Purchase Orders</h2>
+
+    <div class="mb-3">
+        <a href="{% url 'finance:manage_purchase_order' %}" class="btn btn-primary">Create New Purchase Order</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Vendor</th>
+                    <th>Reference</th>
+                    <th>Status</th>
+                    <th>Total Payable</th>
+                    <th>Date Approved</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ order.vendor.name}}</td>
+                    <td>{{ order.reference|default:"-" }}</td>
+                    <td>
+                        <span class="badge 
+                        {% if order.approval_status == 'pending' %}bg-warning text-dark
+                        {% elif order.approval_status == 'approved' %}bg-primary
+                        {% elif order.approval_status == 'billed' %}bg-info text-dark
+                        {% elif order.approval_status == 'closed' %}bg-success
+                        {% elif order.approval_status == 'rejected' %}bg-danger
+                        {% else %}bg-secondary
+                        {% endif %}">
+                            {{ order.approval_status|capfirst }}
+                        </span>
+                    </td>
+                    <td>{{ order.total_payable|default:"0.00" }}</td>
+                    <td>
+                        {% if order.approval_status == 'pending' %}
+                        <span class="badge bg-warning">Pending</span>
+                        {% else %}
+                        {{ order.date_approved|date:"d M Y" }}
+                        {% endif %}
+
+                    </td>
+                    <td>
+                         {% if order.approval_status == 'pending' %}
+                         <a href="{% url 'finance:purchase_order_approve' order.id %}" class="btn btn-sm btn-outline-info">Approve Purchase</a>
+                         {% endif %}
+                        <a href="{% url 'finance:purchase_order_detail' order.id %}" class="btn btn-sm btn-outline-info">View</a>
+                       
+                        {% if not order.purchase_payments.exists %}
+                         <a href="{% url 'finance:manage_purchase_order' %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                        <a href="{% url 'finance:purchase_order_payment' pk=order.id %}" class="btn btn-sm btn-outline-success">make Payment</a>
+                        {% endif %}
+                        {% if order.purchase_items.first.purchase_type == "inventory" %}
+                        {% if not order.purchase_transactions.exists %}
+                        <a href="{% url 'finance:update_inventory' pk=order.id %}" class="btn btn-sm btn-outline-primary">Update Inventory</a>
+                        {% endif %}
+                         {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">No purchase orders found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

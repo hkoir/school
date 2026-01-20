@@ -4,9 +4,10 @@ from django_tenants.admin import TenantAdminMixin
 from .models import Company,Location,Employee,Notice,EmployeeRecordChange,MonthlySalaryReport
 from.models import SalaryIncrementAndPromotion,CompanyPolicy,SalaryStructure,Position,Employeelevel,JobDescription,JobRequirement
 
-from.models import Doctor,Nurse,Specialization
+from.models import Doctor,Nurse,Specialization,TaxPolicy,ServiceTaxPolicy
 
-
+admin.site.register(TaxPolicy)
+admin.site.register(ServiceTaxPolicy)
 admin.site.register(Company)
 admin.site.register(Location)
 admin.site.register(Employeelevel)

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Academic Transcript - {{ student.get_full_name }}</title>
+
+
+
+ <style>
+    /* ---------- Base ---------- */
+    body {
+        font-family: "Segoe UI", Arial, sans-serif;
+        font-size: 13px;
+        color: #222;
+        margin: 0;
+        padding: 0;
+        background: #fff;
+    }
+
+    .container {
+        width: 210mm;
+        margin: auto;
+        padding: 15mm;
+    }
+
+    /* ---------- Header ---------- */
+    .header {
+        text-align: center;
+        border-bottom: 2px solid #000;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+
+    .header h1 {
+        font-size: 22px;
+        margin: 0;
+        letter-spacing: 0.5px;
+    }
+
+    .header h2 {
+        font-size: 14px;
+        font-weight: normal;
+        margin: 4px 0 0;
+    }
+
+    .student-info {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+
+    .student-photo {
+        flex: 0 0 auto;
+    }
+
+    .student-photo img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 6px;
+    }
+
+
+    .student-basic,
+    .student-meta {
+        flex: 1;
+    }
+
+    .student-info p {
+        margin: 4px 0;
+    }
+
+
+    /* ---------- Section Titles ---------- */
+    .section-title {
+        font-size: 14px;
+        font-weight: 600;
+        margin: 25px 0 8px;
+        border-bottom: 1px solid #444;
+        padding-bottom: 3px;
+    }
+
+    /* ---------- Tables ---------- */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+    }
+
+    th, td {
+        border: 1px solid #000;
+        padding: 6px;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    th {
+        background: #f2f2f2;
+        font-weight: 600;
+        font-size: 12px;
+    }
+
+    td.subject {
+        text-align: left;
+    }
+
+    /* ---------- GPA Summary ---------- */
+    .gpa-summary {
+        margin-top: 8px;
+        text-align: right;
+        font-weight: 600;
+    }
+
+    .footer {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 50px;
+    }
+
+    .signature {
+        text-align: center;
+    }
+
+    .signature img {
+        height: 40px;          /* adjust as needed */
+        width: auto;
+        display: block;
+        margin: 0 auto 6px;    /* space between image & text */
+    }
+
+    .signature span {
+        display: inline-block;
+        border-top: 1px solid #000;
+        padding-top: 4px;
+        font-weight: 600;
+    }
+
+    /* ---------- Print ---------- */
+    @media print {
+        @page {
+            size: A4;
+            margin: 12mm;
+        }
+
+        body {
+            background: #fff;
+        }
+
+        .container {
+            padding: 0;
+            width: 100%;
+        }
+    }
+
+            
+    .invoice-paper {
+        width: 180mm;              /* A4 printable width */
+        margin: 0 auto;            /* center horizontally */
+        padding: 10mm;
+        border: 1px solid #000;    /* optional – bank friendly */
+    }
+
+    @media print {
+        .invoice-paper {
+            width: 180mm;
+            margin: 0 auto;
+            padding: 8mm;
+        }
+        .no-print{
+            display: None;
+        }
+    }
+
+
+    /* Term row - left and right */
+    .term-row {
+        display: flex;
+        justify-content: space-between; /* left-right */
+        align-items: center;
+        margin-bottom: 8px;
+        font-weight: 600; /* bold */
+    }
+
+    /* Meta info row - left and right */
+    .meta-info {
+        display: flex;
+        justify-content: space-between;
+        color: #555;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+    }
+
+    /* Optional - badge styling */
+    .badge {
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        color: #fff;
+    }
+    .bg-success { background-color: #28a745; }
+    .bg-warning { background-color: #ffc107; color: #212529; }
+
+
+    .footer {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 50px;
+    }
+
+    .signature {
+        text-align: center;
+    }
+
+    .signature img {
+        height: 40px;          /* adjust as needed */
+        width: auto;
+        display: block;
+        margin: 0 auto 6px;    /* space between image & text */
+    }
+
+    .signature span {
+        display: inline-block;
+        border-top: 1px solid #000;
+        padding-top: 4px;
+        font-weight: 600;
+    }
+
+    </style>
+</head>
+
+<body>
+
+
+<div class="container mt-4 print-area invoice-paper">
+     <!-- Header -->
+    <div class="header">
+          {% if student.varsity_student_enrollments.first.program.department.faculty.school.logo %}
+                <img src="{{ student.varsity_student_enrollments.first.program.department.faculty.school.logo.url }}"
+                 alt="School Logo" style="width:60px;height:60px">
+            {% else %}
+                <div style="width:80px;"></div>
+            {% endif %}
+              
+        <p>
+             <h1>{{ student.varsity_student_enrollments.first.program.department.faculty.school.name }}</h1> 
+            <strong>Reg.code:{{ student.varsity_student_enrollments.first.program.department.faculty.school.code }}</strong><br>
+            {{ student.varsity_student_enrollments.first.program.department.faculty.school.address }}<br>
+            {{ student.varsity_student_enrollments.first.program.department.faculty.school.website }}
+        </p>
+        <h4>Term registration details</h4>
+        
+    </div>
+
+ <!-- Student Info -->
+   <div class="student-info">
+        <div class="student-photo">
+            {% if student.profile_picture %}
+                <img src="{{ student.profile_picture.url }}" alt="Student Photo">
+            {% elif request.user.photo_id %}
+                <img src="{{ request.user.photo_id.url }}" alt="Student Photo">
+            {% endif %}
+        </div>
+
+        <div class="student-basic">
+            <p><strong>Student Name:</strong> {{ student.name }}</p>
+            <p><strong>Student ID:</strong> {{ student.student_id }}</p>
+            <p><strong>Program:</strong> {{ student.varsity_student_enrollments.first.program.name }}</p>
+        </div>
+
+        <div class="student-meta">
+            <p><strong>Department:</strong> {{ student.varsity_student_enrollments.first.program.department }}</p>
+            <p><strong>Admission Session:</strong> {{ student.varsity_student_enrollments.first.academic_session.name }}</p>
+            <p><strong>Date Issued:</strong> {% now "d M Y" %}</p>
+        </div>
+    </div>
+
+
+
+    {% for term_registration in term_registrations %}
+    <div class="card border-0 shadow-sm my-3">
+
+        <div class="card-body p-3">
+           <!-- Term Row & Fee Status -->
+        <div class="term-row">
+            <div class="term-info">
+                {{ term_registration.enrollment.academic_session.name }}&nbsp;
+                {{ term_registration.level.title }}&nbsp;
+                {{ term_registration.term.name }}
+            </div>
+            <div class="term-status">
+                <span class="badge {{ term_registration.is_fee_cleared|yesno:'bg-success,bg-warning' }}">
+                    {{ term_registration.is_fee_cleared|yesno:"Fee Cleared,Pending" }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Meta Info -->
+        <div class="meta-info">
+            <div class="meta-left">
+                Academic Year: {{ term_registration.academic_year }}
+            </div>
+            <div class="meta-right">
+                Registered: {{ term_registration.registered_at|date:"d M Y" }}
+            </div>
+        </div>
+
+
+            <!-- Subjects Table -->
+            {% if term_registration.courses.exists %}
+            <div class="table-responsive">
+                <table class="table table-sm table-borderless align-middle mb-0 small">
+                    <thead class="text-muted">
+                        <tr>
+                            <th>Code</th>
+                            <th>Subject</th>
+                            <th>Faculty</th>
+                            <th class="text-center">Cr</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for subject in term_registration.courses.all %}
+                        <tr>
+                            <td class="fw-semibold">
+                                {{ subject.subject_offering.subject.code }}
+                            </td>
+                            <td>
+                                {{ subject.subject_offering.subject.name }}
+                            </td>
+                            <td>
+                                {{ subject.subject_offering.subject.faculty.name }}
+                            </td>
+                            <td class="text-center">
+                                {{ subject.subject_offering.subject.total_credit }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-muted small mt-2">
+                No subjects registered.
+            </div>
+            {% endif %}
+
+        </div>      
+
+    </div>
+ {% endfor %}
+
+   <!-- Footer -->
+    <div class="footer">
+        <div class="signature">
+            <img src="/static/images/signature-1.png" alt="Controller Signature">
+            <span>Controller of Examinations</span>
+        </div>
+
+        <div class="signature">
+            <img src="/static/images/signature-1.png" alt="Registrar Signature">
+            <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Registrar&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+        </div>
+    </div>
+
+   <div class="no-print" style="margin-top:20px;text-align:center;">
+            <button onclick="window.print()">🖨️ Print</button>
+            <button><a href="{% url 'varsity_portal:common_dashboard' %}"
+            style="text-decoration: none;"> Home</a></button>
+        </div>
+
+</div>
+</body>
+</html>
+

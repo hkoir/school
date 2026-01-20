@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% block content %}
+
+
+{% include 'students/quick_access_link.html' %}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">{{ model_name }} Form</h4>
+
+                </div>
+
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="row g-3">
+                            {% for field in form %}
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
+                                    {{ field.label }}
+                                    {% if field.field.required %}
+                                        <span class="text-danger">*</span>
+                                    {% endif %}
+                                </label>
+
+                                {% if field.field.widget.input_type == "checkbox" %}
+                                <div class="form-check form-switch">
+                                    {{ field|add_class:'form-check-input' }}
+                                    <label class="form-check-label small text-muted">{{ field.help_text }}</label>
+                                </div>
+                                {% elif field.field.widget.input_type == "textarea" %}
+                                {{ field|add_class:'form-control' }}
+                                {% elif field.field.widget.input_type == "select" %}
+                                {{ field|add_class:'form-select' }}
+                                {% else %}
+                                {{ field|add_class:'form-control' }}
+                                {% endif %}
+
+                                {% if field.help_text and field.field.widget.input_type != "checkbox" %}
+                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                                {% endif %}
+
+                                {% for error in field.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="submit" class="btn btn-success px-4 rounded-pill shadow-sm me-2">
+                                <i class="bi bi-save me-1"></i> Submit
+                            </button>
+                            <a href="{{ view.get_success_url }}" class="btn btn-secondary rounded-pill">
+                                <i class="bi bi-x-circle me-1"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const studentSelect = document.getElementById('id_student');
+    const enrollmentSelect = document.getElementById('id_student_enrollment');
+
+    studentSelect.addEventListener('change', function() {
+        const studentId = this.value;
+
+        // Clear current options
+        enrollmentSelect.innerHTML = '<option value="">-- Select Enrollment --</option>';
+
+        if (!studentId) return;
+
+        // Fetch enrollments via AJAX
+        fetch(`/students/get_enrollments/${studentId}/`)
+            .then(response => response.json())
+            .then(data => {
+                data.enrollments.forEach(enrollment => {
+                    const option = document.createElement('option');
+                    option.value = enrollment.id;
+                    option.textContent = enrollment.display;
+                    enrollmentSelect.appendChild(option);
+                });
+            })
+            .catch(err => console.error('Error fetching enrollments:', err));
+    });
+});
+</script>
+
+
+
+
+{% endblock %}

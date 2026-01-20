@@ -1,0 +1,201 @@
+{% extends 'student_portal_base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<style>
+@media print {
+    .navbar,
+    .footer,
+    .sidebar,
+    .btn,
+    .no-print {
+        display: none !important;
+    }
+}
+
+
+</style>
+
+
+ <!-- Printable Header -->
+    <div class="print-header text-center mb-4">
+        {% if school_logo_url %}
+            <img src="{{ school_logo_url }}" alt="School Logo" class="school-logo mb-2"
+            style="width:50px;height:50px">
+        {% endif %}
+        <h3 class="school-name mb-1">{{ school_name }}</h3>
+        <p class="school-address mb-0">{{ school_address }}</p>
+        {% if school_website %}
+            <p class="school-website mb-0">{{ school_website }}</p>
+        {% endif %}
+        <hr class="mt-3">
+    </div>
+
+<div class="container-fluid  mt-4">
+    <div class="row">
+        <!-- Student Search Form -->
+        <form method="GET" class="no-print">
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary no-print ">Search</button>
+        </form>
+
+        
+{% if grouped_results %}
+  <div class="card mb-4 mt-5">
+    <div class="card-body">
+        <div class="row">
+            <!-- Student Details (Left) -->
+            <div class="col-12 col-md-5 d-flex">
+                <div class="mx-3 mt-5">
+                    {% if student.profile_picture %}
+                        <img src="{{ student.profile_picture.url }}" alt="Student Profile" class="rounded-circle" width="100" height="100">
+                    {% else %}
+                        <img src="/static/default-profile.png" alt="Default Profile" class="rounded-circle" width="100" height="100">
+                    {% endif %}
+                </div>
+                <div>
+                    <h5>Student Information</h5>
+                    <p><strong>Name:</strong> {{ student.name }}<br>
+                       <strong>Student ID:</strong> {{ student.student_id }}<br>
+                       <strong>Class:</strong> {{ final_results.0.academic_class.name }}<br>
+                       <strong>Section:</strong> {{ final_results.0.section.name }}<br>
+                       <strong>Shift:</strong> {{ student.enrolled_students.first.student_class.shift }}<br>
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-3 mt-2 d-flex flex-column">
+              <p>
+            <strong>Academic Year:</strong> {{ student.enrolled_students.first.academic_year }}<br>
+              <strong>Total exam Marks:</strong> {{ total_assigned_marks }}<br>
+              <strong>Total Obtained Marks:</strong> {{ total_obtained_marks }}<br>           
+              <strong>Obtained Percentage:</strong> {{ overall_percentage|floatformat:'2'}}%<br>        
+              <h6>
+              {% if student_with_golden_gpa_5 %}     
+             <strong style="color:green"> Congrats, {{student.name}},<br>You achieved:&nbsp;Golden GPA 5.0 </strong>
+              {% else %}  
+              AverageGPA&nbsp;{{ average_gpa }}
+             {% endif %}
+            </h6>
+             
+            </p>
+            </div>
+
+            <!-- Exam Details (Right) -->
+            <div class="col-md-4 d-flex flex-column align-items-end text-end">
+                <h5>Exam Details</h5>
+                <p><strong>Exam Type:</strong> Final Exam<br>
+                   <strong>Academic Year:</strong> {{ final_results.0.academic_year}}<br>  
+                   <strong>Date of exam:</strong> {{ final_results.0.results.first.exam_type.exam_date}}<br>                    
+                   <strong>Version:</strong> {{ student.enrolled_students.first.student_class.language_version }}<br>
+                   <strong>Class Gender:</strong> {{ final_results.0.section.class_gender }}<br>
+                   <strong>Class Teacher:</strong> {{final_results.0.student.enrolled_students.first.section.teacher_in_charge }}
+                  </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <div class="col-12 table-responsive">
+         
+            <h4 class="text-center">Student Transcripts</h4>
+              <div class="container">           
+                 <div class="row">             
+                             
+                        {% for exam_type, results in grouped_results.items %}
+                        <div class="col-12 col-lg-6">
+                            <h4 class="mt-3">{{ exam_type|human_readable }}</h4>
+                                <table class="table table-stripped">
+                                    <thead class =table-info>
+                                        <tr>
+                                            <th>Subject</th>
+                                            <th>Total Marks</th>
+                                            <th>Obtained Marks</th>                                        
+                                            <th>Highest Marks</th>
+                                            <th>Subject Teacher</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for result in results %}
+                                        <tr>
+                                        <td>{{ result.exam_type.subject.name }}</td>
+                                        <td>{{ result.exam_marks }}</td>
+                                        <td>{{ result.obtained_marks }}</td>                                       
+                                        <td>{{ result.highest_marks }}</td>
+                                        <td>{{ result.subject_teacher }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% endfor %}                 
+                  
+            </div>
+          </div>
+        </div>
+        
+
+
+        <div class="col-12">
+            <div class="row">
+                <div class="table-responsive my-3">
+                    <h4 class="text-center">Final Result</h4>
+                      <table class="table">
+                        <thead class="table-info">
+                            <tr class="bg-primary text-white">
+                          
+                          <th>Subject</th> 
+                          <th>Total Marks</th>      
+                          <th>Obtained Marks</th>                                               
+                          <th>Percentage</th>
+                          <th>Highest Marks</th>
+                          <th>Final Grade</th>
+                          <th>Grade Point</th>
+                          
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for result in final_results %}
+                          <tr>
+                                
+                            <td>{{ result.subject.name }}</td>  
+                            <td>{{ result.total_assigned_marks }}</td>         
+                            <td>{{ result.total_obtained_marks }}</td>                         
+                            <td>{{ result.percentage }}%</td>
+                            <td>{{result.highest_marks }} </td>       
+                              
+                            <td>{% if result.final_grade %}{{ result.final_grade.name }}{% else %}N/A{% endif %}</td>
+                            <td>{{ result.final_grade.grade_point }}</td>
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                    </div>
+                </div>
+             </div>       
+
+      
+
+
+
+
+    </div>   
+   
+    
+<div class="text-center mt-4 no-print">
+<a href="{% url 'results:generate_pdf' %}" class="btn btn-sm btn-success">Generate PDF</a>
+    <button type="button" class="btn btn-primary me-2" onclick="window.print()">
+        <i class="bi bi-printer"></i> Print
+    </button>
+    <a href="" class="btn btn-secondary">Back to dashboard</a>
+</div> 
+     
+    {% else %}
+    <p>No results found for this student.</p>
+{% endif %}                 
+
+ </div>
+
+
+
+{% endblock %}

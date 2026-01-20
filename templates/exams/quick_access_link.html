@@ -1,0 +1,16 @@
+<div class="container my-3">
+
+    <h5 class="text-center mb-3 fw-bold">Quick Navigation</h5>
+
+    <!-- Finance Section -->
+    <div class="d-flex justify-content-center flex-wrap gap-2 mb-2">    
+
+        <a href="{% url 'results:exam_list' %}" class="btn btn-sm btn-outline-primary">Exam List</a>
+        <a href="{% url 'results:create_exam_with_fee' %}" class="btn btn-sm btn-outline-secondary">Create Exam with Fees</a>
+        <a href="{% url 'results:create_exam_type' %}" class="btn btn-sm btn-outline-warning">Defined Exam Subject</a>
+        <a href="{% url 'results:create_grade' %}" class="btn btn-sm btn-outline-primary">+ Create Grade</a>
+        <a href="{% url 'results:create_result' %}" class="btn btn-sm btn-outline-info">+ Enter result</a>
+    </div>
+
+    
+</div>

@@ -1,15 +1,9 @@
+
 from django.db import models
-from students.models import Student
-from school_management.models import AcademicClass
 from django.core.exceptions import ValidationError
-from school_management.models import Subject,Section
 from accounts.models import CustomUser
-from school_management.models import Faculty
-from teachers.models import Teacher
 from school_management.utils import SHIFT_CHOICES,GENDER_CHOICES,LANGUAGE_CHOICES
 
-from school_management.models import SubjectAssignment
-from students.models import StudentEnrollment
 
 
 class Grade(models.Model):
@@ -28,9 +22,12 @@ class Grade(models.Model):
     def __str__(self):
         return f"{self.name}"
 
+
 class Exam(models.Model):
     name = models.CharField(max_length=50)
     academic_year = models.IntegerField(null=True, blank=True)
+    exam_start_date = models.DateField(null=True,blank=True)
+    is_exam_over = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -38,22 +35,24 @@ class Exam(models.Model):
         return f"{self.name} ({self.academic_year})"
 
 
-
-
 class ExamType(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name='exam_types',null=True, blank=True)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='exam_type_subjects', null=True, blank=True)
+    subject = models.ForeignKey('school_management.Subject', on_delete=models.CASCADE, related_name='exam_type_subjects', null=True, blank=True)
     exam_marks = models.IntegerField() 
     exam_date = models.DateField(null=True, blank=True)
-    academic_class = models.ForeignKey(AcademicClass, on_delete=models.CASCADE, related_name='exam_type_classes', null=True, blank=True)
+    start_time = models.TimeField(null=True, blank=True)
+    end_time   = models.TimeField(null=True, blank=True)
+    room = models.ForeignKey('school_management.ClassRoom', on_delete=models.CASCADE,null=True, blank=True) 
+    academic_class = models.ForeignKey('school_management.AcademicClass', on_delete=models.CASCADE, related_name='exam_type_classes', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+  
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=[
-                    'exam','academic_class','subject'
+                    'exam','academic_class','subject',                
                 ],
                 name='unique_exam_type_per_context'
             )
@@ -61,62 +60,63 @@ class ExamType(models.Model):
 
 
     def __str__(self):
-        return f"{self.exam.name}---{self.academic_class.name}--{self.subject.name}"
+        return f"{self.exam.name}--{self.academic_class.name}--{self.subject.name} "
+    
 
 
+from django.db.models import Avg, Sum, Count
 
 class Result(models.Model):  
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='student_results')    
-    academic_year = models.IntegerField()   
+    student = models.ForeignKey('students.Student', on_delete=models.CASCADE, related_name='student_results')    
+    academic_year = models.CharField(max_length=10,null=True,blank=True) 
     exam_type = models.ForeignKey(ExamType, on_delete=models.CASCADE, related_name='exam_results')
-    subject_teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, null=True, blank=True, related_name='result_subject_teachers')
+    subject_teacher = models.ForeignKey('teachers.Teacher', on_delete=models.CASCADE, null=True, blank=True, related_name='result_subject_teachers')
     exam_date = models.DateField()  
     exam_marks = models.FloatField(null=True, blank=True)
     obtained_marks = models.FloatField()   
+    grade = models.ForeignKey(Grade, on_delete=models.SET_NULL, null=True, blank=True)
+    grade_point = models.FloatField(default=0.00,null=True, blank=True)
     final_result = models.ForeignKey('results.StudentFinalResult', on_delete=models.CASCADE, null=True, blank=True, related_name='results')
     status = models.CharField(max_length=20, choices=[('pass', 'Pass'), ('fail', 'Fail'), ('withhold', 'Withhold')], null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def save(self, *args, **kwargs):      
+        if self.exam_marks and self.exam_marks > 0:
+            percentage = (self.obtained_marks / self.exam_marks) * 100
+        else:
+            percentage = 0
+        grade = Grade.objects.filter(
+            min_marks__lte=percentage,
+            max_marks__gte=percentage
+        ).first()
+        self.grade = grade 
+        self.grade_point = grade.grade_point if grade else 0.0
+        super().save(*args, **kwargs)
+  
     def __str__(self):
         return f"Result for Student ID {self.student_id}, Subject ID {self.exam_type_id}"
+
 
 
     def get_enrollment_details(self):
         enrollment = self.student.enrolled_students.first()  
         return {
-            'class': enrollment.student_class.academic_class if enrollment and enrollment.student_class else None,
+            'class': enrollment.academic_class if enrollment else None,
             'section': enrollment.section if enrollment and enrollment.section else None
         }
 
-    def save(self, *args, **kwargs):
-        enrollment = self.student.enrolled_students.first()
-
-        if enrollment:
-            section = enrollment.section
-            if section:
-                subject_assignment = SubjectAssignment.objects.filter(
-                    subject=self.exam_type.subject,
-                    section=section
-                ).first()
-                if subject_assignment:
-                    self.subject_teacher = subject_assignment.subject_teacher
-
-        if self.exam_type and not self.exam_marks:
-            self.exam_marks = self.exam_type.exam_marks
-
-        super().save(*args, **kwargs)
-
+   
 
 class StudentFinalResult(models.Model):   
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     academic_year = models.IntegerField()
-    faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE,null=True,blank=True)
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="final_results") 
-    academic_class = models.ForeignKey(AcademicClass, on_delete=models.CASCADE,null=True,blank=True)  
-    section = models.ForeignKey(Section, on_delete=models.CASCADE,null=True,blank=True)   
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name="final_results")   
+    faculty = models.ForeignKey('school_management.Faculty', on_delete=models.CASCADE,null=True,blank=True)
+    student = models.ForeignKey('students.Student', on_delete=models.CASCADE, related_name="final_results") 
+    academic_class = models.ForeignKey('school_management.AcademicClass', on_delete=models.CASCADE,null=True,blank=True)  
+    section = models.ForeignKey('school_management.Section', on_delete=models.CASCADE, null=True, blank=True)   
+    subject = models.ForeignKey('school_management.Subject', on_delete=models.CASCADE, related_name="final_results")   
     total_obtained_marks = models.FloatField(default=0)
     total_assigned_marks = models.FloatField(default=0)
     percentage = models.FloatField(null=True, blank=True)
@@ -131,12 +131,16 @@ class StudentFinalResult(models.Model):
 
     @staticmethod
     def calculate_final_result(student, academic_year, academic_class=None, section=None, subject=None, faculty=None):
+        if not all([student, academic_year, academic_class, section, subject, faculty]):
+            print("❌ Missing one or more required arguments for calculating final result.")
+            return None
 
         try:
             results = Result.objects.filter(
                 student=student,
                 academic_year=academic_year,
-                subject=subject
+                exam_type__subject = subject
+               
             )
 
             if academic_class:

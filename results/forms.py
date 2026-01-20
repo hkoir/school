@@ -2,9 +2,9 @@
 from django import forms
 from.models import Grade,Result,StudentFinalResult,ExamType,Exam
 from school_management.utils import GENDER_CHOICES,SHIFT_CHOICES,LANGUAGE_CHOICES
-from school_management.models import Subject,AcademicClass,Section
+from school_management.models import Subject,AcademicClass,Section,Language
 from students.models import Student 
-
+from .models import Exam
 
 
 
@@ -14,6 +14,55 @@ class GradeForm(forms.ModelForm):
         model =Grade
         exclude=['user']
         
+
+
+
+
+class ExamForm(forms.ModelForm):
+    class Meta:
+        model = Exam
+        fields = ['name', 'academic_year']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter exam name'}),
+            'academic_year': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'e.g., 2025'}),
+        }
+
+
+
+
+
+
+class ExamCreationForm(forms.ModelForm):
+    academic_class = forms.ModelChoiceField(
+        queryset=AcademicClass.objects.all(),
+        required=True,
+        label="Class"
+    )
+    language_version = forms.ModelChoiceField(
+        queryset=Language.objects.all(),
+        required=True,
+        label="Language"
+    )
+
+    exam_fee_amount = forms.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        required=True,
+        label="Exam Fee Amount"
+    )
+    description = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 2}),
+        required=False
+    )
+
+    class Meta:
+        model = Exam
+        fields = ['name', 'academic_year','exam_start_date']
+
+        widgets={
+            'exam_start_date':forms.DateInput(attrs={"type":'date'})
+        }
+
 
 
 

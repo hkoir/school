@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+{% load static %}
+
+{% block content %}
+
+<style>
+/* HIDE non-essential elements when printing */
+@media print {
+    body * {
+        visibility: hidden; /* hide everything first */
+    }
+
+    .printable, .printable * {
+        visibility: visible; /* only show printable content */
+    }  
+
+    .printable {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin-top: 8px;
+    }
+
+    .no-print {
+        display: none !important; /* hide buttons, navbar etc */
+    }
+}
+</style>
+
+
+
+{% include 'university_management/quick_access_link.html' %}
+
+{% if not is_teacher and not is_student %}
+<form method="get" class="my-4 no-print">
+    <select name="teacher">
+        <option value="">-- Select Teacher --</option>
+        {% for t in teachers %}
+            <option value="{{ t.id }}" {% if teacher_id == t.id|stringformat:"s" %}selected{% endif %}>
+                {{ t.name }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <select name="student">
+        <option value="">-- Select Student --</option>
+        {% for s in students %}
+            <option value="{{ s.id }}" {% if student_id == s.id|stringformat:"s" %}selected{% endif %}>
+                {{ s.name }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <button type="submit" class="btn btn-sm btn-primary">View</button>
+</form>
+{% endif %}
+
+<div class="container my-4 printable">   
+
+    <h3 class="text-center my-4">{{ title }}</h3>
+
+    <div class="row g-4">
+        {% for day_num, day_name in days %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white fw-bold">
+                    {{ day_name }}
+                </div>
+                <div class="card-body p-2">
+                    {% with day_schedules=calendar|get_day_schedules:day_num %}
+                        {% if day_schedules %}
+                            {% for row in day_schedules %}
+                                <div class="p-2 mb-2 border rounded bg-light">
+                                    <strong>{{ row.time }}</strong><br>
+                                    <strong>{{ row.subject_offering.subject.code }}</strong> - {{ row.subject_offering.subject.name }}<br>
+                                    <em>Teacher: {{ row.teacher.name }}</em><br>
+                                    <small>Room: {{ row.classroom }}</small>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted text-center mb-0">No classes</p>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="no-print mt-4 text-center">
+        <button class="btn btn-outline-primary me-2" onclick="window.print()">🖨️ Print</button>
+        <a class="btn btn-outline-secondary" href="{% url 'university_management:common_dashboard' %}">🏠 Home</a>
+    </div>
+</div>
+{% endblock %}

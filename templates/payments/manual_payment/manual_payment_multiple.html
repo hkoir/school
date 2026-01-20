@@ -1,0 +1,381 @@
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3 class="text-center fw-bold mb-4 text-primary">Review & Make Payment</h3>
+    <!-- Step 1: Select Student -->
+    <form method="get" class="card shadow-sm p-4 mb-4">
+        <h5 class="fw-semibold mb-3">Step 1: Select Student</h5>
+        <div class="row align-items-end">
+            <div class="col-md-8">
+                <label for="student_id" class="form-label">Select Student</label>
+                <select name="student_id" id="student_id" class="form-select" required>
+                    <option value="">-- Choose Student --</option>
+                    {% for s in students %}
+                        <option value="{{ s.id }}" {% if selected_student and s.id == selected_student.id %}selected{% endif %}>
+                            {{ s.name }} 
+                            ({% if s.enrolled_students.exists %}{{ s.enrolled_students.first.academic_class.name }}{% else %}N/A{% endif %})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 text-end">
+                <button type="submit" class="btn btn-primary px-4 mt-3">Review Dues</button>
+            </div>
+        </div>
+    </form>
+
+
+    {% if selected_student %}
+    <!-- Step 2: Review and Pay -->
+    <h5 class="fw-semibold mb-3">Step 2: Review Dues & Select Fee Types</h5>
+
+    <div class="mb-3">
+        <p>
+            <strong>Student:</strong> {{ selected_student.name }} | {{ selected_student.student_id }} <br>
+            <strong>Class:</strong> {% if selected_student.enrolled_students.exists %}{{ selected_student.enrolled_students.first.academic_class.name }}{% else %}N/A{% endif %}<br>
+             <strong>Language Version:</strong> {% if selected_student.enrolled_students.exists %}{{ selected_student.enrolled_students.first.student_class.language }}{% else %}N/A{% endif %}
+        </p>
+        <p>
+            <strong>Total Due:</strong> {{ total_due }}   
+           
+        </p>
+    </div>
+
+    <form method="post" class="card shadow-sm p-4" id="manualPaymentForm">
+        {% csrf_token %}
+        <input type="hidden" name="student_id" value="{{ selected_student.id }}">
+
+        <div class="table-responsive">
+           <table class="table table-bordered align-middle">
+                <thead class="table-light text-center">
+                    <tr>
+                        <th>Fee Type</th>
+                        <th>Total amount (৳)</th>
+                        <th>Total Paid (৳)</th>
+                        <th>Net Due (৳)</th>
+                        <th>Select</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fee_type, data in dues.items %}
+                        {% if data.net_due > 0 %}
+                        <tr>
+                            <td class="text-capitalize">
+                                {% if fee_type == 'admission' %}
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-secondary admission-fee-btn"
+                                        data-student-id="{{ selected_student.id }}">
+                                        Admission Fees
+                                    </button>
+                                {% else %}
+                                    {{ fee_type }}
+                                {% endif %}
+                            </td>
+
+                            <td class="text-end">{{ data.expected }}</td>
+                            <td class="text-end text-success">{{ data.paid }}</td>
+                            <td class="text-end fw-bold text-danger">{{ data.net_due }}</td>
+
+                            <td class="text-center">
+                                <input type="checkbox"
+                                    name="fee_types"
+                                    value="{{ fee_type }}"
+                                    class="fee-checkbox form-check-input"
+                                    data-due="{{ data.net_due }}">
+                            </td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+
+        <div class="row my-3">
+            <div class="col-12 d-flex justify-content-between flex-wrap">
+                <!-- Total Payment Amount -->
+                <div class="col-md-4 mb-3">
+                    <label for="totalAmountInput" class="form-label fw-semibold">Enter Total Payment Amount(optional)</label>
+                    <input type="number" step="0.01" min="0" class="form-control" id="totalAmountInput" name="total_amount" placeholder="0.00">
+                </div>
+
+                <!-- Payment Method -->
+                <div class="col-md-4 mb-3">
+                    <label for="paymentMethodSelect" class="form-label fw-semibold">Select Payment Method</label>
+		 <select name="payment_method" class="form-select" required>
+                        <option value="">-- Choose Payment Method --</option>
+                        {% for value, label in payment_methods %}
+                            <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+		<!-- Tax Policy -->
+                <div class="col-md-4 mb-3">
+                    <label for="taxPolicySelect" class="form-label fw-semibold">Select Tax Policy</label>
+                    <select name="tax_policy" id="taxPolicySelect" class="form-select" required>
+                        <option value="">-- Choose Tax Policy --</option>
+                        {% for tp in tax_policies %}
+                            <option value="{{ tp.id }}">{{ tp.policy_type }} (VAT {{ tp.vat_rate }}%{{tp.vat_type}}, AIT {{ tp.ait_rate }}% {{tp.ait_type}})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+            </div>
+
+            <!-- Total & Submit -->
+            <div class="col-12 d-flex justify-content-between align-items-center mt-4">
+                <h5 class="fw-bold me-3">Total Selected Fee Dues: ৳ <span id="totalSelected">0.00</span></h5>
+                <button type="submit" class="btn btn-success px-5 fw-bold" id="submitPaymentBtn" disabled>
+                    Submit Payment
+                </button>
+            </div>
+        </div>
+    </form>
+    {% endif %}
+</div>
+
+
+<!-- Admission Fee Modal -->
+<div class="modal fade" id="admissionFeeModal" tabindex="-1" aria-labelledby="admissionFeeModalLabel" aria-hidden="true" role="dialog">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="admissionFeeModalLabel">Admission Fee Details</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active text-primary" data-bs-toggle="tab" data-bs-target="#pendingTab" type="button" role="tab" aria-controls="pendingTab" aria-selected="true">
+                            Pending Fees
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link text-success" data-bs-toggle="tab" data-bs-target="#paidTab" type="button" role="tab" aria-controls="paidTab" aria-selected="false">
+                            Paid Fees
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <!-- Pending -->
+                    <div class="tab-pane fade show active" id="pendingTab" role="tabpanel" aria-labelledby="pendingTab">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Fee Item</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingFeeBody"></tbody>
+                            <tfoot>
+                                <tr class="fw-bold">
+                                    <td class="text-end">Total Pending</td>
+                                    <td class="text-end text-danger" id="totalPending"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Paid -->
+                    <div class="tab-pane fade" id="paidTab" role="tabpanel" aria-labelledby="paidTab">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Fee Item</th>
+                                    <th class="text-end">Paid Amount</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paidFeeBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <a id="payAdmissionBtn" class="btn btn-success d-none">Pay Pending Fees</a>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- JS -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+     const totalSelectedDisplay = document.getElementById('totalSelected');
+    if (!totalSelectedDisplay) return; 
+
+    // Bind all buttons once
+    document.querySelectorAll('.admission-fee-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            loadAdmissionFees(this.dataset.studentId);
+        });
+    });
+
+});
+
+function loadAdmissionFees(studentId) {
+     if (!studentId || isNaN(studentId)) {
+        console.error("Invalid studentId:", studentId);
+        return;
+    }
+
+
+    const modalEl = document.getElementById('admissionFeeModal');
+    const modal = new bootstrap.Modal(modalEl);
+
+    fetch(`/payments/ajax_pending_admission_fees/${studentId}/`)
+        .then(res => res.json())
+        .then(data => {
+
+            const pendingBody = document.getElementById("pendingFeeBody");
+            const paidBody = document.getElementById("paidFeeBody");
+
+            pendingBody.innerHTML = "";
+            paidBody.innerHTML = "";
+
+            const pendingItems = data.pending_items || [];
+            const paidItems = data.paid_items || [];
+
+            // Pending
+            if (!pendingItems.length) {
+                pendingBody.innerHTML = `
+                    <tr>
+                        <td colspan="2" class="text-center text-success">
+                            No pending fees 🎉
+                        </td>
+                    </tr>`;
+                document.getElementById("payAdmissionBtn").classList.add("d-none");
+            } else {
+                pendingItems.forEach(item => {
+                    pendingBody.innerHTML += `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td class="text-end">৳ ${item.amount}</td>
+                        </tr>`;
+                });
+
+                document.getElementById("totalPending").innerText =
+                    "৳ " + data.total_pending;
+
+                const payBtn = document.getElementById("payAdmissionBtn");
+                payBtn.href = `/finance/admission-fee/pay/${studentId}/`;
+                payBtn.classList.remove("d-none");
+            }
+
+            // Paid
+            if (!paidItems.length) {
+                paidBody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="text-center text-muted">
+                            No payments yet
+                        </td>
+                    </tr>`;
+            } else {
+                paidItems.forEach(item => {
+                    paidBody.innerHTML += `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td class="text-end">৳ ${item.amount}</td>
+                            <td>${item.date}</td>
+                        </tr>`;
+                });
+            }
+
+            // Show modal AFTER DOM is updated
+            modal.show();
+
+        })
+        .catch(err => console.error('Admission fee fetch error:', err));
+}
+</script>
+
+
+
+
+<script>
+$(document).ready(function() {
+    $('#student_id').select2({
+        placeholder: "-- Choose Student --",
+        allowClear: true,
+        width: '100%'
+    });
+});
+</script>
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('.fee-checkbox');
+    const totalSelectedDisplay = document.getElementById('totalSelected');
+    const totalAmountInput = document.getElementById('totalAmountInput');
+    const submitBtn = document.getElementById('submitPaymentBtn');
+
+    function updateTotals() {
+        let totalSelected = 0;
+
+        // Sum selected fee dues
+        checkboxes.forEach(cb => {
+            if (cb.checked) {
+                const due = parseFloat(cb.closest('tr').querySelector('td:nth-child(4)').textContent) || 0;
+                totalSelected += due;
+            }
+        });
+
+        totalSelectedDisplay.textContent = totalSelected.toFixed(2);
+
+        // Reset input to total selected whenever selection changes
+        totalAmountInput.value = totalSelected.toFixed(2);
+        totalAmountInput.classList.remove('is-invalid');
+        totalAmountInput.dataset.userEdited = false; // reset user edit flag
+
+        const enteredAmount = parseFloat(totalAmountInput.value) || 0;
+
+        // Validation: disable submit if entered > totalSelected or zero
+        if (enteredAmount > totalSelected || enteredAmount <= 0 || totalSelected <= 0) {
+            submitBtn.disabled = true;
+            if (enteredAmount > totalSelected) totalAmountInput.classList.add('is-invalid');
+        } else {
+            submitBtn.disabled = false;
+            totalAmountInput.classList.remove('is-invalid');
+        }
+    }
+
+    // Validate user-typed amount
+    totalAmountInput.addEventListener('input', function() {
+        totalAmountInput.dataset.userEdited = true;
+        const enteredAmount = parseFloat(totalAmountInput.value) || 0;
+        const totalSelected = parseFloat(totalSelectedDisplay.textContent) || 0;
+
+        if (enteredAmount > totalSelected || enteredAmount <= 0) {
+            totalAmountInput.classList.add('is-invalid');
+            submitBtn.disabled = true;
+        } else {
+            totalAmountInput.classList.remove('is-invalid');
+            submitBtn.disabled = totalSelected <= 0 ? true : false;
+        }
+    });
+
+    checkboxes.forEach(cb => cb.addEventListener('change', updateTotals));
+
+    // Initialize totals on page load
+    updateTotals();
+});
+</script>
+
+
+
+{% endblock %}
+

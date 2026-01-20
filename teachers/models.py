@@ -8,6 +8,7 @@ from accounts.models import CustomUser
 class Teacher(Employee):
     teacher_id = models.CharField(max_length=20, unique=True,null=True,blank=True)
     school = models.ForeignKey('school_management.School', on_delete=models.CASCADE, null=True, blank=True)
+    teacher_type = models.CharField(max_length=100,choices={'school':'school','college':'college','university':'university'},null=True,blank=True)
     profile_picture = models.ImageField(upload_to='teacher_pictures/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
 

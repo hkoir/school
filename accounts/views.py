@@ -331,66 +331,6 @@ def register_student(request):
 
 
 
-
-
-
-
-from accounts.utils import send_sms 
-from .models import PhoneOTP
-
-def send_otp(request, phone_number):
-    if not phone_number:
-        return render(request, "accounts/registration/register.html", {"error": "Phone number required."})
-
-    otp_obj, _ = PhoneOTP.objects.get_or_create(phone_number=phone_number)
-    otp_obj.generate_otp()
-
-    message = f"Your verification code is: {otp_obj.otp}"
-    try:
-        send_sms(tenant=getattr(request, "tenant", None), phone_number=phone_number, message=message)
-        print(f'your otp code is {otp_obj.otp}')
-    except Exception as e:
-        return render(request, "accounts/registration/register.html", {"error": f"SMS failed: {e}"})
-   
-    return render(request, "accounts/verify_otp.html", {
-        "phone": phone_number,
-        "valid_until": otp_obj.valid_until,
-    })
-
-
-
-
-
-def verify_otp(request):
-    phone = request.POST.get("phone")
-    otp_input = request.POST.get("otp")
-
-    try:
-        otp_entry = PhoneOTP.objects.get(phone_number=phone)
-    except PhoneOTP.DoesNotExist:
-        return render(request, "accounts/verify_otp.html", {"error": "OTP not found."})
-
-    if otp_entry.otp == otp_input and timezone.now() <= otp_entry.valid_until:
-        otp_entry.is_verified = True
-        otp_entry.save()
-
-        user = CustomUser.objects.filter(phone_number=phone).first()
-        if user:
-            user.is_phone_verified = True
-            user.is_active = True  # Optional: in case phone verification activates the account
-            user.save()
-
-            messages.success(request, "Phone number verified successfully. You can now log in.")
-            return redirect("accounts:login")  # ✅ Make sure this URL name exists in your urls.py
-        else:
-            return render(request, "accounts/verify_otp.html", {"error": "No user found for this phone number."})
-    else:
-        return render(request, "accounts/verify_otp.html", {"error": "Invalid or expired OTP."})
-
-
-
-
-
 def register_public(request):   
     current_tenant = None
     if hasattr(connection, 'tenant'):      
@@ -560,6 +500,186 @@ def login_view(request):
 def logged_out_view(request): 
     logout(request)  
     return redirect('accounts:login')  
+
+
+
+
+
+from django.utils.crypto import constant_time_compare
+from accounts.utils import send_sms   
+from .models import PhoneOTP
+
+def send_otp(request, phone_number):
+    if not phone_number:
+        return render(request, "accounts/registration/register.html", {"error": "Phone number required."})
+
+    otp_obj, _ = PhoneOTP.objects.get_or_create(phone_number=phone_number)
+    otp_obj.generate_otp()
+
+    message = f"Your verification code is: {otp_obj.otp}"
+    try:
+        send_sms(tenant=getattr(request, "tenant", None), phone_number=phone_number, message=message)
+        print(f'your otp code is {otp_obj.otp}')
+    except Exception as e:
+        return render(request, "accounts/registration/register.html", {"error": f"SMS failed: {e}"})
+   
+    return render(request, "accounts/verify_otp.html", {
+        "phone": phone_number,
+        "valid_until": otp_obj.valid_until,
+    })
+
+
+
+
+
+def verify_otp(request):
+    phone = request.POST.get("phone")
+    otp_input = request.POST.get("otp")
+
+    try:
+        otp_entry = PhoneOTP.objects.get(phone_number=phone)
+    except PhoneOTP.DoesNotExist:
+        return render(request, "accounts/verify_otp.html", {"error": "OTP not found."})
+
+    if otp_entry.otp == otp_input and timezone.now() <= otp_entry.valid_until:
+        otp_entry.is_verified = True
+        otp_entry.save()
+
+        user = CustomUser.objects.filter(phone_number=phone).first()
+        if user:
+            user.is_phone_verified = True
+            user.is_active = True  # Optional: in case phone verification activates the account
+            user.save()
+
+            messages.success(request, "Phone number verified successfully. You can now log in.")
+            return redirect("accounts:login")  # ✅ Make sure this URL name exists in your urls.py
+        else:
+            return render(request, "accounts/verify_otp.html", {"error": "No user found for this phone number."})
+    else:
+        return render(request, "accounts/verify_otp.html", {"error": "Invalid or expired OTP."})
+
+
+
+
+def send_password_reset_otp(request):
+    if request.method == "POST":
+        phone_number = request.POST.get("phone")
+        if not phone_number:
+            return render(request, "accounts/otp_registration/forgot_password.html", {"error": "Phone number required."})
+        otp_obj, _ = PhoneOTP.objects.get_or_create(phone_number=phone_number, purpose='forgot_password')
+        otp_obj.generate_otp()
+        message = f"Your password reset OTP is: {otp_obj.otp}"
+        try:
+            send_sms(tenant=getattr(request, "tenant", None), phone_number=phone_number, message=message)
+            print(f"OTP for forgot password: {otp_obj.otp}")
+        except Exception as e:
+            return render(request, "accounts/otp_registration/forgot_password.html", {"error": f"SMS failed: {e}"})
+        # Store phone in session to identify user in verification step
+        request.session['reset_phone_number'] = phone_number
+        return render(request, "accounts/otp_registration/verify_reset_otp.html", {
+            "phone": phone_number,
+            "valid_until": otp_obj.valid_until
+        })
+    return render(request, "accounts/otp_registration/forgot_password.html")
+
+
+
+def verify_password_reset_otp(request):
+    if request.method == "POST":
+        phone = request.session.get("reset_phone_number")
+        otp_input = request.POST.get("otp")
+        new_password = request.POST.get("new_password")
+        confirm_password = request.POST.get("confirm_password")
+        if not phone or not otp_input or not new_password or not confirm_password:
+            return render(request, "accounts/otp_registration/verify_reset_otp.html", {
+                "error": "All fields are required.",
+                "phone": phone
+            })
+        otp_entry = PhoneOTP.objects.filter(phone_number=phone, purpose='forgot_password').first()
+        if not otp_entry:
+            return render(request, "accounts/otp_registration/verify_reset_otp.html", {
+                "error": "OTP not found.",
+                "phone": phone
+            })
+        if constant_time_compare(otp_entry.otp, otp_input) and timezone.now() <= otp_entry.valid_until:
+            if new_password != confirm_password:
+                return render(request, "accounts/otp_registration/verify_reset_otp.html", {
+                    "error": "Passwords do not match.",
+                    "phone": phone
+                })
+            user = User.objects.filter(phone_number=phone).first()
+            if user:
+                user.set_password(new_password)
+                user.save()
+                otp_entry.is_verified = True
+                otp_entry.save()
+                messages.success(request, "Password reset successful. You can now log in.")
+                # Clean session
+                if 'reset_phone_number' in request.session:
+                    del request.session['reset_phone_number']
+                
+                messages.success(request, "Passwrod reset successfully.")
+                return redirect("accounts:login")
+            else:
+                return render(request, "accounts/otp_registration/verify_reset_otp.html", {
+                    "error": "No user found for this phone number.",
+                    "phone": phone
+                })
+        else:
+            return render(request, "accounts/otp_registration/verify_reset_otp.html", {
+                "error": "Invalid or expired OTP.",
+                "phone": phone
+            })
+    return render(request, "accounts/otp_registration/verify_reset_otp.html")
+
+
+
+@login_required
+def send_change_password_otp(request):
+    phone_number = request.user.phone_number
+    otp_obj, _ = PhoneOTP.objects.get_or_create(phone_number=phone_number, purpose='change_password')
+    otp_obj.generate_otp()
+    message = f"Your OTP to change password is: {otp_obj.otp}"
+    send_sms(tenant=getattr(request, "tenant", None), phone_number=phone_number, message=message)
+    messages.success(request, "OTP sent to your phone. Please enter it to change password.")
+    return redirect("accounts:verify_change_password_otp")
+
+
+
+
+@login_required
+def verify_change_password_otp(request):
+    if request.method == "POST":
+        phone = request.user.phone_number
+        otp_input = request.POST.get("otp")
+        new_password = request.POST.get("new_password")
+        confirm_password = request.POST.get("confirm_password")
+        otp_entry = PhoneOTP.objects.filter(phone_number=phone, purpose='change_password', is_verified=False).last()
+        if otp_entry and constant_time_compare(otp_entry.otp, otp_input) and timezone.now() <= otp_entry.valid_until:
+            if new_password != confirm_password:
+                messages.error(request, "Passwords do not match.")
+                return redirect("accounts:verify_change_password_otp")
+            request.user.set_password(new_password)
+            request.user.save()
+            otp_entry.is_verified = True
+            otp_entry.save()
+            messages.success(request, "Password changed successfully!")            
+            return redirect("core:dashboard")
+        else:
+            messages.error(request, "Invalid or expired OTP.")
+            return redirect("verify_change_password_otp")
+    return render(request, "accounts/otp_registration/verify_change_password_otp.html")
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+
+{% block content %}
+{% include 'university_management/quick_access_link.html' %}
+<h2>Delete Exam</h2>
+
+<p>
+    Are you sure you want to delete this exam?
+</p>
+
+<p>
+    <strong>{{ object }}</strong>
+</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">🗑 Yes, Delete</button>
+    <a href="{% url 'exam_list' %}">Cancel</a>
+</form>
+{% endblock %}

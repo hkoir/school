@@ -45,7 +45,12 @@ from school_management.models import ImageGallery
 
 from messaging.models import ManagementMessage
 from students.models import Student
+from messaging.models import HeroSlider
 
+
+@login_required
+def staff_operations_dashboard(request):
+    return render(request,'core/staff_operations_dashboard.html')
 
 
 @login_required
@@ -54,6 +59,7 @@ def dashboard(request):
     images = ImageGallery.objects.all()
     management_quotes=ManagementMessage.objects.all()
     student = Student.objects.filter(user=request.user).first()
+    slides = HeroSlider.objects.order_by('order')
   
     for plan in plans:
         plan.features_list = plan.features.split(',')
@@ -70,7 +76,8 @@ def dashboard(request):
     return render(request,'core/dashboard.html',{
         'plans':plans,'modules':modules,
         'images':images,'management_quotes':management_quotes,
-        'student':student
+        'student':student,
+       'slides': slides
         })
 
 

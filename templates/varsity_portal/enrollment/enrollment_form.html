@@ -1,0 +1,39 @@
+{% extends "student_portal_base.html" %}
+{% block content %}
+
+
+
+<div class="container mt-4">
+    {% include 'varsity_portal/quick_access_link.html' %}
+    <div class="card shadow-sm my-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Student Enrollment</h5>
+        </div>
+
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+
+                <div class="row">
+                    {% for field in form %}
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                            <div class="text-danger small">{{ field.errors }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    Enroll Student
+                </button>
+                <a href="{% url 'varsity_portal:enrollment_list' %}" class="btn btn-secondary">
+                    Cancel
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

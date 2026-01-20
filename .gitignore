@@ -1,24 +1,101 @@
-# Python
+# ---------------------------
+# Python bytecode / build
+# ---------------------------
 __pycache__/
 *.py[cod]
+*$py.class
+build/
+dist/
+.eggs/
 *.egg
 *.egg-info/
+
+# ---------------------------
+# Logs & dumps
+# ---------------------------
 *.log
+*.pot
+*.py,cover
+*.coverage
+.coverage*
+coverage.xml
+htmlcov/
 
-# Environment
+# ---------------------------
+# Environments
+# ---------------------------
 .env
+.env.*
+.venv/
 venv/
+env/
 myenv/
+.python-version  # pyenv
 
+# ---------------------------
 # Django
+# ---------------------------
 db.sqlite3
-media/
-staticfiles/
+*.sqlite3
+*.sqlite3-journal
+# If you create other local DBs
+*.db
 
-# IDEs
+# Local media uploaded files (keep ignored if using cloud storage or not needed in repo)
+media/
+
+# Collected static files (STATIC_ROOT)
+staticfiles/
+# If you use a different STATIC_ROOT, ignore it here
+# static/
+
+# Django compressor / pipeline caches
+static/CACHE/
+# If using django-compressor with a different cache path, add it here
+
+# Local settings overrides (adjust to your structure)
+settings_local.py
+*.local.py
+
+# ---------------------------
+# Test / tooling caches
+# ---------------------------
+.pytest_cache/
+.tox/
+.nox/
+.mypy_cache/
+.pytype/
+.ruff_cache/
+.pyre/
+.hypothesis/
+
+# ---------------------------
+# IDE / editors
+# ---------------------------
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# OS
+# ---------------------------
+# OS files
+# ---------------------------
 .DS_Store
 Thumbs.db
+
+# ---------------------------
+# Frontend (if applicable)
+# ---------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.eslintcache
+.sass-cache/
+.cache/
+coverage/
+# Build outputs
+public/build/
+public/dist/
+dist/

@@ -7,52 +7,27 @@
 
 <div class="container-fluid main-content">
     <div class="row">
-
-
-<div class="col-12">
+        <div class="col-12">
             <div class="card shadow-lg border-0 rounded-lg">
                 <!-- Card Header -->
                 <div class="card-header bg-primary text-white text-center">
-                    <h3 class="mb-0">Create Teaching Language</h3>
+                    <h3 class="mb-0">{% if instance %} Update language {% else %} Create language {% endif %}</h3>
                 </div> 
                 <div class="card-body">                   
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
-                
-                        <div class="row">
-                            {% for field in form %}
-                                <div class="col-md-auto mb-3">  <!-- Adjust col-md-6 for 2 columns, col-md-4 for 3 columns -->
-                                    <label class="form-label">{{ field.label }}</label>
-                
-                                    {% if field.field.widget.input_type == "textarea" %}
-                                        <textarea class="form-control" rows="2">{{ field.value|default_if_none:"" }}</textarea>
-                                    {% else %}
-                                        {{ field }}
-                                    {% endif %}
-                
-                                    {% if field.help_text %}
-                                        <small class="text-muted">{{ field.help_text }}</small>
-                                    {% endif %}
-                
-                                    {% for error in field.errors %}
-                                        <div class="text-danger">{{ error }}</div>
-                                    {% endfor %}
-                                </div>
-                            {% endfor %}
-                            <div class="col-md-auto align-self-end mb-3">
-                                <button type="submit" name="entity_submit" class="btn btn-success btn-sm">
-                                   Proceed
-                                </button>
-                            </div>
-                        </div>                
-                        
+                        {{ form.as_p }}
+        
                        
-                        
+                        <div class="d-grid">
+                            <button type="submit" name="entity_submit" class="btn btn-success btn-sm">
+                                {% if instance %} Update {% else %} Add {% endif %}
+                            </button>
+                        </div>   
                     </form>
                 </div>
             </div>
         </div>
-        
         
         
         <div class="col-12 table-responsive my-5">

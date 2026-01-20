@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{% include 'students/quick_access_link.html' %}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Room Types</h3>
+        <a href="{% url 'students:hostel_room_type_add' %}" class="btn btn-primary btn-sm">Add Room Type</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Capacity</th>
+                    <th>Description</th>
+                    <th>Active</th>
+                    <th>Created At</th>
+                    <th>Updated At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for obj in page_obj %}
+                <tr>
+                    <td>{{ obj.name }}</td>
+                    <td>{{ obj.capacity }}</td>
+                    <td>{{ obj.description }}</td>
+                    <td>{{ obj.active|yesno:"Yes,No" }}</td>
+                    <td>{{ obj.created_at|date:"Y-m-d" }}</td>
+                    <td>{{ obj.updated_at|date:"Y-m-d" }}</td>
+                    <td>
+                        <a href="{% url 'students:hostel_room_type_edit' obj.id %}" class="btn btn-warning btn-sm">Edit</a>
+                        <a href="{% url 'students:hostel_room_type_delete' obj.id %}" class="btn btn-danger btn-sm">Delete</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">No room types found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <nav class="d-flex justify-content-center mt-2">
+        <ul class="pagination pagination-sm">
+            {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+            {% endif %}
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            {% endfor %}
+            {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

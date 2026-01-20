@@ -1,0 +1,159 @@
+{% extends "student_portal_base.html" %}
+{% load static %}
+{% block content %}
+<style>
+@media print {
+    body * { visibility: hidden; }
+    .print-area, .print-area * { visibility: visible; }
+    .print-area { position: absolute; left:0; top:0; width:100%; }
+    .no-print { display:none !important; }
+   .table-responsive {
+        overflow: visible !important;  /* remove scroll */
+        -webkit-overflow-scrolling: auto !important;
+        border: none !important;
+    }
+
+    /* Table styling for print */
+    table { 
+        width: 100% !important;
+        border-collapse: collapse;
+        font-size: 12px; 
+    }
+    th, td { padding: 4px !important; }
+    
+    /* Page break rules */
+    tr    { page-break-inside: avoid; page-break-after: auto; }
+    thead { display: table-header-group; } /* repeat header */
+    tfoot { display: table-footer-group; }
+
+    /* Hide unnecessary elements */
+    .no-print { display: none !important; }
+
+
+.print-area {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    margin: 10px auto;
+    max-width: 210mm; /* A4 width */
+    border:2px solid green;
+}
+
+    
+}
+
+.print-area {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    margin: 10px auto;
+    max-width: 270mm; /* A4 width */
+    border:2px solid green;
+}
+
+</style>
+
+
+
+ <!-- FILTERS -->
+    <div class="card shadow-sm mb-4 no-print">
+        <div class="card-body">
+            <h4 class="mb-3 fw-semibold">Generate Exam Schedule</h4>
+            <form method="get" class="row g-3">
+                <div class="col-sm-6 col-md-4">
+                    <label class="form-label">Exam</label>
+                    <select name="exam" class="form-select" required>
+                        <option value="">--Select--</option>
+                        {% for e in exams %}
+                        <option value="{{ e.id }}" {% if selected_exam|stringformat:"s" == e.id|stringformat:"s" %}selected{% endif %}>
+                            {{ e.name }} ({{ e.academic_year }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-sm-6 col-md-4">
+                    <label class="form-label">Class</label>
+                    <select name="class" class="form-select" required>
+                        <option value="">--Select--</option>
+                        {% for c in classes %}
+                        <option value="{{ c.id }}" {% if selected_class|stringformat:"s" == c.id|stringformat:"s" %}selected{% endif %}>
+                            {{ c.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 align-self-end">
+                    <button class="btn btn-primary w-100">Show Schedule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+
+<div class="print-area">   
+
+{% if exam_schedule %}
+<div class="exam-print">
+
+    <!-- PRINT HEADER -->
+    <div class="text-center school-header">
+        {% if school.logo %}
+            <img src="{{ school.logo.url }}" style="width:60px;height:60px;margin-bottom:5px">
+        {% endif %}
+        <h3 class="fw-bold">{{ school.name }}</h3>
+        <p>{{ school.address }}</p>
+        {% if school.website %}
+        <p>{{ school.website }}</p>
+        {% endif %}
+        <hr>
+    </div>
+
+    <!-- TITLE -->
+    <div class="text-center">
+        <div class="schedule-title">Exam Schedule</div>
+        <p>
+            Exam: <strong>{{ exam_schedule.first.exam.name }}</strong> |
+            Class: <strong>{{ exam_schedule.first.academic_class.name }}</strong> |
+            Year: <strong>{{ exam_schedule.first.exam.academic_year }}</strong>
+        </p>
+    </div>
+
+    <!-- SCHEDULE TABLE -->
+    
+    <div class="table-wrapper">
+	 <div class="table-responsive">
+        <table class="table table-bordered text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th>Subject</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Marks</th>
+                    <th>Room</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in exam_schedule %}
+                <tr>
+                    <td>{{ e.subject.name }}</td>
+                    <td>{{ e.exam_date|date:"d M, Y" }}</td>
+                    <td>{{ e.start_time|time:"h:i A" }} - {{ e.end_time|time:"h:i A" }}</td>
+                    <td>{{ e.exam_marks }}</td>
+                    <td>{{ e.room.name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+	</div>
+    </div>
+
+</div>
+
+<div class="no-print text-center my-3">
+    <button onclick="window.print()" class="btn btn-dark">🖨 Print</button>
+    <a href="{% url 'student_portal:student_landing_page' %}" class="btn btn-secondary">Home</a>
+    <a href="{% url 'student_portal:preview_admit_card' exam.id %}" class="btn btn-primary">Get Admit Card</a>
+</div>
+
+{% endif %}
+
+</div>
+{% endblock %}

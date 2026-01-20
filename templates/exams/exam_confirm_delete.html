@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container my-4">
+    <div class="card border-danger shadow-sm">
+        <div class="card-header bg-danger text-white">
+            Confirm Delete
+        </div>
+        <div class="card-body">
+            <p>Are you sure you want to delete the exam: <strong>{{ object.name }}</strong>?</p>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                <a href="{% url 'exams:exam_list' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
