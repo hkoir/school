@@ -613,16 +613,16 @@ def profit_loss_report(request):
                 float(revenue['exam_fee_revenue']),
                 float(revenue['other_revenue']),
                 float(revenue['total_revenue']),
-                float(total_expenses)
+                float(total_expense_amount)
             ],
             "colors": [
-                "#007bff", "#28a745","#20c997", "#dc3545" "#ffc107",
+                "#007bff", "#28a745","#20c997", "#dc3545","#ffc107",
                 "#17a2b8", "#6f42c1", "#fd7e14", "#68ef08", "#034e25"
             ]
         },
         "pie": {
             "labels": ["Total Revenue", "Total Expenses"],
-            "data": [float(revenue['total_revenue']), float(total_expenses)],
+            "data": [float(revenue['total_revenue']), float(total_expense_amount)],
             "colors": ["#28a745", "#dc3545"]
         }
     }

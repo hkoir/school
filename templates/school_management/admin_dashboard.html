@@ -49,6 +49,13 @@
         <div class="col-md-3 col-sm-6 col-6">
             <a href="{% url 'teachers:create_teacher' %}" class="btn btn-success w-100 shadow-sm">Manage Teachers</a>
         </div>
+	<div class="col-md-3 col-sm-6 col-6">
+            <a href="{% url 'payments:manual_payment_multiple' %}" class="btn btn-warning w-100 shadow-sm">Collect Payment(School)</a>
+        </div>
+          <div class="col-md-3 col-sm-6 col-6">
+            <a href="{% url 'university_management:student_invoices_list' %}" class="btn btn-success w-100 shadow-sm">Collect Payment(University)</a>
+        </div>
+
         <div class="col-md-3 col-sm-6 col-6">
             <a href="{% url 'results:exam_list' %}" class="btn btn-warning w-100 shadow-sm">Exam Management</a>
         </div>

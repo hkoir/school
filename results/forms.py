@@ -102,7 +102,7 @@ class ResultForm(forms.ModelForm):
 
     class Meta:
         model = Result
-        exclude = ['user','status','final_result']
+        exclude = ['user','status','final_result','grade','grade_point']
         widgets = {
          
             'student': forms.Select(attrs={'class': 'form-control', 'id': 'student-dropdown'}),           

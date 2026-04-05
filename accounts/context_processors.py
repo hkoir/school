@@ -24,12 +24,20 @@ def user_info(request):
     school_address=None
     school_website=None
 
-    school = School.objects.first()
-
+    school = None
 
     if request.user.is_authenticated:
         try:
             current_client = get_tenant(request)
+            student = Student.objects.filter(user=request.user).first()
+            teacher = Teacher.objects.filter(user=request.user).first()
+            employee = Employee.objects.filter(user=request.user).first()
+            if student:
+                school = student.school
+            elif teacher:
+                school=teacher.school
+            elif employee:
+                school= employee.company
    
             if current_client.schema_name == 'public':
                 return {

@@ -59,24 +59,12 @@ class BlockStudentByNamespaceMiddleware:
         return None
 
 
-
-
-class BypassTenantMiddleware:
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-
-        if request.path.startswith("/allow-cert"):
-            request.urlconf = settings.ROOT_URLCONF
-            request.tenant = None
-            return self.get_response(request)
-        return self.get_response(request)
-
-
-
 class CustomTenantAuthMiddleware(MiddlewareMixin):
     def process_request(self, request):
+        if request.path.startswith("/allow-cert"):
+             
+            return self.get_response(request) 
+
         tenant = getattr(request, 'tenant', None)
         schema_name = getattr(connection, 'schema_name', None)
         is_public_tenant = tenant and tenant.schema_name == get_public_schema_name()

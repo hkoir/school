@@ -27,6 +27,14 @@
 
 <div class="container-fluid py-4" id="messaging-container" data-selected="{% if selected_conversation %}true{% else %}false{% endif %}" >
   <div class="row">
+       <div class="my-4 d-flex gap-2">   
+        <a href="{% url 'student_portal:send_message' %}" class="btn btn-outline-primary">
+          📩 Send Private Message
+        </a>
+        <a href="{% url 'student_portal:create_group' %}" class="btn btn-outline-secondary">
+          👥 Create new Group Chat
+        </a>
+    </div>
 
     <!-- LEFT COLUMN: Inbox -->
     <div class="col-md-4 border-end" id="inbox-column" style="max-height: 90vh; overflow-y: auto;">

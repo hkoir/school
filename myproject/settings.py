@@ -6,11 +6,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-wzlf*t+-g32z73ia4=qdcbq*-2wkw_elwd_^%m3iodhllt9t!1'
 
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['146.190.87.238','bnova.pro','www.bnova.pro','localhost','*']
+ALLOWED_HOSTS = ['146.190.87.238','.bnova.pro','bnova.pro','www.bnova.pro','localhost','*']
 
-
+print("🔥 SETTINGS LOADED FROM:", __file__)
 
 
 
@@ -93,20 +93,22 @@ REST_FRAMEWORK = {
 }
 
 
-
 MIDDLEWARE = [
+
+    'clients.middleware.BypassTenantMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware', 
-    'django.contrib.auth.middleware.AuthenticationMiddleware', 
-    'django_tenants.middleware.TenantMiddleware',  
-    'django.contrib.messages.middleware.MessageMiddleware',  
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django_tenants.middleware.TenantMiddleware',
     'clients.middleware.CustomTenantAuthMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "clients.middleware.BlockStudentByNamespaceMiddleware",
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 
 STUDENT_DENY_NAMESPACES = ["inventory", "core",'finance','leavemanagement','results','school_management']
 # STUDENT_ALLOW_URL_NAMES = ["staff:public_notice"]  

@@ -70,6 +70,31 @@ from django.conf import settings
 
 
 
+from django.http import JsonResponse
+from clients.models import Domain
+ROOT_DOMAIN = "bnova.pro"
+
+
+def allow_cert(request):
+    domain = request.GET.get("domain")
+    if not domain:
+        return JsonResponse({"error": "No domain"}, status=400)
+    host = domain.split(":")[0].strip().lower()
+    print(f"🔐 TLS CHECK → {host}")
+    if not (host == ROOT_DOMAIN or host.endswith("." + ROOT_DOMAIN)):
+        print(f"❌ Rejected (outside domain): {host}")
+        return JsonResponse({"allowed": False}, status=403)
+    if host in [ROOT_DOMAIN, f"www.{ROOT_DOMAIN}"]:
+        print(f"✅ Allowed root: {host}")
+        return JsonResponse({"allowed": True})
+    exists = Domain.objects.filter(domain=host).exists()
+    if exists:
+        print(f"✅ Allowed tenant: {host}")
+        return JsonResponse({"allowed": True})
+    print(f"❌ Rejected (not in DB): {host}")
+    return JsonResponse({"allowed": False}, status=403)
+
+
 
 def home(request):
     return render(request,'accounts/home.html')

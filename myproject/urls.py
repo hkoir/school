@@ -3,10 +3,20 @@ from django.contrib import admin
 from django.urls import path,include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import JsonResponse
+from clients.models import Client,Domain
 
+
+ROOT_DOMAIN = "bnova.pro"
+
+from django.http import HttpResponse
+
+def super_test(request):
+    return HttpResponse("SUPER_OK_123")
 
 
 urlpatterns = [
+    path("super-test-123", super_test),
     path('admin/', admin.site.urls),
     path('select2/', include('django_select2.urls')),
     path('', include('accounts.urls', namespace='accounts')),
@@ -31,7 +41,6 @@ urlpatterns = [
     path('varsity_portal/',include('varsity_portal.urls',namespace='varsity_portal')),  
 
 ]
-
 
 
 

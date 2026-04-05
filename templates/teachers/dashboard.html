@@ -82,15 +82,25 @@
         </div>
 
         <!-- Enter Result -->
-         <div class="col-xl-3 col-md-4 col-6">
-            <a href="" class="text-decoration-none">
+        <div class="col-xl-3 col-md-4 col-6">
+            {% if request.user.role == 'teacher' %}
+            {% if request.user.teacher_type == 'school' %}
+            <a href="{% url 'results:create_result' %}" class="text-decoration-none">
                 <div class="p-3 action-card gradient-blue text-white">
                     <div class="action-icon"><i class="fas fa-pencil-alt"></i></div>
                     <h6 class="fw-semibold mb-0">Enter Result</h6>
                 </div>
             </a>
+            {% else %}
+            <a href="{% url 'university_management:exam_list' %}" class="text-decoration-none">
+                <div class="p-3 action-card gradient-blue text-white">
+                    <div class="action-icon"><i class="fas fa-pencil-alt"></i></div>
+                    <h6 class="fw-semibold mb-0">Enter Result</h6>
+                </div>
+            </a>
+            {% endif %}
+            {% endif %}
         </div>
-
         <!-- My Students -->
        <div class="col-xl-3 col-md-4 col-6">
             <a href="" class="text-decoration-none">

@@ -336,6 +336,18 @@ li a {
                     </ul>
                 </li>
                
+		<li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle dropdown_caret_color"href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class=" fas fa-user-cog text-info"></i>  &nbsp;<span style="color:gray">Chat</span>            
+                                 
+                    </a>                                       
+                      
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown" style="max-height: 400px; overflow-y: auto;">
+                        <li><a class="dropdown-item" href="{% url 'student_portal:inbox' %}" style="text-decoration: none;">
+                            <i class="fas fa-plus-square"></i>&nbsp;Chat Box </a></li>                        
+                                                                               
+                    </ul>                 
+                </li> 
 
 
                
@@ -346,7 +358,6 @@ li a {
                     </a>                                       
                       
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown" style="max-height: 400px; overflow-y: auto;">
-                        <li><a class="dropdown-item" href="{% url 'student_portal:inbox' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Message Inbox</a></li> 
                         <li class="nav-item"><a class="nav-link" href="{% url 'student_portal:exam_schedule_view' %}">
                             <i class="fas fa-tasks"></i>&nbsp;Student Admit Card</a></li>
 
@@ -376,12 +387,8 @@ li a {
                         
                             <li><a class="dropdown-item" href="{% url 'student_portal:exam_list' %}" style="text-decoration: none;">
                             <i class="fas fa-plus-square"></i>&nbsp;Exam list</a></li>   
-                            
-
-
-                              <li><a class="dropdown-item" href="{% url 'student_portal:view_student_vcard' %}" style="text-decoration: none;">
-                            <i class="fas fa-plus-square"></i>&nbsp;Student data</a></li>   
-                            
+			    <li class="nav-item"><a class="nav-link" href="{% url 'student_portal:student_landing_page' %}">
+                            <i class="fas fa-tasks"></i>&nbsp;Dashboard</a></li>                               
                                                    
                     </ul>                 
                 </li> 
@@ -394,10 +401,11 @@ li a {
                     </a>                                       
                       
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown" style="max-height: 400px; overflow-y: auto;">
-                        <li><a class="dropdown-item" href="{% url 'student_portal:inbox' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Message Inbox</a></li> 
                         <li class="nav-item"><a class="nav-link" href="{% url 'varsity_portal:enrollment_list' %}">
                             <i class="fas fa-tasks"></i>&nbsp;Enrollment</a></li>                      
-                                                                               
+			<li class="nav-item"><a class="nav-link" href="{% url 'varsity_portal:student_landing_page' %}">
+                            <i class="fas fa-tasks"></i>&nbsp;Dashboard</a></li>                            
+                                                      
                     </ul>                 
                 </li> 
 
