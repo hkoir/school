@@ -5,21 +5,25 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import JsonResponse
 from clients.models import Client,Domain
-
+from accounts.views import allow_cert
+from accounts.views import public_home
+from django.urls import re_path
 
 ROOT_DOMAIN = "bnova.pro"
 
 from django.http import HttpResponse
 
-def super_test(request):
-    return HttpResponse("SUPER_OK_123")
 
 
 urlpatterns = [
-    path("super-test-123", super_test),
+    #re_path(r"^$", public_home),
+    path("", include('accounts.urls', namespace='accounts')),
+    path("allow-cert", allow_cert),
+    path("allow-cert/", allow_cert),
+    #path("user-accounts/", include('accounts.urls', namespace='accounts')),
     path('admin/', admin.site.urls),
     path('select2/', include('django_select2.urls')),
-    path('', include('accounts.urls', namespace='accounts')),
+
     path("accounts/", include("django.contrib.auth.urls")), 
     path('clients/',include('clients.urls',namespace='clients')),  
     path('attendance/',include('attendance.urls',namespace='attendance')),

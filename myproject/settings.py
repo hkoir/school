@@ -119,6 +119,8 @@ STUDENT_REDIRECT_URL_NAME = "student_portal:student_landing_page"  # or None to 
 
 
 ROOT_URLCONF = 'myproject.urls'
+PUBLIC_SCHEMA_URLCONF = "myproject.public_urls"
+
 
 TEMPLATES = [
     {

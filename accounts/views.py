@@ -69,35 +69,44 @@ from django.conf import settings
 
 
 
-
 from django.http import JsonResponse
 from clients.models import Domain
 ROOT_DOMAIN = "bnova.pro"
+from django.http import HttpResponse
 
+from django.http import HttpResponse
+from django_tenants.utils import schema_context
+from clients.models import Domain
+
+ROOT_DOMAIN = "bnova.pro"
 
 def allow_cert(request):
     domain = request.GET.get("domain")
-    if not domain:
-        return JsonResponse({"error": "No domain"}, status=400)
-    host = domain.split(":")[0].strip().lower()
-    print(f"🔐 TLS CHECK → {host}")
-    if not (host == ROOT_DOMAIN or host.endswith("." + ROOT_DOMAIN)):
-        print(f"❌ Rejected (outside domain): {host}")
-        return JsonResponse({"allowed": False}, status=403)
-    if host in [ROOT_DOMAIN, f"www.{ROOT_DOMAIN}"]:
-        print(f"✅ Allowed root: {host}")
-        return JsonResponse({"allowed": True})
-    exists = Domain.objects.filter(domain=host).exists()
-    if exists:
-        print(f"✅ Allowed tenant: {host}")
-        return JsonResponse({"allowed": True})
-    print(f"❌ Rejected (not in DB): {host}")
-    return JsonResponse({"allowed": False}, status=403)
 
+    if not domain:
+        return HttpResponse("Missing domain", status=400)
+
+    domain = domain.lower().strip()
+
+    with schema_context('public'):
+        if domain == ROOT_DOMAIN or domain == f"www.{ROOT_DOMAIN}":
+            return HttpResponse("OK")
+
+        if domain.endswith("." + ROOT_DOMAIN):
+            return HttpResponse("OK")
+
+        if Domain.objects.filter(domain=domain, is_verified=True).exists():
+            return HttpResponse("OK")
+
+    return HttpResponse("Not allowed", status=403)
+
+
+def public_home(request):
+    return HttpResponse("BNOVA Public Page 🚀")
 
 
 def home(request):
-    return render(request,'accounts/home.html')
+    return render(request,'tenant/default_dashboard.html')
 
 
 

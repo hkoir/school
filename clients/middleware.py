@@ -60,6 +60,17 @@ class BlockStudentByNamespaceMiddleware:
 
 
 
+from django.urls import resolve
+from django.conf import settings
+from django.http import HttpResponse
+
+
+from django.conf import settings
+from django.http import HttpResponse
+
+
+
+from django.http import HttpResponse
 
 class BypassTenantMiddleware:
     def __init__(self, get_response):
@@ -67,12 +78,33 @@ class BypassTenantMiddleware:
 
     def __call__(self, request):
 
+        # ONLY for TLS
         if request.path.startswith("/allow-cert"):
+            return HttpResponse("OK")
+
+        return self.get_response(request)
+
+
+
+
+class BypassTenantMiddleware2:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+
+        host = request.get_host()
+
+        if request.path.startswith("/allow-cert"):
+            request.urlconf = settings.ROOT_URLCONF
+            return HttpResponse("OK")
+
+        if host == "bnova.pro" or host == "www.bnova.pro":
             request.urlconf = settings.ROOT_URLCONF
             request.tenant = None
             return self.get_response(request)
-        return self.get_response(request)
 
+        return self.get_response(request)
 
 
 class CustomTenantAuthMiddleware(MiddlewareMixin):
