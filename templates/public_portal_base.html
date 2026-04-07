@@ -193,6 +193,24 @@
 }
 
 
+.social-nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+}
+.main-nav {
+    position: fixed;
+    top: 40px; /* social nav height */
+    width: 100%;
+    z-index: 999;
+}
+
+body {
+    padding-top: 100px; /* total nav height */
+}
+
+
     </style>
     
 
@@ -200,132 +218,119 @@
 
 
 <body>
-
-
-<!-- Social Links Navbar -->
-
-<!-- Social Links Navbar -->
-<nav class="navbar navbar-dark social-nav" id="socialNav">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top px-4">
     <div class="container-fluid d-flex justify-content-between align-items-center">
-        <!-- Left Section: Social Links -->
-        <span class="navbar-text">Social Links | Contact Us | Follow Us</span>
 
+        <!-- LEFT SIDE (Main Navbar FULL) -->
+        <div class="d-flex align-items-center">
+            <a class="navbar-brand" href="#">bnova</a>
 
-        <!-- Right Section: Social Icons -->
-        <div class="social-icons d-flex">
-            <a href="https://www.facebook.com" target="_blank" class="text-light me-3">
-                <i class="fab fa-facebook-f"></i>
-            </a>
-            <a href="https://www.twitter.com" target="_blank" class="text-light me-3">
-                <i class="fab fa-twitter"></i>
-            </a>
-            <a href="https://www.linkedin.com" target="_blank" class="text-light me-3">
-                <i class="fab fa-linkedin-in"></i>
-            </a>
-            <a href="mailto:contact@yourcompany.com" class="text-light ms-3">
-                <i class="fas fa-envelope"></i> Email Us
-            </a>
-        </div>
-    </div>
-</nav>
+            <button class="navbar-toggler ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-<!-- Main Navbar -->
-<nav class="navbar navbar-expand-lg main-nav" id="mainNav">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">bnova</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">              
-           
+            <div class="collapse navbar-collapse ms-3" id="navbarNav">
+                <ul class="navbar-nav">
 
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle menu-color"href="#free_trial" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class=" fas fa-solid fas fa-dollar-sign" aria-hidden="true"></i>&nbsp;<span style="color:gray">&nbsp;Price</span>
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown" style="max-height: 400px; overflow-y: auto;">
-                        <li><hr class="dropdown-divider"style="background-color:gray;"></li> 
-                        <li><a class="dropdown-item" href="#free_trial"><i class="fas fa-users"></i><i class="fas fa-plus-circle"></i>&nbsp;Subscription Plan</a></li>
-                        <li><hr class="dropdown-divider"style="background-color:gray;"></li> 
-                                                               
-                     
-                    </ul> 
-                </li>      
-                
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle menu-color"href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class=" fas fa-solid fas fa-home" aria-hidden="true"></i>&nbsp;<span style="color:gray">&nbsp;About us</span>
-                    </a>
-                   
-                </li>   
-                
-                
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle menu-color"href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class=" fas fa-solid fas fa-tasks" aria-hidden="true"></i>&nbsp;<span style="color:gray">&nbsp;Terms of services</span>
-                    </a>
-                  
-                </li>    
-                
-                
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle menu-color"href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class=" fas fa-solid fas fa-user" aria-hidden="true"></i>&nbsp;<span style="color:gray">&nbsp;User</span>
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown" style="max-height: 400px; overflow-y: auto;">
-                        <li><hr class="dropdown-divider"style="background-color:gray;"></li> 
-                       
+                    <!-- PRICE -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle menu-color" href="#free_trial" data-bs-toggle="dropdown">
+                            <i class="fas fa-dollar-sign"></i>
+                            <span style="color:gray"> Price</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#free_trial">Subscription Plan</a></li>
+                        </ul>
+                    </li>
 
-  			{% if user.is_authenticated %}                        
-                        <li>
-                            <form action="{% url 'accounts:logout' %}" method="post" style="display: inline;">
-                                {% csrf_token %}
-                                <button type="submit" class="dropdown-item" style="text-decoration: none;"><i class="fas fa-sign-out-alt"></i>&nbsp;Logout</button>
-                            </form>
-                        </li>                                        
-                        <li><a class="dropdown-item" href="{% url 'accounts:password_change' %}" style="text-decoration: none;"><i class="fas fa-key"></i>&nbsp;Change Password </a></li>
-                        <li><a class="dropdown-item" href="{% url 'accounts:register_public' %}" style="text-decoration: none;"><i class="fas fa-sign-in-alt"></i> &nbsp;Register</a></li>
+                    <!-- ABOUT -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle menu-color" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-home"></i>
+                            <span style="color:gray"> About us</span>
+                        </a>
+                    </li>
 
-                       {% else %}
-                        <li><a class="dropdown-item" href="{% url 'accounts:login' %}" style="text-decoration: none;"><i class="fas fa-sign-in-alt"></i> &nbsp;Login</a></li>
-                        <li><a class="dropdown-item" href="{% url 'accounts:register_public' %}" style="text-decoration: none;"><i class="fas fa-sign-in-alt"></i> &nbsp;Register</a></li>
-                        <li><a class="dropdown-item" href="{% url 'accounts:pwdreset' %}" style="text-decoration: none;"><i class="fas fa-lock"></i>&nbsp;Forgot Password </a></li>
-                        {% endif %}                     
-                    </ul> 
-                </li>                  
-            </ul>
-             <!-- this master Ul end  -->
-         
-             <div class="user-info ms-auto d-flex align-items-center">
-                    {% if user_info %}
-                        <a href="{% url 'accounts:update_profile_picture' %}">
-                            {% if profile_picture_url %}
-                                <img class="profile-picture" src="{{ profile_picture_url }}">
+                    <!-- TERMS -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle menu-color" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-tasks"></i>
+                            <span style="color:gray"> Terms of services</span>
+                        </a>
+                    </li>
+
+                    <!-- USER DROPDOWN -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle menu-color" href="#" data-bs-toggle="dropdown">
+                            <i class="fas fa-user"></i>
+                            <span style="color:gray"> User</span>
+                        </a>
+
+                        <ul class="dropdown-menu">
+
+                            {% if user.is_authenticated %}
+                                <li>
+                                    <form action="{% url 'accounts:logout' %}" method="post">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item">
+                                            Logout
+                                        </button>
+                                    </form>
+                                </li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:password_change' %}">Change Password</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:register_public' %}">Register</a></li>
                             {% else %}
-                                <i class="fas fa-user-circle user-icon"></i>
+                                <li><a class="dropdown-item" href="{% url 'accounts:login' %}">Login</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:register_public' %}">Register</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:pwdreset' %}">Forgot Password</a></li>
                             {% endif %}
-                        </a>
-                        <br>
-                        <span class="welcome-message" style="color:gray;">Welcome {{ user_info }}</span>
-                    {% else %}
-                        <a href="#" class="guest-icon">
-                            <i class="fas fa-user-circle"></i>
-                        </a>
-                        <br>
-                        <span class="welcome-message" style="color:gray;">Guest!</span>
-                    {% endif %}
-                </div>                
-       
 
-          
+                        </ul>
+                    </li>
+
+                </ul>
+            </div>
         </div>
+
+        <!-- RIGHT SIDE (Social + User Info) -->
+        <div class="d-flex align-items-center">
+
+            <!-- Social -->
+            <div class="d-flex me-3">
+                <a href="https://www.facebook.com" class="text-light me-2"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://www.twitter.com" class="text-light me-2"><i class="fab fa-twitter"></i></a>
+                <a href="https://www.linkedin.com" class="text-light me-2"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+
+            <!-- User Info -->
+            <div class="d-flex align-items-center text-light">
+
+                {% if user_info %}
+                    <a href="{% url 'accounts:update_profile_picture' %}" class="me-2">
+                        {% if profile_picture_url %}
+                            <img src="{{ profile_picture_url }}" style="width:35px;height:35px;border-radius:50%;">
+                        {% else %}
+                            <i class="fas fa-user-circle"></i>
+                        {% endif %}
+                    </a>
+
+                    <span style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                        {{ user_info }}
+                    </span>
+                {% else %}
+                    <i class="fas fa-user-circle me-1"></i>
+                    <span>Guest</span>
+                {% endif %}
+
+            </div>
+
+        </div>
+
     </div>
 </nav>
-     
-   
 
-    <div class="container">    
+    <div class="container-fluid">    
         {% block content %}
         {% endblock %}
     </div>

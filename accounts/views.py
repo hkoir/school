@@ -508,13 +508,20 @@ def login_view(request):
             if user:                  
                 login(request, user,backend='accounts.backends.TenantAuthenticationBackend')
                 current_schema_found=request.tenant.schema_name == get_public_schema_name()
+                protocol = "https" if request.is_secure() else "http"
+                host = request.get_host()
+                domain = request.get_host().split(':')[0]   
+                if "localhost" in host or "127.0.0.1" in host:
+                    tenant_url = f"{protocol}://{host}/clients/tenant_expire_check/"
+                else:
+                    domain = host.split(':')[0]
+                    tenant_url = f"{protocol}://{tenant}.{domain}/clients/tenant_expire_check/"
+
                 if not current_schema_found:   
-                    messages.success(request, "Login successful!")                      
-                    tenant_url = f"http://{tenant}.bnova.pro/clients/tenant_expire_check/"
+                    messages.success(request, "Login successful!")                                      
                     return redirect(tenant_url)       
                 else:
-                    messages.success(request, "Login successful!")                      
-                    tenant_url = f"http://bnova.pro/clients/tenant_expire_check/"
+                    messages.success(request, "Login successful!")                     
                     return redirect(tenant_url)     
 
             else:

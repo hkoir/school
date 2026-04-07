@@ -64,7 +64,7 @@ from students.models import Student
 
 
 
-
+from django.http import HttpResponseRedirect
 def student_landing_page(request):
     student = Student.objects.filter(user=request.user).first()  
     student_results = Result.objects.filter(
@@ -88,9 +88,13 @@ def student_landing_page(request):
         .first()
     )
 
-    upcoming_exams= Exam.objects.filter(is_exam_over = False)
+    upcoming_exams= Exam.objects.filter(is_exam_over = False)   
     dues = get_due_till_today(student)
+    if isinstance(dues, HttpResponseRedirect):
+        return dues
     has_due = any(d['net_due'] > 0 for d in dues.values())
+        
+  
 
     return render(request, 'student_portal/student_landing_page.html', {
         'student': student,

@@ -11,6 +11,7 @@ from clients.models import Tenant
 from messaging.models import CommunicationMessage
 from messaging.models import Conversation
 from school_management.models import School
+from core.models import Company
 
 
 def user_info(request):
@@ -23,6 +24,9 @@ def user_info(request):
     tenant_photo_url = None
     school_address=None
     school_website=None
+    company_logo=None
+    school=None
+    company=None
 
     school = None
 
@@ -32,6 +36,8 @@ def user_info(request):
             student = Student.objects.filter(user=request.user).first()
             teacher = Teacher.objects.filter(user=request.user).first()
             employee = Employee.objects.filter(user=request.user).first()
+            company = Company.objects.first()
+            school = School.objects.first()
             if student:
                 school = student.school
             elif teacher:
@@ -48,8 +54,9 @@ def user_info(request):
                 }
 
             tenant_instance = Tenant.objects.filter(tenant=current_client).first()
-            if tenant_instance and tenant_instance.logo:
-                school_logo_url = tenant_instance.logo.url
+            if tenant_instance:
+                school_logo_url = school.logo,
+                company_logo= company.logo,
                 school_name = tenant_instance.name
                 school_address = tenant_instance.address
                 school_website = current_client
@@ -70,6 +77,10 @@ def user_info(request):
         'school':school,
         'school_address': school_address,
         'school_website': f"http://www.{school_website}.bnova.pro",
+        'company_logo':company_logo,
+        'school_logo':school_logo_url,
+        'company':company,
+        'school':school
     }
 
 

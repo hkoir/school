@@ -23,10 +23,16 @@
     .gradient-green { background: linear-gradient(135deg, #35d07f, #4bcf97); color: white; }
     .gradient-purple { background: linear-gradient(135deg, #8a68ff, #b27afe); color: white; }
     .gradient-orange { background: linear-gradient(135deg, #ff8c42, #ffa75d); color: white; }
-</style>
-<div class="container mt-4">
 
-    <!-- School Header -->
+
+
+</style>
+
+
+
+<div class="container-fluid mt-4">
+
+      <!-- School Header -->
     <div class="text-center mb-4 border-bottom pb-2">
         {% if teacher.school.logo %}
             <img src="{{ teacher.school.logo.url }}" alt="School Logo" class="mb-2" style="width:60px; height:60px;">

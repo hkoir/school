@@ -1,5 +1,9 @@
 
-
+<style>
+ .submenu li {
+    margin-top: 8px;
+}
+</style>
 
  <aside class="sidebar">
 
@@ -237,7 +241,9 @@
             </button>
             <div class="submenu">
                 <li><a class="dropdown-item" href="{% url 'finance:generate_monthly_salaries' %}" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Generate Monthly Salary</a></li>       
-                <a class="dropdown-item" href="#"><i class="fas fa-id-badge text-info"></i>&nbsp;Employee List</a>
+               <li><a class="dropdown-item" href="" style="text-decoration: none;"><i class="fas fa-plus-square"></i>&nbsp;Employee List</a></li> 
+               
+                
             </div>
              <button class="submenu-toggle" onclick="toggleSubmenu(this)">
                 <span><i class="fas fa-users"></i> Attendance</span>

@@ -39,7 +39,13 @@
         margin: 0 auto;
         text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.6); /* Subtle shadow for text */
         animation: fadeInUp 10s ease-out;
+        padding-top:20px;
     }
+    @media (max-width: 768px) {
+    .hero-content {
+        padding-top: 130px;   /* increase space so image not cut */
+    }
+}
     
     .hero-section h1 {
         font-size: 3.5rem;
@@ -423,6 +429,7 @@
 }
 
 
+
 </style>
 
    <!-- Main Landing Page Structure -->
@@ -502,8 +509,7 @@
 
  
   <div class="container-fluid mt-5 px-0">
-    <div class="row g-4 px-0">
-              
+    <div class="row g-4 px-0">              
           <!-- Slider Left -->
     <div class="col-12 col-md-6 my-4">
       <div class="styling" id="heroSlider">
@@ -538,6 +544,7 @@
           <button data-slide="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %}" aria-label="Slide {{ forloop.counter }}"></button>
           {% endfor %}
         </div>
+
       </div>
     </div>
 
@@ -545,21 +552,19 @@
 
           <!-- Video Right -->
 	<div class="col-12 col-md-6 my-4">
-  <div class="styling">
-    <div class="ratio ratio-16x9">
+    <div class="styling">
+      <div class="ratio ratio-16x9">
 
-	<iframe width="560" height="315" src="https://www.youtube.com/embed/HndV87XpkWg?si=dkWA1Tl9ew9MO35y" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/HndV87XpkWg?si=dkWA1Tl9ew9MO35y" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+      </div>
     </div>
   </div>
-</div>
 
 
+    </div>
+  </div>
 
-        </div>
-      </div>
-
-
-
+  
 
 </div>
 
