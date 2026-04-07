@@ -481,61 +481,62 @@ def update_profile_picture(request):
 
 
 
-
 def login_view(request):
-    current_tenant = None
-    if hasattr(connection, 'tenant'):
-        current_tenant = connection.tenant         
-        current_schema = current_tenant.schema_name   
+    current_schema = None
 
-        subscriptions = Subscription.objects.all()
+    if hasattr(connection, 'tenant'):
+        current_tenant = connection.tenant
+        current_schema = current_tenant.schema_name
+     
         current_date = timezone.now().date()
+        subscriptions = Subscription.objects.all()
+
         for subscription in subscriptions:
             if subscription.expiration_date:
-                if subscription.expiration_date > current_date:
+                if subscription.expiration_date < current_date:
                     subscription.is_expired = True
                     subscription.save()
-    form = CustomLoginForm(initial={'tenant': current_schema })   
+
+  
+    form = CustomLoginForm(initial={'tenant': current_schema})
 
     if request.method == 'POST':
         form = CustomLoginForm(data=request.POST)
+
         if form.is_valid():
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
-                    
+
             user = authenticate(request, username=username, password=password)
-            tenant = current_schema 
-            if user:                  
-                login(request, user,backend='accounts.backends.TenantAuthenticationBackend')
-                current_schema_found=request.tenant.schema_name == get_public_schema_name()
+
+            if user:
+                login(request, user, backend='accounts.backends.TenantAuthenticationBackend')
+
                 protocol = "https" if request.is_secure() else "http"
                 host = request.get_host()
-                domain = request.get_host().split(':')[0]   
+             
+                is_public = request.tenant.schema_name == get_public_schema_name()
+              
                 if "localhost" in host or "127.0.0.1" in host:
                     tenant_url = f"{protocol}://{host}/clients/tenant_expire_check/"
+              
                 else:
-                    domain = host.split(':')[0]
-                    tenant_url = f"{protocol}://{tenant}.{domain}/clients/tenant_expire_check/"
+                    tenant_domain = request.tenant.domain_url
+                    tenant_url = f"{protocol}://{tenant_domain}/clients/tenant_expire_check/"
 
-                if not current_schema_found:   
-                    messages.success(request, "Login successful!")                                      
-                    return redirect(tenant_url)       
-                else:
-                    messages.success(request, "Login successful!")                     
-                    return redirect(tenant_url)     
+                messages.success(request, "Login successful!")
+                return redirect(tenant_url)
 
             else:
                 messages.error(request, "Invalid username or password.")
+
         else:
-            print(form.errors)
-            form = CustomLoginForm(initial={'tenant':  current_schema })  
             messages.error(request, "Please provide correct username and password")
-  
-    
-    form = CustomLoginForm(initial={'tenant':  current_schema })    
+
+    # Reload form safely
+    form = CustomLoginForm(initial={'tenant': current_schema})
+
     return render(request, 'accounts/registration/login.html', {'form': form})
-
-
 
 
 def logged_out_view(request): 
